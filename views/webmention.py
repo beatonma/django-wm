@@ -9,6 +9,8 @@ from django.http import (
     HttpResponseNotAllowed,     # HTTP 405
 )
 from django.shortcuts import render
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import View
 
 from mentions.tasks import process_incoming_webmention
@@ -17,13 +19,6 @@ from main.models import App, Article, Changelog
 
 
 log = logging.getLogger(__name__)
-
-# Classes that use the WebMentionableMixin
-MENTIONABLE_MODELS = [
-    App,
-    Article,
-    Changelog,
-]
 
 
 def _get_client_ip(request):
@@ -38,7 +33,9 @@ def _get_client_ip(request):
 class WebmentionView(View):
     """Handle incoming webmentions."""
 
+    @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
+        log.info('Receiving webmention...')
         if request.method != 'POST':
             return HttpResponseNotAllowed(
                 ['POST', ],
@@ -53,12 +50,14 @@ class WebmentionView(View):
             log.warn(
                 'Unable to read webmention params "{}": {}'
                 .format(http_post, e))
+            return HttpResponse(status=400)
 
         validate = URLValidator(schemes=['http', 'https'])
 
         try:
             validate(source)
             validate(target)
+            log.info('Both urls are valid')
         except ValidationError as e:
             log.warn('URL did not pass validation: {}'.format(e))
             return HttpResponseBadRequest()
@@ -71,6 +70,8 @@ class GetWebmentionsView(View):
     """Return any webmentions associated with a given item."""
 
     def dispatch(self, request, *args, **kwargs):
+        return HttpResponse('TODO', status=500)
+
         if request.method != 'GET':
             return HttpResponseNotAllowed(['GET', ])
 
@@ -85,10 +86,9 @@ class GetWebmentionsView(View):
             return HttpResponseBadRequest()
         # TODO
         # webmentions.objects.filter(target=url)
-        # 
+        #
         # for m in MENTIONABLE_MODELS:
         #     if m._meta.verbose_name.lower() == model_name:
                 # m.objects.filter(slug=slug)
-                
 
-        return HttpResponse(status=500)
+        return HttpResponse('TODO', status=500)

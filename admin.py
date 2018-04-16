@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import HCard, Webmention
+from .models import HCard, SimpleMention, Webmention
 
 
 def approve_webmention(modeladmin, request, queryset):
@@ -15,27 +15,49 @@ class BaseAdmin(admin.ModelAdmin):
     save_on_top = True
 
 
+@admin.register(SimpleMention)
+class QuotableAdmin(BaseAdmin):
+    list_display = [
+        'source_url',
+        'target_url',
+        'hcard',
+    ]
+    search_fields = [
+        'source_url',
+        'target_url',
+        'hcard',
+    ]
+    date_hierarchy = 'published'
+
+
 @admin.register(Webmention)
-class WebmentionAdmin(BaseAdmin):
+class WebmentionAdmin(QuotableAdmin):
+    readonly_fields = ['target_object', ]
     actions = [
         approve_webmention,
         disapprove_webmention,
     ]
-    list_display = ['source', 'target', 'validated', 'approved']
-    search_fields = ['source', 'target']
+    list_display = [
+        'source_url',
+        'validated',
+        'approved',
+        'content_type',
+    ]
     date_hierarchy = 'created'
     fieldsets = (
         ('Remote source', {
             'fields': (
-                'source',
+                'source_url',
                 'sent_by',
-                'hcard_homepage'
+                'hcard',
             ),
         }),
         ('Local target', {
             'fields': (
-                'target',
-                'target_slug'
+                'target_url',
+                'content_type',
+                'object_id',
+                'target_object',
             ),
         }),
         ('Metadata', {

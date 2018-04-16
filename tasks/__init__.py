@@ -1,1 +1,2 @@
-from .webmentions import *
+from .incoming_webmentions import process_incoming_webmention
+from .outgoing_webmentions import process_outgoing_webmentions
