@@ -39,4 +39,4 @@ class Webmention(QuotableMixin, models.Model):
 
     def __str__(self):
         return '{} -> {} [validated={}, approved={}]'.format(
-            self.source, self.target, self.validated, self.approved)
+            self.source_url, self.target_url, self.validated, self.approved)
