@@ -72,8 +72,10 @@ def process_incoming_webmention(http_post, client_ip):
     # the corresponding object.
     try:
         obj = _get_target_object(target)
+        log.info('Found webmention target object')
         wm.target_object = obj
     except (TargetWrongDomain, TargetDoesNotExist) as e:
+        log.warn('Unable to find matching page on our server {}'.format(e))
         notes.append('Unable to find matching page on our server {}'.format(e))
 
     # Verify that the source page exists and really contains a link
@@ -96,6 +98,8 @@ def process_incoming_webmention(http_post, client_ip):
 
     wm.hcard = _get_hcard(soup)
     wm.validated = True
+    wm.notes = '\n'.join(notes)
+
     wm.save()
     log.info('Webmention saved: {}'.format(wm))
 
@@ -120,10 +124,10 @@ def _get_target_object(target_url):
         name='app_view'),
     """
     url = urlparse(target_url)
-    domain = url.netloc
+    domain = url.netloc.split(':')[0]
 
     if domain not in settings.ALLOWED_HOSTS:
-        raise TargetWrongDomain(domain)
+        raise TargetWrongDomain('Wrong domain: {}'.format(domain))
 
     try:
         return _get_model_for_url(url.path)
@@ -138,6 +142,8 @@ def _get_model_for_url(target_path):
     """
     Find a match in urlpatterns and return the corresponding model instance.
     """
+    target_path = target_path.lstrip('/')  # Remove any leading slashes
+    log.info('Looking for object to match url {}'.format(target_path))
     urlconf = import_module(settings.ROOT_URLCONF)
     urlpatterns = urlconf.urlpatterns
     for x in urlpatterns:
@@ -146,12 +152,15 @@ def _get_model_for_url(target_path):
         # - django.urls.resolvers.URLPattern
         try:
             match = x.resolve(target_path)
-            break
+            if match:
+                break
         except:
             pass
     else:
         # No match found
         raise TargetDoesNotExist('Cannot find a matching urlpattern entry')
+
+    log.info('Found matching urlpattern: {}'.format(match))
 
     # Dotted path to model class declaration
     model_name = match.kwargs.get('model_name')
@@ -161,10 +170,12 @@ def _get_model_for_url(target_path):
 
     if not model_name:
         raise BadConfig(
-            'urlpattern must include a kwarg entry called \'model_name\'')
+            'urlpattern must include a kwarg entry called \'model_name\': {}'
+            .format(match))
     if not slug:
         raise BadConfig(
-            'urlpattern must include a kwarg entry called \'slug\'')
+            'urlpattern must include a kwarg entry called \'slug\': {}'
+            .format(match))
 
     from django.apps import apps
     model = apps.get_model(model_name)
