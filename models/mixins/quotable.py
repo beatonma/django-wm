@@ -10,6 +10,8 @@ log = logging.getLogger()
 
 
 class QuotableMixin(models.Model):
+    """A third-party thing that talks about a first-party thing."""
+
     class Meta:
         abstract = True
 
@@ -31,10 +33,10 @@ class QuotableMixin(models.Model):
         on_delete=models.CASCADE)
 
     # The mention target may be an instance of any class that
-    # uses the QuotableMixin so we need to use a GenericForeignKey
+    # uses the MentionableMixin so we need to use a GenericForeignKey
     content_type = models.ForeignKey(
         ContentType,
         null=True,
         on_delete=models.CASCADE)
-    object_id = models.PositiveIntegerField()
+    object_id = models.PositiveIntegerField(blank=True, null=True)
     target_object = GenericForeignKey('content_type', 'object_id')
