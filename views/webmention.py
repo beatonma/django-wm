@@ -62,7 +62,7 @@ class WebmentionView(View):
             log.warn('URL did not pass validation: {}'.format(e))
             return HttpResponseBadRequest()
 
-        process_incoming_webmention(http_post, client_ip)
+        process_incoming_webmention.delay(http_post, client_ip)
         return HttpResponse(status=202)
 
 
