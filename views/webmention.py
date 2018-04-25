@@ -8,14 +8,13 @@ from django.http import (
     HttpResponseBadRequest,     # HTTP 400
     HttpResponseNotAllowed,     # HTTP 405
 )
-from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import View
 
+from mentions.exceptions import TargetDoesNotExist
 from mentions.tasks import process_incoming_webmention
-
-from main.models import App, Article, Changelog
+from mentions.util import get_model_for_url
 
 
 log = logging.getLogger(__name__)
@@ -30,6 +29,7 @@ def _get_client_ip(request):
     return ip
 
 
+# /webmention
 class WebmentionView(View):
     """Handle incoming webmentions."""
 
@@ -62,33 +62,35 @@ class WebmentionView(View):
             log.warn('URL did not pass validation: {}'.format(e))
             return HttpResponseBadRequest()
 
-        process_incoming_webmention.delay(http_post, client_ip)
+        process_incoming_webmention(http_post, client_ip)
         return HttpResponse(status=202)
 
 
+# /webmention/get
 class GetWebmentionsView(View):
     """Return any webmentions associated with a given item."""
 
     def dispatch(self, request, *args, **kwargs):
-        return HttpResponse('TODO', status=500)
-
         if request.method != 'GET':
             return HttpResponseNotAllowed(['GET', ])
 
-        try:
-            # model_name = request.GET['for']
-            # slug = request.GET['id']
-            url = request.GET['url']
-        except Exception as e:
-            log.warn(
-                'Unable to read params for GetWebmentionsView(): {}'
-                .format(e))
-            return HttpResponseBadRequest()
-        # TODO
-        # webmentions.objects.filter(target=url)
-        #
-        # for m in MENTIONABLE_MODELS:
-        #     if m._meta.verbose_name.lower() == model_name:
-                # m.objects.filter(slug=slug)
+        http_get = request.GET
+        for_url = http_get.get('url')
 
-        return HttpResponse('TODO', status=500)
+        if not for_url:
+            return HttpResponseBadRequest('Missing args')
+
+        try:
+            obj = get_model_for_url(for_url)
+        except TargetDoesNotExist as e:
+            log.info(e)
+            return JsonResponse({
+                'status': 0,
+                'message': 'Target object not found'
+            })
+
+        wm = obj.mentions
+        log.info(wm)
+        return JsonResponse({
+            'mentions': obj.mentions_json(),
+        })
