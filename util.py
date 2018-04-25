@@ -16,7 +16,6 @@ def get_model_for_url(target_path):
     Find a match in urlpatterns and return the corresponding model instance.
     """
     target_path = target_path.lstrip('/')  # Remove any leading slashes
-    # log.info('Looking for object to match url {}'.format(target_path))
     urlconf = import_module(settings.ROOT_URLCONF)
     urlpatterns = urlconf.urlpatterns
     for x in urlpatterns:
