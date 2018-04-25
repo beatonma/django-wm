@@ -5,13 +5,13 @@ from django.db import models
 
 import mf2py
 
-from main.util import safe_read
+from main.models.mixins import ThemeableMixin
 
 
 log = logging.getLogger(__name__)
 
 
-class HCard(models.Model):
+class HCard(ThemeableMixin, models.Model):
     name = models.CharField(
         blank=True, max_length=50, help_text='Name of the person/organisation')
     avatar = models.URLField(
@@ -26,25 +26,25 @@ class HCard(models.Model):
             'name': self.name,
             'avatar': self.avatar,
             'homepage': self.homepage,
+            'primary_color': self.primary_color,
+            'accent_color': self.accent_color,
+            'foreground_color': ('var(--text-{}-primary)'
+                                 .format(self.foreground_color))
         }
 
     @classmethod
     def from_soup(cls, soup):
-        card = None
-
-        # TODO clean this up
         # https://github.com/microformats/mf2py
-
         parser = mf2py.Parser(doc=soup)
-        j = json.loads(parser.to_json())
+        j = parser.to_dict()
         for item in j['items']:
-            if 'h-card' in safe_read(item, 'type', []):
+            if 'h-card' in item.get('type', []):
                 log.debug('Reading h-card...')
-                attrs = safe_read(item, 'properties', None)
+                attrs = item.get('properties')
                 if attrs:
-                    _name = safe_read(attrs, 'name', [''])[0]
-                    _avatar = safe_read(attrs, 'photo', [''])[0]
-                    _homepage = safe_read(attrs, 'url', [''])[0]
+                    _name = attrs.get('name', [''])[0]
+                    _avatar = attrs.get('photo', [''])[0]
+                    _homepage = attrs.get('url', [''])[0]
                     _json = json.dumps(item, sort_keys=True)
 
                     if not _name and not _homepage:
@@ -58,10 +58,9 @@ class HCard(models.Model):
                     card.name = _name
                     card.avatar = _avatar
                     card.json = _json
-                    break
+                    return card
                 else:
                     log.info('Could not read "properties"')
-        return card
 
     def save(self, *args, **kwargs):
         # Workaround so that empty homepages can be accepted without
