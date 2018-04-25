@@ -32,13 +32,14 @@ class QuotableAdmin(BaseAdmin):
 
 @admin.register(Webmention)
 class WebmentionAdmin(QuotableAdmin):
-    readonly_fields = ['target_object', ]
+    readonly_fields = ['target_object', 'published', ]
     actions = [
         approve_webmention,
         disapprove_webmention,
     ]
     list_display = [
         'source_url',
+        'published',
         'validated',
         'approved',
         'content_type',
@@ -50,6 +51,7 @@ class WebmentionAdmin(QuotableAdmin):
                 'source_url',
                 'sent_by',
                 'hcard',
+                'quote',
             ),
         }),
         ('Local target', {
@@ -62,6 +64,7 @@ class WebmentionAdmin(QuotableAdmin):
         }),
         ('Metadata', {
             'fields': (
+                'published',
                 'approved',
                 'validated',
                 'notes',
