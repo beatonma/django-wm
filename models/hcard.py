@@ -21,6 +21,13 @@ class HCard(models.Model):
     json = models.TextField(
         blank=True, help_text='Raw json representation of this hcard')
 
+    def as_json(self):
+        return {
+            'name': self.name,
+            'avatar': self.avatar,
+            'homepage': self.homepage,
+        }
+
     @classmethod
     def from_soup(cls, soup):
         card = None
