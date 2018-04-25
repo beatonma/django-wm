@@ -1,5 +1,3 @@
-from importlib import import_module
-
 import requests
 
 from bs4 import BeautifulSoup
@@ -8,48 +6,19 @@ from celery.utils.log import get_task_logger
 from urllib.parse import urlparse
 
 from django.conf import settings
-from django.core.exceptions import ObjectDoesNotExist
 
+from mentions.exceptions import (
+    BadConfig,
+    TargetDoesNotExist,
+    TargetWrongDomain,
+    SourceNotAccessible,
+
+)
 from mentions.models import Webmention, HCard
+from mentions.util import get_model_for_url
 
 
 log = get_task_logger(__name__)
-
-
-class TargetWrongDomain(Exception):
-    """Target URL does not point to any domain in settings.ALLOWED_HOSTS."""
-
-    pass
-
-
-class TargetDoesNotExist(Exception):
-    """Target URL does not point to an object on our server."""
-
-    pass
-
-
-class SourceNotAccessible(Exception):
-    """Source URL does not exist, or returns an error code."""
-
-    pass
-
-
-class SourceDoesNotLink(Exception):
-    """Source URL exists but does not contain link to our content."""
-
-    pass
-
-
-class BadConfig(Exception):
-    """
-    URL resolution completed but did not include required data.
-
-    The returned ResolverMatch.kwargs object must have entries for:
-        - 'model_name'
-        - 'slug'
-    """
-
-    pass
 
 
 @shared_task
@@ -130,7 +99,7 @@ def _get_target_object(target_url):
         raise TargetWrongDomain('Wrong domain: {}'.format(domain))
 
     try:
-        return _get_model_for_url(url.path)
+        return get_model_for_url(url.path)
     except BadConfig as e:
         log.critical(
             'Failed to process incoming webmention! BAD CONFIG: {}'
@@ -138,54 +107,54 @@ def _get_target_object(target_url):
         raise(e)
 
 
-def _get_model_for_url(target_path):
-    """
-    Find a match in urlpatterns and return the corresponding model instance.
-    """
-    target_path = target_path.lstrip('/')  # Remove any leading slashes
-    log.info('Looking for object to match url {}'.format(target_path))
-    urlconf = import_module(settings.ROOT_URLCONF)
-    urlpatterns = urlconf.urlpatterns
-    for x in urlpatterns:
-        # x may be an instance of either:
-        # - django.urls.resolvers.URLResolver
-        # - django.urls.resolvers.URLPattern
-        try:
-            match = x.resolve(target_path)
-            if match:
-                break
-        except:
-            pass
-    else:
-        # No match found
-        raise TargetDoesNotExist('Cannot find a matching urlpattern entry')
+# def _get_model_for_url(target_path):
+#     """
+#     Find a match in urlpatterns and return the corresponding model instance.
+#     """
+#     target_path = target_path.lstrip('/')  # Remove any leading slashes
+#     log.info('Looking for object to match url {}'.format(target_path))
+#     urlconf = import_module(settings.ROOT_URLCONF)
+#     urlpatterns = urlconf.urlpatterns
+#     for x in urlpatterns:
+#         # x may be an instance of either:
+#         # - django.urls.resolvers.URLResolver
+#         # - django.urls.resolvers.URLPattern
+#         try:
+#             match = x.resolve(target_path)
+#             if match:
+#                 break
+#         except:
+#             pass
+#     else:
+#         # No match found
+#         raise TargetDoesNotExist('Cannot find a matching urlpattern entry')
 
-    log.info('Found matching urlpattern: {}'.format(match))
+#     log.info('Found matching urlpattern: {}'.format(match))
 
-    # Dotted path to model class declaration
-    model_name = match.kwargs.get('model_name')
+#     # Dotted path to model class declaration
+#     model_name = match.kwargs.get('model_name')
 
-    # Required to retrieve the target model instance
-    slug = match.kwargs.get('slug')
+#     # Required to retrieve the target model instance
+#     slug = match.kwargs.get('slug')
 
-    if not model_name:
-        raise BadConfig(
-            'urlpattern must include a kwarg entry called \'model_name\': {}'
-            .format(match))
-    if not slug:
-        raise BadConfig(
-            'urlpattern must include a kwarg entry called \'slug\': {}'
-            .format(match))
+#     if not model_name:
+#         raise BadConfig(
+#             'urlpattern must include a kwarg entry called \'model_name\': {}'
+#             .format(match))
+#     if not slug:
+#         raise BadConfig(
+#             'urlpattern must include a kwarg entry called \'slug\': {}'
+#             .format(match))
 
-    from django.apps import apps
-    model = apps.get_model(model_name)
+#     from django.apps import apps
+#     model = apps.get_model(model_name)
 
-    try:
-        return model.objects.get(slug=slug)
-    except ObjectDoesNotExist:
-        raise TargetDoesNotExist(
-            'Cannot find instance of model=\'{}\' with slug=\'{}\''
-            .format(model, slug))
+#     try:
+#         return model.objects.get(slug=slug)
+#     except ObjectDoesNotExist:
+#         raise TargetDoesNotExist(
+#             'Cannot find instance of model=\'{}\' with slug=\'{}\''
+#             .format(model, slug))
 
 
 def _get_incoming_source(source_url):
