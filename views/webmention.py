@@ -12,7 +12,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import View
 
-from mentions.exceptions import TargetDoesNotExist
+from mentions.exceptions import BadConfig, TargetDoesNotExist
 from mentions.tasks import process_incoming_webmention
 from mentions.util import get_model_for_url
 
@@ -87,6 +87,12 @@ class GetWebmentionsView(View):
             return JsonResponse({
                 'status': 0,
                 'message': 'Target object not found'
+            })
+        except BadConfig as e:
+            log.error(e)
+            return JsonResponse({
+                'status': 0,
+                'message': 'Config error'
             })
 
         wm = obj.mentions
