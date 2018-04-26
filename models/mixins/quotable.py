@@ -22,6 +22,8 @@ class QuotableMixin(models.Model):
 
     quote = models.CharField(
         max_length=300,
+        blank=True,
+        null=True,
         help_text='A short excerpt from the quoted piece')
 
     published = models.DateTimeField(auto_now_add=True)
