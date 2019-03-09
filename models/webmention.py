@@ -28,8 +28,7 @@ class Webmention(QuotableMixin, models.Model):
 
     @classmethod
     def create(cls, src, trgt):
-        wm = cls(source_url=src, target_url=trgt)
-        return wm
+        return cls(source_url=src, target_url=trgt)
 
     def approve(self):
         self.approved = True
