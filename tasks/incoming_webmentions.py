@@ -12,7 +12,6 @@ from mentions.exceptions import (
     TargetDoesNotExist,
     TargetWrongDomain,
     SourceNotAccessible,
-
 )
 from mentions.models import Webmention, HCard
 from mentions.util import get_model_for_url
@@ -44,8 +43,8 @@ def process_incoming_webmention(http_post, client_ip):
         log.info('Found webmention target object')
         wm.target_object = obj
     except (TargetWrongDomain, TargetDoesNotExist) as e:
-        log.warn('Unable to find matching page on our server {}'.format(e))
-        notes.append('Unable to find matching page on our server {}'.format(e))
+        log.warn(f'Unable to find matching page on our server {e}')
+        notes.append(f'Unable to find matching page on our server {e}')
 
     # Verify that the source page exists and really contains a link
     # to the target
@@ -53,7 +52,7 @@ def process_incoming_webmention(http_post, client_ip):
         response = _get_incoming_source(source)
     except SourceNotAccessible as e:
         log.warn(e)
-        notes.append('Source not accessible: {}'.format(e))
+        notes.append(f'Source not accessible: {e}')
         wm.notes = '\n'.join(notes)
         wm.save()
         return
@@ -70,7 +69,7 @@ def process_incoming_webmention(http_post, client_ip):
     wm.notes = '\n'.join(notes)
 
     wm.save()
-    log.info('Webmention saved: {}'.format(wm))
+    log.info(f'Webmention saved: {wm}')
 
 
 def _get_target_object(target_url):
@@ -96,14 +95,13 @@ def _get_target_object(target_url):
     domain = url.netloc.split(':')[0]
 
     if domain not in settings.ALLOWED_HOSTS:
-        raise TargetWrongDomain('Wrong domain: {}'.format(domain))
+        raise TargetWrongDomain(f'Wrong domain: {domain}')
 
     try:
         return get_model_for_url(url.path)
     except BadConfig as e:
         log.critical(
-            'Failed to process incoming webmention! BAD CONFIG: {}'
-            .format(e))
+            f'Failed to process incoming webmention! BAD CONFIG: {e}')
         raise(e)
 
 
@@ -116,18 +114,16 @@ def _get_incoming_source(source_url):
     try:
         response = requests.get(source_url)
     except Exception as e:
-        raise SourceNotAccessible('Requests error: {}'.format(e))
+        raise SourceNotAccessible(f'Requests error: {e}')
 
     if response.status_code >= 300:
         raise SourceNotAccessible(
-            'Source \'{}\' returned error code [{}]'
-            .format(source_url, response.status_code))
+            f'Source \'{source_url}\' returned error code [{response.status_code}]')
 
     content_type = response.headers['content-type']
     if 'text/html' not in content_type:
         raise SourceNotAccessible(
-            'Source \'{}\' returned unexpected content type: {}'
-            .format(source_url, content_type))
+            f'Source \'{source_url}\' returned unexpected content type: {content_type}')
 
     return response
 
