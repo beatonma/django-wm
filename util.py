@@ -2,8 +2,10 @@ import logging
 
 from importlib import import_module
 
+from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.flatpages.views import flatpage
 
 from mentions.exceptions import BadConfig, TargetDoesNotExist
 
@@ -25,16 +27,16 @@ def get_model_for_url(target_path):
         try:
             match = x.resolve(target_path)
             if match:
-                break
+                if match.func != flatpage:
+                    break
         except:
             pass
     else:
         # No match found
         raise TargetDoesNotExist(
-            'Cannot find a matching urlpattern entry for path={}'
-            .format(target_path))
+            f'Cannot find a matching urlpattern entry for path={target_path}')
 
-    log.info('Found matching urlpattern: {}'.format(match))
+    log.info(f'Found matching urlpattern: {match}')
 
     # Dotted path to model class declaration
     model_name = match.kwargs.get('model_name')
@@ -44,19 +46,19 @@ def get_model_for_url(target_path):
 
     if not model_name:
         raise BadConfig(
-            'urlpattern must include a kwarg entry called \'model_name\': {}'
-            .format(match))
+            f'urlpattern must include a kwarg entry called \'model_name\': {match}')
     if not slug:
         raise BadConfig(
-            'urlpattern must include a kwarg entry called \'slug\': {}'
-            .format(match))
+            f'urlpattern must include a kwarg entry called \'slug\': {match}')
 
-    from django.apps import apps
-    model = apps.get_model(model_name)
+    try:
+        model = apps.get_model(model_name)
+    except LookupError:
+        raise BadConfig(
+            f'Cannot find model `{model_name}` - check your urlpattern!')
 
     try:
         return model.objects.get(slug=slug)
     except ObjectDoesNotExist:
         raise TargetDoesNotExist(
-            'Cannot find instance of model=\'{}\' with slug=\'{}\''
-            .format(model, slug))
+            f'Cannot find instance of model=\'{model}\' with slug=\'{slug}\'')
