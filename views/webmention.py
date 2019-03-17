@@ -47,9 +47,7 @@ class WebmentionView(View):
             source = http_post['source']
             target = http_post['target']
         except Exception as e:
-            log.warn(
-                'Unable to read webmention params "{}": {}'
-                .format(http_post, e))
+            log.warning(f'Unable to read webmention params "{http_post}": {e}')
             return HttpResponse(status=400)
 
         validate = URLValidator(schemes=['http', 'https'])
@@ -59,7 +57,7 @@ class WebmentionView(View):
             validate(target)
             log.info('Both urls are valid')
         except ValidationError as e:
-            log.warn('URL did not pass validation: {}'.format(e))
+            log.warning(f'URL did not pass validation: {e}')
             return HttpResponseBadRequest()
 
         process_incoming_webmention.delay(http_post, client_ip)
