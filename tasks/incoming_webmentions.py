@@ -22,7 +22,7 @@ log = get_task_logger(__name__)
 
 @shared_task
 def process_incoming_webmention(http_post, client_ip):
-    log.info('Processing webmention "{}"'.format(http_post))
+    log.info(f'Processing webmention \'{http_post}\'')
 
     # Source and target have already been verified
     # as valid addresses before this method is called
@@ -102,7 +102,7 @@ def _get_target_object(target_url):
     except BadConfig as e:
         log.critical(
             f'Failed to process incoming webmention! BAD CONFIG: {e}')
-        raise(e)
+        raise e
 
 
 def _get_incoming_source(source_url):
@@ -136,7 +136,7 @@ def _get_hcard(soup):
             hcard = HCard.from_soup(soup)
         except Exception as e:
             log.error(e)
-            raise(e)
+            raise e
         hcard.save()
         return hcard
 

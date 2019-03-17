@@ -40,12 +40,11 @@ def process_outgoing_webmentions(source_url, text):
         try:
             response = requests.get(href)
         except Exception as e:
-            log.warn('Unable to fetch url={}: {}'.format(href, e))
+            log.warn(f'Unable to fetch url={href}: {e}')
             return
 
         if response.status_code >= 300:
-            log.warn('Link "{}" returned status_code={}'
-                     .format(response.status_code))
+            log.warn(f'Link "{href}" returned status_code={response.status_code}')
             return
 
         endpoint = _get_endpoint_from_response(response)
@@ -70,7 +69,7 @@ def _get_endpoint_in_http_headers(response):
                 header_link).group(1)
             return endpoint
     except Exception as e:
-        log.debug('Error reading http headers: {}'.format(e))
+        log.debug(f'Error reading http headers: {e}')
 
 
 def _get_endpoint_in_html(response):
@@ -82,14 +81,13 @@ def _get_endpoint_in_html(response):
         links = a_soup.head.find_all('link', href=True, rel=True)
         for link in links:
             if 'webmention' in link['rel']:
+                endpoint = link['href']
                 log.debug(
-                    'webmention endpoint found in document head - address={}'
-                    .format(link['href']))
+                    f'webmention endpoint found in document head - address={endpoint}')
                 endpoint = link['href']
                 return endpoint
     except Exception as e:
-        log.debug('Error reading <head> of external link: {}'
-                  .format(e))
+        log.debug(f'Error reading <head> of external link: {e}')
 
     # Check HTML <body> for <a> webmention endpoint
     try:
@@ -100,21 +98,18 @@ def _get_endpoint_in_html(response):
                 endpoint = link['href']
                 return endpoint
     except Exception as e:
-        log.debug('Error reading <body> of link: {}'.format(e))
+        log.debug(f'Error reading <body> of link: {e}')
 
 
 def _send_webmention(source_url, endpoint, target):
     payload = {
         'target': target,
-        'source': '{}{}'.format(
-            settings.DOMAIN_NAME, source_url)
+        'source': f'{settings.DOMAIN_NAME}{source_url}'
     }
-    log.info('{}: {}'.format(endpoint, payload))
+    log.info(f'{endpoint}: {payload}')
     response = requests.post(endpoint, data=payload)
     status_code = response.status_code
     if status_code >= 300:
-        log.warn('Sending webmention to "{}" FAILED with status_code={}'
-                 .format(endpoint, status_code))
+        log.warn('Sending webmention to "{endpoint}" FAILED with status_code={status_code}')
     else:
-        log.info('Sending webmention to "{}" successful with status_code={}'
-                 .format(endpoint, status_code))
+        log.info('Sending webmention to "{endpoint}" successful with status_code={status_code}')
