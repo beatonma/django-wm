@@ -24,8 +24,10 @@ bad_modelname_key = 'with_bad_kwarg_key'
 bad_modelname_value = 'with_bad_kwarg_value'
 bad_path = 'some_bad_path'
 
+
 def _url(path, slug=''):
     return f'/{namespace}/{path}/{slug}'
+
 
 urlpatterns += [
     re_path(
@@ -52,7 +54,8 @@ urlpatterns += [
 ]
 
 
-class WebmentionTestCase(TestCase):
+class GetModelForUrlTests(TestCase):
+    """Tests for util.get_model_for_url."""
     def setUp(self):
         self.stub_id = 'some-id123'
         self.slug = 'some-slug'
@@ -62,29 +65,29 @@ class WebmentionTestCase(TestCase):
             slug=self.slug).save()
 
     def test_get_model_for_url__with_unknown_url(self):
-        '''Ensure that URL with an unrecognised path raises an exception.'''
+        """Ensure that URL with an unrecognised path raises an exception."""
         with self.assertRaises(TargetDoesNotExist):
             get_model_for_url(_url(bad_path))
 
     def test_get_model_for_url__with_correct_slug(self):
-        '''Ensure that reverse url lookup finds the correct object.'''
-        retreived_object = get_model_for_url(
+        """Ensure that reverse url lookup finds the correct object."""
+        retrieved_object = get_model_for_url(
             _url(correct_config, self.slug))
 
-        self.assertEqual(retreived_object.stub_id, self.stub_id)
+        self.assertEqual(retrieved_object.stub_id, self.stub_id)
 
     def test_get_model_for_url__with_unknown_slug(self):
-        '''Ensure that an unknown slug raises an exception.'''
+        """Ensure that an unknown slug raises an exception."""
         with self.assertRaises(TargetDoesNotExist):
             get_model_for_url(
                 _url(correct_config, 'unknown-slug'))
 
     def test_get_model_for_url__with_bad_model_name_config(self):
-        '''
+        """
         Ensure urlpatterns is set up correctly.
         urlpatterns must provide a correct dotted path value
         for `model_name` in its kwargs.
-        '''
+        """
 
         # Raise BadConfig if kwargs does not have a key named `model_name`.
         with self.assertRaises(BadConfig):
