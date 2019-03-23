@@ -1,24 +1,54 @@
 """Stuff needed by more than one test file."""
 from django.urls import re_path
 
-from .views.mentionable import MentionableTestStubView
-
-# Base URL path (global urlpatterns)
-namespace = 'webmention'
-
-# Path as configured in the local urlpatterns
-correct_config = 'with_correct_config'
+# from .views.mentionable import MentionableTestView
+from .views.mentionable import (
+    AllEndpointsMentionableTestView,
+    HttpHeaderMentionableTestView,
+    HtmlAnchorMentionableTestView,
+    HtmlRelLinkMentionableTestView,
+    UnmentionableTestView,
+)
+from . import constants
 
 correct_urlpatterns = [
     re_path(
-        fr'^{correct_config}/(?P<slug>[\w\-.]+)/?$',
-        MentionableTestStubView.as_view(),
+        fr'^{constants.correct_config}/(?P<slug>[\w\-.]+)/?$',
+        AllEndpointsMentionableTestView.as_view(),
         kwargs={
-            'model_name': 'tests.MentionableTestStub',
+            'model_name': constants.model_name,
         },
-        name='mentionable_test_stub_view'),
+        name=constants.all_endpoints_view),
+    re_path(
+        fr'^{constants.correct_config}/(?P<slug>[\w\-.]+)/?$',
+        HttpHeaderMentionableTestView.as_view(),
+        kwargs={
+            'model_name': constants.model_name,
+        },
+        name=constants.http_header_view),
+    re_path(
+        fr'^{constants.correct_config}/(?P<slug>[\w\-.]+)/?$',
+        HtmlAnchorMentionableTestView.as_view(),
+        kwargs={
+            'model_name': constants.model_name,
+        },
+        name=constants.html_anchor_view),
+    re_path(
+        fr'^{constants.correct_config}/(?P<slug>[\w\-.]+)/?$',
+        HtmlRelLinkMentionableTestView.as_view(),
+        kwargs={
+            'model_name': constants.model_name,
+        },
+        name=constants.html_head_view),
+    re_path(
+        fr'^{constants.correct_config}/(?P<slug>[\w\-.]+)/?$',
+        UnmentionableTestView.as_view(),
+        kwargs={
+            'model_name': constants.model_name,
+        },
+        name=constants.http_header_view),
 ]
 
 
 def url(path, slug=''):
-    return f'/{namespace}/{path}/{slug}'
+    return f'/{constants.namespace}/{path}/{slug}'
