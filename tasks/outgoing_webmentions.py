@@ -32,8 +32,8 @@ def process_outgoing_webmentions(source_url, text):
     it will be appended to settings.DOMAIN_NAME
     """
     log.info('Checking for outgoing webmention links...')
-    self_soup = BeautifulSoup(text, 'html.parser')
-    for a in self_soup.find_all('a', href=True):
+    soup = BeautifulSoup(text, 'html.parser')
+    for a in soup.find_all('a', href=True):
         href = a['href']
 
         # Confirm that the target url is alive
