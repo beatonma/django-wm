@@ -1,1 +1,1 @@
-from .mentionable import MentionableTestStub
+from .mentionable import MentionableTestModel
