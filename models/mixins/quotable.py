@@ -4,7 +4,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
-from mentions.models import HCard
+from mentions.models.hcard import HCard
 
 log = logging.getLogger()
 
