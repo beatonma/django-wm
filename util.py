@@ -6,6 +6,7 @@ from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib.flatpages.views import flatpage
+from django.urls import Resolver404
 
 from mentions.exceptions import BadConfig, TargetDoesNotExist
 
@@ -13,7 +14,7 @@ from mentions.exceptions import BadConfig, TargetDoesNotExist
 log = logging.getLogger(__name__)
 
 
-def get_model_for_url(target_path):
+def get_model_for_url_path(target_path: str):
     """
     Find a match in urlpatterns and return the corresponding model instance.
     """
@@ -29,7 +30,8 @@ def get_model_for_url(target_path):
             if match:
                 if match.func != flatpage:
                     break
-        except:
+        except Resolver404:
+            # May be raised by URLResolver
             pass
     else:
         # No match found

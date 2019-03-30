@@ -15,7 +15,7 @@ from mentions.exceptions import (
     SourceNotAccessible,
 )
 from mentions.models import Webmention, HCard
-from mentions.util import get_model_for_url
+from mentions.util import get_model_for_url_path
 
 log = get_task_logger(__name__)
 
@@ -108,7 +108,7 @@ def _get_target_object(target_url: str) -> models.Model:
         raise TargetWrongDomain(f'Wrong domain: {domain} (from url={target_url})')
 
     try:
-        return get_model_for_url(path)
+        return get_model_for_url_path(path)
     except BadConfig as e:
         log.critical(f'Failed to process incoming webmention! BAD CONFIG: {e}')
         raise e
