@@ -3,14 +3,14 @@ import logging
 from django.test import TestCase
 from django.urls import re_path
 
+from mentions import util
 from mentions.exceptions import BadConfig, TargetDoesNotExist
-from mentions.tests import util
+from mentions.tests import util as testutil
 from mentions.tests.models import MentionableTestModel
 from mentions.tests.util import constants
 from mentions.tests.util.urls import urlpatterns as correct_urlpatterns
 from mentions.tests.views import AllEndpointsMentionableTestView
 from mentions.urls import urlpatterns
-from mentions.util import get_model_for_url
 
 log = logging.getLogger(__name__)
 
@@ -51,18 +51,19 @@ class GetModelForUrlTests(TestCase):
     def test_get_model_for_url__with_unknown_url(self):
         """Ensure that URL with an unrecognised path raises an exception."""
         with self.assertRaises(TargetDoesNotExist):
-            get_model_for_url(util.url(constants.view_all_endpoints, bad_path))
+            util.get_model_for_url_path(testutil.url(constants.view_all_endpoints, bad_path))
 
     def test_get_model_for_url__with_correct_slug(self):
         """Ensure that reverse url lookup finds the correct object."""
-        retrieved_object = get_model_for_url(util.url(constants.correct_config, self.slug))
+        retrieved_object = util.get_model_for_url_path(
+            testutil.url(constants.correct_config, self.slug))
 
         self.assertEqual(retrieved_object.stub_id, self.stub_id)
 
     def test_get_model_for_url__with_unknown_slug(self):
         """Ensure that an unknown slug raises an exception."""
         with self.assertRaises(TargetDoesNotExist):
-            get_model_for_url(util.url(constants.correct_config, 'unknown-slug'))
+            util.get_model_for_url_path(testutil.url(constants.correct_config, 'unknown-slug'))
 
     def test_get_model_for_url__with_bad_model_name_config(self):
         """Ensure urlpatterns is set up correctly. urlpatterns must provide a correct dotted path
@@ -70,8 +71,8 @@ class GetModelForUrlTests(TestCase):
 
         # Raise BadConfig if kwargs does not have a key named `model_name`.
         with self.assertRaises(BadConfig):
-            get_model_for_url(util.url(bad_modelname_key, self.slug))
+            util.get_model_for_url_path(testutil.url(bad_modelname_key, self.slug))
 
         # Raise BadConfig if `model_name` kwarg has bad/unresolvable path.
         with self.assertRaises(BadConfig):
-            get_model_for_url(util.url(bad_modelname_value, self.slug))
+            util.get_model_for_url_path(testutil.url(bad_modelname_value, self.slug))
