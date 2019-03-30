@@ -14,7 +14,7 @@ from django.views.generic.base import View
 
 from mentions.exceptions import BadConfig, TargetDoesNotExist
 from mentions.tasks import process_incoming_webmention
-from mentions.util import get_model_for_url
+from mentions.util import get_model_for_url_path
 
 
 log = logging.getLogger(__name__)
@@ -29,7 +29,7 @@ def _get_client_ip(request):
     return ip
 
 
-# /webmention
+# /webmention/
 class WebmentionView(View):
     """Handle incoming webmentions."""
 
@@ -41,11 +41,11 @@ class WebmentionView(View):
                 ['POST', ],
                 'Only POST requests are accepted')
 
+        http_post = request.POST
         try:
-            http_post = request.POST
             client_ip = _get_client_ip(request)
-            source = http_post['source']
-            target = http_post['target']
+            source = http_post.get('source')
+            target = http_post.get('target')
         except Exception as e:
             log.warning(f'Unable to read webmention params "{http_post}": {e}')
             return HttpResponse(status=400)
@@ -79,7 +79,7 @@ class GetWebmentionsView(View):
             return HttpResponseBadRequest('Missing args')
 
         try:
-            obj = get_model_for_url(for_url)
+            obj = get_model_for_url_path(for_url)
         except TargetDoesNotExist as e:
             log.info(e)
             return JsonResponse({
@@ -93,8 +93,10 @@ class GetWebmentionsView(View):
                 'message': 'Config error'
             })
 
+        log.info(f'retrieved object {obj}')
         wm = obj.mentions
         log.info(wm)
         return JsonResponse({
+            'status': 1,
             'mentions': obj.mentions_json(),
         })
