@@ -4,12 +4,10 @@ from django.db import models
 
 from .mixins.quotable import QuotableMixin
 
-
 log = logging.getLogger(__name__)
 
 
 class Webmention(QuotableMixin, models.Model):
-
     sent_by = models.URLField(
         blank=True,
         help_text='Source address of the HTTP request that sent this '
@@ -37,5 +35,6 @@ class Webmention(QuotableMixin, models.Model):
         ordering = ['-created']
 
     def __str__(self):
-        return '{} -> {} [validated={}, approved={}]'.format(
-            self.source_url, self.target_url, self.validated, self.approved)
+        return (f'{self.source_url} -> {self.target_url} '
+                f'[validated={self.validated}, approved={self.approved},'
+                f'content_type={self.content_type}, id={self.object_id}]')
