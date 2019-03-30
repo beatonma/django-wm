@@ -16,11 +16,6 @@ from mentions.tests.util import constants
 log = logging.getLogger(__name__)
 
 
-def _get_mentioning_content(url):
-    """Return html content that links to the given url."""
-    return f'''This is some content that mentions the target <a href="{url}">url</a>'''
-
-
 @dataclass
 class MockResponse:
     url: str
@@ -48,7 +43,7 @@ class OutgoingWebmentionsTests(TestCase):
     def test_find_links_in_text(self):
         """Ensure that outgoing links are found correctly."""
 
-        outgoing_content = _get_mentioning_content(
+        outgoing_content = util.get_mentioning_content(
             reverse(constants.view_all_endpoints, args=[self.target_slug]))
 
         outgoing_links = outgoing_webmentions._find_links_in_text(outgoing_content)
