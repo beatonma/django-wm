@@ -145,20 +145,3 @@ def _get_incoming_source(source_url: str, client=requests) -> str:
             f'Source \'{source_url}\' returned unexpected content type: {content_type}')
 
     return response.text
-
-
-# def _get_hcard(soup: BeautifulSoup) -> Optional[HCard]:
-#     """
-#     Return an HCard from given soup content, or None.
-#
-#     The card may be created or retrieved from database if its homepage matches an existing record..
-#     """
-#     hcard_element = soup.find(class_='h-card')
-#     if hcard_element:
-#         try:
-#             hcard = HCard.from_soup(soup)
-#         except Exception as e:
-#             log.error(e)
-#             raise e
-#         hcard.save()
-#         return hcard
