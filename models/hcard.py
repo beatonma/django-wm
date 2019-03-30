@@ -6,7 +6,6 @@ from django.db import models
 import mf2py
 from colorfield.fields import ColorField
 
-
 log = logging.getLogger(__name__)
 
 
@@ -31,13 +30,11 @@ class HCard(models.Model):
     foreground_color = models.CharField(
         max_length=10, choices=TEXT_COLOR_OPTIONS,
         default=TEXT_COLOR_OPTIONS[0][0],
-        help_text='CSS class for content that appears on top '
-                  'of primary color')
+        help_text='CSS class for content that appears on top of primary color')
     accent_foreground_color = models.CharField(
         max_length=10, choices=TEXT_COLOR_OPTIONS,
         default=TEXT_COLOR_OPTIONS[1][0],
-        help_text='CSS class for content that appears on top '
-                  'of accent color')
+        help_text='CSS class for content that appears on top of accent color')
 
     def as_json(self):
         return {
@@ -46,13 +43,12 @@ class HCard(models.Model):
             'homepage': self.homepage,
             'primary_color': self.primary_color,
             'accent_color': self.accent_color,
-            'foreground_color': ('var(--text-{}-primary)'
-                                 .format(self.foreground_color))
+            'foreground_color': f'var(--text-{self.foreground_color}-primary)'
         }
 
     @classmethod
     def from_soup(cls, soup):
-        # https://github.com/microformats/mf2py
+        """See https://github.com/microformats/mf2py"""
         parser = mf2py.Parser(doc=soup)
         j = parser.to_dict()
         for item in j['items']:
@@ -66,9 +62,7 @@ class HCard(models.Model):
                     _json = json.dumps(item, sort_keys=True)
 
                     if not _name and not _homepage:
-                        log.info(
-                            'h-card has neither a name nor a link: {}'.format(
-                                attrs))
+                        log.info(f'h-card has neither a name nor a link: {attrs}')
                         continue
 
                     card, _ = HCard.objects.get_or_create(homepage=_homepage)
@@ -81,13 +75,12 @@ class HCard(models.Model):
                     log.info('Could not read "properties"')
 
     def save(self, *args, **kwargs):
-        # Workaround so that empty homepages can be accepted without
-        # violating 'unique' requirement
+        """Workaround so that empty homepages can be accepted without violating
+        'unique' requirement. This allows admin to check missing content manually."""
         if not self.homepage:
             self.homepage = None
 
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return 'name="{}", avatar="{}", homepage="{}"'.format(
-            self.name, self.avatar, self.homepage)
+        return f'name="{self.name}", avatar="{self.avatar}", homepage="{self.homepage}"'
