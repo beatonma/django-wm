@@ -1,11 +1,12 @@
-import requests
+from urllib.parse import urlsplit
 
+import requests
 from bs4 import BeautifulSoup
 from celery import shared_task
 from celery.utils.log import get_task_logger
-from urllib.parse import urlparse
-
 from django.conf import settings
+from django.db import models
+from django.http import QueryDict
 
 from mentions.exceptions import (
     BadConfig,
@@ -16,12 +17,11 @@ from mentions.exceptions import (
 from mentions.models import Webmention, HCard
 from mentions.util import get_model_for_url
 
-
 log = get_task_logger(__name__)
 
 
 @shared_task
-def process_incoming_webmention(http_post, client_ip):
+def process_incoming_webmention(http_post: QueryDict, client_ip: str) -> None:
     log.info(f'Processing webmention \'{http_post}\'')
 
     # Source and target have already been verified
@@ -29,8 +29,8 @@ def process_incoming_webmention(http_post, client_ip):
     source = http_post['source']
     target = http_post['target']
 
-    wm = Webmention.create(source, target)
-    wm.sent_by = client_ip
+    wm = Webmention.create(source, target, sent_by=client_ip)
+    # wm.sent_by = client_ip
 
     # If anything fails, write it to notes and attach to webmention object
     # so it can be checked later
@@ -43,13 +43,14 @@ def process_incoming_webmention(http_post, client_ip):
         log.info('Found webmention target object')
         wm.target_object = obj
     except (TargetWrongDomain, TargetDoesNotExist) as e:
-        log.warn(f'Unable to find matching page on our server {e}')
-        notes.append(f'Unable to find matching page on our server {e}')
+        error_message = f'Unable to find matching page on our server {e}'
+        log.warn(error_message)
+        notes.append(error_message)
 
     # Verify that the source page exists and really contains a link
     # to the target
     try:
-        response = _get_incoming_source(source)
+        response_text = _get_incoming_source(source)
     except SourceNotAccessible as e:
         log.warn(e)
         notes.append(f'Source not accessible: {e}')
@@ -57,14 +58,18 @@ def process_incoming_webmention(http_post, client_ip):
         wm.save()
         return
 
-    soup = BeautifulSoup(response.text, 'html.parser')
+    soup = BeautifulSoup(response_text, 'html.parser')
     if not soup.find('a', href=target):
         notes.append('Source does not contain a link to our content')
         wm.notes = '\n'.join(notes)
         wm.save()
         return
 
-    wm.hcard = _get_hcard(soup)
+    hcard = HCard.from_soup(soup)
+    if hcard:
+        hcard.save()
+        wm.hcard = hcard
+
     wm.validated = True
     wm.notes = '\n'.join(notes)
 
@@ -72,9 +77,10 @@ def process_incoming_webmention(http_post, client_ip):
     log.info(f'Webmention saved: {wm}')
 
 
-def _get_target_object(target_url):
+def _get_target_object(target_url: str) -> models.Model:
     r"""
     Confirm that the page exists on our server and return object.
+    Throws
 
     Any mentionable Views must include the following kwargs:
         - 'model_name' - dotted python path to the model definition
@@ -90,29 +96,42 @@ def _get_target_object(target_url):
             'model_name': 'core.models.Article',
         },
         name='app_view'),
+
+    Raises:
+        TargetWrongDomain: If the target_url points to a domain not listed in settings.ALLOWED_HOSTS
+        BadConfig: Raised from get_model_for_url
     """
-    url = urlparse(target_url)
-    domain = url.netloc.split(':')[0]
+    scheme, full_domain, path, _, _ = urlsplit(target_url)
+    domain = full_domain.split(':')[0]  # Remove port number if present
 
     if domain not in settings.ALLOWED_HOSTS:
-        raise TargetWrongDomain(f'Wrong domain: {domain}')
+        raise TargetWrongDomain(f'Wrong domain: {domain} (from url={target_url})')
 
     try:
-        return get_model_for_url(url.path)
+        return get_model_for_url(path)
     except BadConfig as e:
-        log.critical(
-            f'Failed to process incoming webmention! BAD CONFIG: {e}')
+        log.critical(f'Failed to process incoming webmention! BAD CONFIG: {e}')
         raise e
 
 
-def _get_incoming_source(source_url):
+def _get_incoming_source(source_url: str, client=requests) -> str:
     """
     Fetch the source, confirm content is suitable and return response.
     Verify that the source URL returns an HTML page with a successful
     status code.
+
+    Args:
+        source_url: The URL that mentions our content.
+        client: A client for making HTTP requests. Should only be explicitly given when testing -
+                its API is assumed to be equivalent to `python-requests`.
+
+    Raises:
+        SourceNotAccessible: If the `source_url` cannot be resolved, returns an error code, or
+                             is an unexpected content type.
     """
+
     try:
-        response = requests.get(source_url)
+        response = client.get(source_url)
     except Exception as e:
         raise SourceNotAccessible(f'Requests error: {e}')
 
@@ -125,19 +144,21 @@ def _get_incoming_source(source_url):
         raise SourceNotAccessible(
             f'Source \'{source_url}\' returned unexpected content type: {content_type}')
 
-    return response
+    return response.text
 
 
-def _get_hcard(soup):
-    """Return an HCard constructed from given soup content, or None."""
-    hcard_element = soup.find(class_='h-card')
-    if hcard_element:
-        try:
-            hcard = HCard.from_soup(soup)
-        except Exception as e:
-            log.error(e)
-            raise e
-        hcard.save()
-        return hcard
-
-    return None
+# def _get_hcard(soup: BeautifulSoup) -> Optional[HCard]:
+#     """
+#     Return an HCard from given soup content, or None.
+#
+#     The card may be created or retrieved from database if its homepage matches an existing record..
+#     """
+#     hcard_element = soup.find(class_='h-card')
+#     if hcard_element:
+#         try:
+#             hcard = HCard.from_soup(soup)
+#         except Exception as e:
+#             log.error(e)
+#             raise e
+#         hcard.save()
+#         return hcard
