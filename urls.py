@@ -1,6 +1,6 @@
 from django.urls import re_path
 
-from .views import GetWebmentionsView, WebmentionView
+from .views import GetWebmentionsView, WebmentionView, names as view_names
 
 """
 /webmention/
@@ -17,9 +17,9 @@ urlpatterns = [
     re_path(
         r'^$',
         WebmentionView.as_view(),
-        name='webmention_view'),
+        name=view_names.webmention_api_incoming),
     re_path(
         r'^get/?$',
         GetWebmentionsView.as_view(),
-        name='get_webmentions_view'),
+        name=view_names.webmention_api_get_for_object),
 ]
