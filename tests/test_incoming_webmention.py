@@ -6,12 +6,10 @@ import logging
 
 from django.http import HttpResponse
 from django.test import TestCase, Client
-from django.urls import reverse
 
 from mentions.tasks import incoming_webmentions
 from mentions.tests import util
 from mentions.tests.models import MentionableTestModel
-from mentions.tests.util import constants
 from mentions.tests.util.urls import urlpatterns as correct_urlpatterns
 from mentions.urls import urlpatterns
 
@@ -26,10 +24,6 @@ HTML_MENTION = '''
 '''
 
 urlpatterns += correct_urlpatterns
-
-
-def build_object_url(slug):
-    return f'{constants.domain}{reverse(constants.view_all_endpoints, args=[slug])}'
 
 
 class MockHttpClient:
@@ -58,7 +52,7 @@ class IncomingWebmentionsTests(TestCase):
 
     def setUp(self):
         self.target_id, self.target_slug = util.get_id_and_slug()
-        self.target_url = build_object_url(self.target_slug)
+        self.target_url = util.build_object_url(self.target_slug)
 
         target = MentionableTestModel.objects.create(
             stub_id=self.target_id,
@@ -84,7 +78,7 @@ class IncomingWebmentionsTests(TestCase):
             slug=source_slug,
             content=HTML_MENTION.format(target_url=self.target_url))
         source.save()
-        source_url = build_object_url(source_slug)
+        source_url = util.build_object_url(source_slug)
 
         self.assertIsNotNone(
             incoming_webmentions._get_incoming_source(
