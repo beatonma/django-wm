@@ -27,8 +27,8 @@ class Webmention(QuotableMixin, models.Model):
     created = models.DateTimeField(auto_now_add=True)
 
     @classmethod
-    def create(cls, src, trgt):
-        return cls(source_url=src, target_url=trgt)
+    def create(cls, source_url, target_url, sent_by=None):
+        return cls(source_url=source_url, target_url=target_url, sent_by=sent_by)
 
     def approve(self):
         self.approved = True
