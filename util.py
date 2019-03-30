@@ -36,7 +36,7 @@ def get_model_for_url(target_path):
         raise TargetDoesNotExist(
             f'Cannot find a matching urlpattern entry for path={target_path}')
 
-    log.info(f'Found matching urlpattern: {match}')
+    log.debug(f'Found matching urlpattern: {match}')
 
     # Dotted path to model class declaration
     model_name = match.kwargs.get('model_name')
@@ -46,7 +46,8 @@ def get_model_for_url(target_path):
 
     if not model_name:
         raise BadConfig(
-            f'urlpattern must include a kwarg entry called \'model_name\': {match}')
+            'urlpattern must include a kwarg entry called \'model_name\': '
+            f'{match}')
     if not slug:
         raise BadConfig(
             f'urlpattern must include a kwarg entry called \'slug\': {match}')
