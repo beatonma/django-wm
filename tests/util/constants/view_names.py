@@ -1,5 +1,0 @@
-unmentionable = 'unmentionable_view'
-http_header = 'http_header_view'
-html_head = 'html_head_view'
-html_anchor = 'html_anchor_view'
-all_endpoints = 'all_endpoints_view'

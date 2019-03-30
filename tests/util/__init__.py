@@ -1,1 +1,1 @@
-from .urls import url
+from .functions import get_id_and_slug, url
