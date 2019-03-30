@@ -6,7 +6,6 @@ from django.db import models
 from mentions.models.webmention import Webmention
 from mentions.tasks import process_outgoing_webmentions
 
-
 log = logging.getLogger(__name__)
 
 
@@ -21,10 +20,10 @@ class MentionableMixin(models.Model):
     def mentions(self):
         ctype = ContentType.objects.get_for_model(self.__class__)
         webmentions = Webmention.objects.filter(
-            content_type__pk=ctype.id,
+            content_type=ctype,
             object_id=self.id,
             approved=True,
-            validated=True,)
+            validated=True)
         # manual_mentions = TODO
         return webmentions
 
@@ -41,7 +40,7 @@ class MentionableMixin(models.Model):
         return items
 
     def all_text(self):
-        log.warn(
+        log.warning(
             'This model extends WebMentionableMixin but has not '
             'implemented all_text() so outgoing webmentions will '
             'not work!')
