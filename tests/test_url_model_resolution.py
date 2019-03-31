@@ -38,7 +38,7 @@ urlpatterns += correct_urlpatterns + [
 
 
 class GetModelForUrlTests(TestCase):
-    """Tests for util.get_model_for_url."""
+    """Tests for util.get_model_for_url_path."""
 
     def setUp(self):
         self.stub_id = 'some-id123'
