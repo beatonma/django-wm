@@ -6,6 +6,7 @@ namespace = settings.WEBMENTION_NAMESPACE
 
 webmention_api_absolute_url = f'{domain}/{namespace}/'
 webmention_api_relative_url = f'/{namespace}/'
+webmention_api_get_relative_url = f'/{namespace}/get/'
 
 """Dotted name of the model used for testing."""
 model_name = 'tests.MentionableTestModel'
