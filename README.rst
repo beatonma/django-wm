@@ -22,7 +22,7 @@ Setup
    webmention functionality.
 
    IMPORTANT: Any models that include the mixin must also
-   implement `all_text()`
+   implement `all_text()`::
 
     from mentions import MentionableMixin
     ...
