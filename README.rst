@@ -1,5 +1,5 @@
 Mentions
-===
+========
 
 Mentions lets you add Webmention functionality to any model with minimal
 setup.
