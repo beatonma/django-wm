@@ -39,7 +39,20 @@ class MentionableMixin(models.Model):
             })
         return items
 
-    def all_text(self):
+    def all_text(self) -> str:
+        """
+        Return all the text that should be searched when looking for
+        outgoing Webmentions. Any URLs found in this text will be
+        checked for webmention support.
+
+        Typically this will just be the main text of your model but
+        you may also want to include content from any other text fields
+        such as a summary or abstract.
+
+        Example:
+            def all_text(self) -> str:
+                return f'{self.introduction} {self.main_content}'
+        """
         log.warning(
             'This model extends WebMentionableMixin but has not '
             'implemented all_text() so outgoing webmentions will '
