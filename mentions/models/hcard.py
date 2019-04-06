@@ -4,7 +4,6 @@ import logging
 from django.db import models
 
 import mf2py
-from colorfield.fields import ColorField
 
 log = logging.getLogger(__name__)
 
@@ -19,31 +18,11 @@ class HCard(models.Model):
     json = models.TextField(
         blank=True, help_text='Raw json representation of this hcard')
 
-    # CSS class names applied to content that appears in front of the accent color
-    TEXT_COLOR_OPTIONS = (
-        ('light', 'light'),
-        ('dark', 'dark'),
-    )
-
-    primary_color = ColorField(blank=True)
-    accent_color = ColorField(blank=True)
-    foreground_color = models.CharField(
-        max_length=10, choices=TEXT_COLOR_OPTIONS,
-        default=TEXT_COLOR_OPTIONS[0][0],
-        help_text='CSS class for content that appears on top of primary color')
-    accent_foreground_color = models.CharField(
-        max_length=10, choices=TEXT_COLOR_OPTIONS,
-        default=TEXT_COLOR_OPTIONS[1][0],
-        help_text='CSS class for content that appears on top of accent color')
-
     def as_json(self):
         return {
             'name': self.name,
             'avatar': self.avatar,
             'homepage': self.homepage,
-            'primary_color': self.primary_color,
-            'accent_color': self.accent_color,
-            'foreground_color': f'var(--text-{self.foreground_color}-primary)'
         }
 
     @classmethod
