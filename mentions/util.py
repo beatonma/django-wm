@@ -5,7 +5,6 @@ from importlib import import_module
 from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.contrib.flatpages.views import flatpage
 from django.urls import Resolver404
 
 from mentions.exceptions import BadConfig, TargetDoesNotExist
@@ -21,6 +20,10 @@ def get_model_for_url_path(target_path: str):
     target_path = target_path.lstrip('/')  # Remove any leading slashes
     urlconf = import_module(settings.ROOT_URLCONF)
     urlpatterns = urlconf.urlpatterns
+    try:
+        from django.contrib.flatpages.views import flatpage
+    except ImportError:
+        flatpage = None
     for x in urlpatterns:
         # x may be an instance of either:
         # - django.urls.resolvers.URLResolver
@@ -28,7 +31,9 @@ def get_model_for_url_path(target_path: str):
         try:
             match = x.resolve(target_path)
             if match:
-                if match.func != flatpage:
+                if flatpage and match.func != flatpage:
+                    break
+                else:
                     break
         except Resolver404:
             # May be raised by URLResolver
