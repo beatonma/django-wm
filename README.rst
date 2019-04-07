@@ -4,11 +4,20 @@ Mentions
 Mentions lets you add Webmention functionality to any model with minimal
 setup.
 
+Requirements
+------------
+sudo apt install rabbitmq-server
+
+Create user ``celery``
+Ensure ``celery`` has write access to django database.
+
 Setup
 -----
 1. Add "mentions" to your INSTALLED_APPS setting::
 
     INSTALLED_APPS = [
+      'django.contrib.flatpages',
+      'django.contrib.sites',
         ...
         'mentions',
     ]
