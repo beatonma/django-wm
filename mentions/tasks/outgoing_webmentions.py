@@ -65,7 +65,9 @@ def _find_links_in_text(text: str):
 def _get_absolute_endpoint_from_response(response) -> str:
     endpoint = (_get_endpoint_in_http_headers(response) or
                 _get_endpoint_in_html(response))
-    return _relative_to_absolute_url(response, endpoint)
+    abs_url = _relative_to_absolute_url(response, endpoint)
+    log.debug(f'Absolute url: {endpoint} -> {abs_url}')
+    return abs_url
 
 
 def _get_endpoint_in_http_headers(response) -> str:
