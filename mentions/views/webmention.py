@@ -29,6 +29,16 @@ def _get_client_ip(request):
     return ip
 
 
+def validate(validator, urls):
+    for url in urls:
+        try:
+            validator(url)
+        except ValidationError as e:
+            log.warning(f'URL \'{url}\' did not pass validation: {e}')
+            return False
+    return True
+
+
 # /webmention/
 class WebmentionView(View):
     """Handle incoming webmentions."""
@@ -44,20 +54,17 @@ class WebmentionView(View):
         http_post = request.POST
         try:
             client_ip = _get_client_ip(request)
-            source = http_post.get('source')
-            target = http_post.get('target')
+            source = http_post['source']
+            target = http_post['target']
         except Exception as e:
             log.warning(f'Unable to read webmention params "{http_post}": {e}')
             return HttpResponse(status=400)
 
-        validate = URLValidator(schemes=['http', 'https'])
+        validator = URLValidator(schemes=['http', 'https'])
 
-        try:
-            validate(source)
-            validate(target)
-            log.info('Both urls are valid')
-        except ValidationError as e:
-            log.warning(f'URL did not pass validation: {e}')
+        if validate(validator, [source, target]):
+            log.info(f'Validation passed for source: \'{source}\', target: \'{target}\'')
+        else:
             return HttpResponseBadRequest()
 
         process_incoming_webmention.delay(http_post, client_ip)
