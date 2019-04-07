@@ -9,7 +9,8 @@ class WebmentionHeadMiddleware:
 
     def __call__(self, request):
         response = self.get_response(request)
+        port = request.META.get('SERVER_PORT', 80)
         response['Link'] = (
-            f'<{settings.DOMAIN_NAME}/{settings.WEBMENTION_NAMESPACE}>'
+            f'<{request.scheme}://{settings.DOMAIN_NAME}:{port}/{settings.WEBMENTION_NAMESPACE}/>'
             ';rel="webmention"')
         return response
