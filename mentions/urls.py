@@ -1,4 +1,4 @@
-from django.urls import re_path
+from django.urls import path, re_path
 
 from .views import GetWebmentionsView, WebmentionView, names as view_names
 
@@ -14,8 +14,8 @@ e.g.
     ]
 """
 urlpatterns = [
-    re_path(
-        r'^$',
+    path(
+        '',
         WebmentionView.as_view(),
         name=view_names.webmention_api_incoming),
     re_path(
