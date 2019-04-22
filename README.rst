@@ -26,11 +26,11 @@ Setup
 
     path('{}, include('mentions.urls')),
 
-3. Include `MentionableMixin` in the model(s) you want to support
+3. Include :code:`MentionableMixin` in the model(s) you want to support
    webmention functionality.
 
    IMPORTANT: Any models that include the mixin must also
-   implement `all_text()`::
+   implement :code:`all_text()`::
 
     from mentions import MentionableMixin
     ...
@@ -40,4 +40,10 @@ Setup
         def all_text(self):
             return f'{self.introduction} {self.content}'
 
-4. Run `python manage.py migrate` to create/update models.
+4. Run :code:`python manage.py migrate` to create/update models.
+
+
+Settings
+--------
+
+:code:`WEBMENTIONS_AUTO_APPROVE` = True|False (default=False)
