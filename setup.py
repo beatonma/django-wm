@@ -1,12 +1,13 @@
 import os
 from setuptools import find_packages, setup
+import mentions
 
 with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
     README = readme.read()
 
 setup(
     name='mentions',
-    version='1.0',
+    version=mentions.__version__,
     packages=find_packages(),
     include_package_data=True,
     license='GPLv3',
