@@ -1,10 +1,17 @@
 import logging
 
+from django.conf import settings
 from django.db import models
 
 from .mixins.quotable import QuotableMixin
 
 log = logging.getLogger(__name__)
+
+
+def _approve_default():
+    if hasattr(settings, 'WEBMENTIONS_AUTO_APPROVE'):
+        return settings.WEBMENTIONS_AUTO_APPROVE
+    return False
 
 
 class Webmention(QuotableMixin, models.Model):
@@ -14,7 +21,7 @@ class Webmention(QuotableMixin, models.Model):
                   'webmention')
 
     approved = models.BooleanField(
-        default=False,
+        default=_approve_default,
         help_text='Allow this webmention to appear publicly')
     validated = models.BooleanField(
         default=False,
