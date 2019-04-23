@@ -1,3 +1,4 @@
+import logging
 import re
 from urllib.parse import urlsplit
 
@@ -7,11 +8,10 @@ import requests
 
 from bs4 import BeautifulSoup
 from celery import shared_task
-from celery.utils.log import get_task_logger
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 
-log = get_task_logger(__name__)
+log = logging.getLogger(__name__)
 
 
 @shared_task
@@ -43,18 +43,21 @@ def process_outgoing_webmentions(source_url: str, text: str):
         try:
             response = requests.get(link_url)
         except Exception as e:
-            log.warn(f'Unable to fetch url={link_url}: {e}')
+            log.warning(f'Unable to fetch url={link_url}: {e}')
             return None
 
         if response.status_code >= 300:
-            log.warn(
+            log.warning(
                 f'Link "{link_url}" returned status={response.status_code}')
             return None
 
         endpoint = _get_absolute_endpoint_from_response(response)
+        log.info(f'Found wm endpoint: {endpoint}')
         if endpoint:
             return _send_webmention(source_url, endpoint, link_url)
         return None
+    else:
+        log.info(f'No wm links in text {text}')
 
 
 def _find_links_in_text(text: str):
@@ -117,7 +120,7 @@ def _get_endpoint_in_html(response: requests.Response) -> str:
 def _send_webmention(source_url: str, endpoint: str, target: str):
     payload = {
         'target': target,
-        'source': f'{settings.DOMAIN_NAME}{source_url}'
+        'source': f'https://{settings.DOMAIN_NAME}{source_url}'
     }
     log.info(f'{endpoint}: {payload}')
     response = requests.post(endpoint, data=payload)
