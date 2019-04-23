@@ -7,9 +7,9 @@ from dataclasses import dataclass, field
 from django.test import TestCase
 from django.urls import reverse
 
-import mentions.tests.util.snippets
+from mentions.tests.util import snippets
 from mentions.tasks import outgoing_webmentions
-from mentions.tests import util
+from mentions.tests.util import functions
 from mentions.tests.models import MentionableTestModel
 from mentions.tests.util import constants
 
@@ -26,7 +26,7 @@ class MockResponse:
 class OutgoingWebmentionsTests(TestCase):
 
     def setUp(self):
-        self.target_stub_id, self.target_slug = util.get_id_and_slug()
+        self.target_stub_id, self.target_slug = functions.get_id_and_slug()
 
         target = MentionableTestModel.objects.create(
             stub_id=self.target_stub_id,
@@ -38,37 +38,37 @@ class OutgoingWebmentionsTests(TestCase):
         return reverse(viewname, args=[self.target_slug])
 
     def _get_absolute_target_url(self, viewname):
-        return f'{constants.domain}{self._get_target_url(viewname)}'
+        return f'https://{constants.domain}{self._get_target_url(viewname)}'
 
     def test_find_links_in_text(self):
         """Ensure that outgoing links are found correctly."""
 
-        outgoing_content = util.get_mentioning_content(
+        outgoing_content = functions.get_mentioning_content(
             reverse(constants.view_all_endpoints, args=[self.target_slug]))
 
         outgoing_links = outgoing_webmentions._find_links_in_text(outgoing_content)
         self.assertEqual(
             outgoing_links,
-            [util.url(constants.correct_config,
+            [functions.url(constants.correct_config,
                       self.target_slug)])
 
     def test_get_absolute_endpoint_from_response(self):
         """Ensure that any exposed endpoints are found and returned as an absolute url."""
         mock_response = MockResponse(
             url=self._get_absolute_target_url(constants.view_all_endpoints),
-            headers={'Link': mentions.tests.util.snippets.HTTP_LINK_ENDPOINT})
+            headers={'Link': snippets.http_link_endpoint()})
         absolute_endpoint_from_http_headers = outgoing_webmentions._get_absolute_endpoint_from_response(
             mock_response)
         self.assertEqual(constants.webmention_api_absolute_url, absolute_endpoint_from_http_headers)
 
         mock_response.headers = {}
-        mock_response.text = mentions.tests.util.snippets.HTML_HEAD_ENDPOINT
+        mock_response.text = snippets.html_head_endpoint()
         absolute_endpoint_from_html_head = outgoing_webmentions._get_absolute_endpoint_from_response(
             mock_response)
         self.assertEqual(constants.webmention_api_absolute_url, absolute_endpoint_from_html_head)
 
         mock_response.headers = {}
-        mock_response.text = mentions.tests.util.snippets.HTML_BODY_ENDPOINT
+        mock_response.text = snippets.html_body_endpoint()
         absolute_endpoint_from_html_body = outgoing_webmentions._get_absolute_endpoint_from_response(
             mock_response)
         self.assertEqual(constants.webmention_api_absolute_url, absolute_endpoint_from_html_body)
@@ -78,7 +78,7 @@ class OutgoingWebmentionsTests(TestCase):
 
         mock_response = MockResponse(
             url=self._get_absolute_target_url(constants.view_all_endpoints),
-            headers={'Link': mentions.tests.util.snippets.HTTP_LINK_ENDPOINT})
+            headers={'Link': snippets.http_link_endpoint()})
         endpoint_from_http_headers = outgoing_webmentions._get_endpoint_in_http_headers(
             mock_response)
         self.assertEqual(constants.webmention_api_relative_url, endpoint_from_http_headers)
@@ -88,7 +88,7 @@ class OutgoingWebmentionsTests(TestCase):
 
         mock_response = MockResponse(
             url=self._get_absolute_target_url(constants.view_all_endpoints),
-            text=mentions.tests.util.snippets.HTML_HEAD_ENDPOINT)
+            text=snippets.html_head_endpoint())
         endpoint_from_html_head = outgoing_webmentions._get_endpoint_in_html(mock_response)
         self.assertEqual(constants.webmention_api_relative_url, endpoint_from_html_head)
 
@@ -97,7 +97,7 @@ class OutgoingWebmentionsTests(TestCase):
 
         mock_response = MockResponse(
             url=self._get_absolute_target_url(constants.view_all_endpoints),
-            text=mentions.tests.util.snippets.HTML_BODY_ENDPOINT)
+            text=snippets.html_body_endpoint())
         endpoint_from_html_body = outgoing_webmentions._get_endpoint_in_html(mock_response)
         self.assertEqual(constants.webmention_api_relative_url, endpoint_from_html_body)
 
@@ -105,20 +105,20 @@ class OutgoingWebmentionsTests(TestCase):
         """Ensure that relative urls are correctly converted to absolute"""
 
         domain = constants.domain
-        page_url = f'{domain}/some-url-path'
+        page_url = f'https://{domain}/some-url-path'
         response = MockResponse(url=page_url)
 
         absolute_url_from_root = outgoing_webmentions._relative_to_absolute_url(
-            response, '/webmention')
-        self.assertEqual(f'{domain}/webmention', absolute_url_from_root)
+            response, '/webmention/')
+        self.assertEqual(f'https://{domain}/webmention/', absolute_url_from_root)
 
         absolute_url_from_relative = outgoing_webmentions._relative_to_absolute_url(
-            response, 'webmention')
-        self.assertEqual(f'{domain}/webmention', absolute_url_from_relative)
+            response, 'webmention/')
+        self.assertEqual(f'https://{domain}/webmention/', absolute_url_from_relative)
 
         already_absolute_url = outgoing_webmentions._relative_to_absolute_url(
-            response, f'{domain}/already_absolute_path')
-        self.assertEqual(f'{domain}/already_absolute_path',
+            response, f'https://{domain}/already_absolute_path')
+        self.assertEqual(f'https://{domain}/already_absolute_path',
                          already_absolute_url)
 
     # def test_send_webmention(self):
