@@ -27,4 +27,8 @@ def get_mentioning_content(_url):
 
 
 def build_object_url(slug):
-    return f'{constants.domain}{reverse(constants.view_all_endpoints, args=[slug])}'
+    return f'https://{constants.domain}{reverse(constants.view_all_endpoints, args=[slug])}'
+
+
+def build_object_relative_url(slug):
+    return reverse(constants.view_all_endpoints, args=[slug])
