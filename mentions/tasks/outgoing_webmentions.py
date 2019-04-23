@@ -62,7 +62,7 @@ def _find_links_in_text(text: str):
     return [a['href'] for a in soup.find_all('a', href=True)]
 
 
-def _get_absolute_endpoint_from_response(response) -> str:
+def _get_absolute_endpoint_from_response(response: requests.Response) -> str:
     endpoint = (_get_endpoint_in_http_headers(response) or
                 _get_endpoint_in_html(response))
     abs_url = _relative_to_absolute_url(response, endpoint)
@@ -70,7 +70,7 @@ def _get_absolute_endpoint_from_response(response) -> str:
     return abs_url
 
 
-def _get_endpoint_in_http_headers(response) -> str:
+def _get_endpoint_in_http_headers(response: requests.Response) -> str:
     """Search for webmention endpoint in HTTP headers."""
     try:
         header_link = response.headers.get('Link')
@@ -84,7 +84,7 @@ def _get_endpoint_in_http_headers(response) -> str:
         log.debug(f'Error reading http headers: {e}')
 
 
-def _get_endpoint_in_html(response) -> str:
+def _get_endpoint_in_html(response: requests.Response) -> str:
     """Search for a webmention endpoint in HTML."""
     a_soup = BeautifulSoup(response.text, 'html.parser')
 
@@ -132,7 +132,7 @@ def _send_webmention(source_url: str, endpoint: str, target: str):
         return True
 
 
-def _relative_to_absolute_url(response, url: str) -> str:
+def _relative_to_absolute_url(response: requests.Response, url: str) -> str:
     """
     If given url is relative, try to construct an absolute url using response domain.
     """
