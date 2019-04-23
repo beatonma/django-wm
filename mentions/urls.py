@@ -1,6 +1,7 @@
 from django.urls import path, re_path
 
-from .views import GetWebmentionsView, WebmentionView, names as view_names
+import mentions.views.names as view_names
+from mentions.views.webmention import GetWebmentionsView, WebmentionView
 
 """
 /webmention/
