@@ -4,7 +4,7 @@ Chunks of markup.
 
 import logging
 
-from mentions.tests.util.constants import webmention_api_relative_url
+from mentions.tests.util import constants
 
 log = logging.getLogger(__name__)
 
@@ -21,20 +21,42 @@ def html_body_link(url):
     return f'<a rel="webmention" href="{url}">Endpoint!</a>'
 
 
-HTTP_LINK_ENDPOINT = http_header_link(webmention_api_relative_url)
-HTML_HEAD_ENDPOINT = f'''
+def http_link_endpoint():
+    return http_header_link(constants.webmention_api_relative_url)
+
+def html_head_endpoint():
+    return f'''
 <html>
 <head>
-    {html_head_link(webmention_api_relative_url)}
+    {html_head_link(constants.webmention_api_relative_url)}
 </head>
 <body></body>
 </html>
 '''
-HTML_BODY_ENDPOINT = f'''
+
+def html_body_endpoint():
+    return f'''
 <html>
 <head></head>
 <body>
-    {html_body_link(webmention_api_relative_url)}
+    {html_body_link(constants.webmention_api_relative_url)}
 </body>
 </html>
+'''
+
+def html_all_endpoints(content):
+    return f'''
+    <html>
+    <head>
+    {html_head_link(constants.webmention_api_relative_url)}
+    </head>
+    <body>
+    <div>
+    {content}
+    </div>
+    <div>
+    {html_body_link(constants.webmention_api_relative_url)}
+    </div>
+    </body>
+    </html>
 '''
