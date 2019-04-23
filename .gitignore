@@ -1,4 +1,5 @@
-dist/
-*.egg-info/
 .idea/
-*/__pycache__/
+dist/
+env/
+*.egg-info/
+**/*/__pycache__/
