@@ -1,14 +1,17 @@
 """Constants that are used in several separate tests."""
 from django.conf import settings
+from django.urls import reverse_lazy
+import mentions.views.names as view_names
 
-domain = settings.DOMAIN_NAME if hasattr(settings, 'DOMAIN_NAME') else 'localhost'
-namespace = (settings.WEBMENTION_NAMESPACE
-             if hasattr(settings, 'WEBMENTION_NAMESPACE')
-             else 'webmention')
+domain = settings.DOMAIN_NAME
+namespace = 'webmention'
 
-webmention_api_absolute_url = f'{domain}/{namespace}/'
-webmention_api_relative_url = f'/{namespace}/'
-webmention_api_get_relative_url = f'/{namespace}/get/'
+webmention_api_relative_url = reverse_lazy(view_names.webmention_api_incoming)
+webmention_api_get_relative_url = reverse_lazy(
+    view_names.webmention_api_get_for_object)
+
+"""Value updated after django initation by runtests.py"""
+webmention_api_absolute_url = ''
 
 """Dotted name of the model used for testing."""
 model_name = 'tests.MentionableTestModel'
