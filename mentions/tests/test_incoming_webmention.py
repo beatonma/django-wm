@@ -8,10 +8,8 @@ from django.http import HttpResponse
 from django.test import TestCase, Client
 
 from mentions.tasks import incoming_webmentions
-from mentions.tests import util
+from mentions.tests.util import functions
 from mentions.tests.models import MentionableTestModel
-from mentions.tests.util.urls import urlpatterns as correct_urlpatterns
-from mentions.urls import urlpatterns
 
 log = logging.getLogger(__name__)
 
@@ -22,8 +20,6 @@ HTML_MENTION = '''
 <body><a href="{target_url}">This mentions the target!</a></body>
 </html>
 '''
-
-urlpatterns += correct_urlpatterns
 
 
 class MockHttpClient:
@@ -51,8 +47,8 @@ class MockResponse:
 class IncomingWebmentionsTests(TestCase):
 
     def setUp(self):
-        self.target_id, self.target_slug = util.get_id_and_slug()
-        self.target_url = util.build_object_url(self.target_slug)
+        self.target_id, self.target_slug = functions.get_id_and_slug()
+        self.target_url = functions.build_object_url(self.target_slug)
 
         target = MentionableTestModel.objects.create(
             stub_id=self.target_id,
@@ -72,13 +68,13 @@ class IncomingWebmentionsTests(TestCase):
     def test_get_incoming_source(self):
         """Ensure that webmention source page can be retrieved correctly."""
 
-        source_stub_id, source_slug = util.get_id_and_slug()
+        source_stub_id, source_slug = functions.get_id_and_slug()
         source = MentionableTestModel.objects.create(
             stub_id=source_stub_id,
             slug=source_slug,
             content=HTML_MENTION.format(target_url=self.target_url))
         source.save()
-        source_url = util.build_object_url(source_slug)
+        source_url = functions.build_object_url(source_slug)
 
         self.assertIsNotNone(
             incoming_webmentions._get_incoming_source(

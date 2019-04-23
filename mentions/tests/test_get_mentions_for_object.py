@@ -9,16 +9,16 @@ from django.test import TestCase
 
 from mentions.models import Webmention
 from mentions.tests.models import MentionableTestModel
-from . import util
-from .util import constants
+from mentions.tests.util import functions
+from mentions.tests.util import constants
 
 log = logging.getLogger(__name__)
 
 
 def _create_quick_webmention(source, target, valid=True, approved=True):
     wm = Webmention.create(
-        util.build_object_url(source.slug),
-        util.build_object_url(target.slug),
+        functions.build_object_url(source.slug),
+        functions.build_object_url(target.slug),
         sent_by='tests@localhost')
     wm.validated = valid
     wm.approved = approved
@@ -28,22 +28,22 @@ def _create_quick_webmention(source, target, valid=True, approved=True):
 
 class WebmentionGetTests(TestCase):
     def setUp(self):
-        self.target_stub_id, self.target_slug = util.get_id_and_slug()
+        self.target_stub_id, self.target_slug = functions.get_id_and_slug()
 
         target = MentionableTestModel.objects.create(
             stub_id=self.target_stub_id,
             slug=self.target_slug,
             allow_incoming_webmentions=True)
         target.save()
-        self.target_url = util.build_object_url(self.target_slug)
+        self.target_url = functions.build_object_relative_url(self.target_slug)
 
-        self.source_stub_id, self.source_slug = util.get_id_and_slug()
+        self.source_stub_id, self.source_slug = functions.get_id_and_slug()
         source = MentionableTestModel.objects.create(
             stub_id=self.source_stub_id,
             slug=self.source_slug,
-            content=util.get_mentioning_content(self.target_url))
+            content=functions.get_mentioning_content(self.target_url))
         source.save()
-        self.source_url = util.build_object_url(self.source_slug)
+        self.source_url = functions.build_object_url(self.source_slug)
 
         _create_quick_webmention(source, target)
 
