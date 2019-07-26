@@ -37,27 +37,36 @@ def process_outgoing_webmentions(source_url: str, text: str):
     source_url should be the value returned by model.get_absolute_url() -
     it will be appended to settings.DOMAIN_NAME
     """
-    log.info('Checking for outgoing webmention links...')
+    log.info(f'Checking for outgoing webmention links...')
+    mentions_sent = 0
     for link_url in _find_links_in_text(text):
         # Confirm that the target url is alive
+        log.info(f'Checking url={link_url}')
         try:
             response = requests.get(link_url)
         except Exception as e:
             log.warning(f'Unable to fetch url={link_url}: {e}')
-            return None
+            continue
 
         if response.status_code >= 300:
             log.warning(
                 f'Link "{link_url}" returned status={response.status_code}')
-            return None
+            continue
 
         endpoint = _get_absolute_endpoint_from_response(response)
-        log.info(f'Found wm endpoint: {endpoint}')
         if endpoint:
-            return _send_webmention(source_url, endpoint, link_url)
-        return None
+            log.info(f'Found wm endpoint: {endpoint}')
+            success = _send_webmention(source_url, endpoint, link_url)
+            if success:
+                mentions_sent += 1
+        else:
+            log.info(f'No wm endpoint found for url {link_url}')
     else:
         log.info(f'No wm links in text {text}')
+    if mentions_sent:
+        log.info(f'Successfully sent {mentions_sent} webmentions')
+
+    return mentions_sent
 
 
 def _find_links_in_text(text: str):
