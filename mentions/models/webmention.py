@@ -40,6 +40,9 @@ class Webmention(QuotableMixin, models.Model):
 
     class Meta:
         ordering = ['-created']
+        permissions = [
+            ('approve_webmention', 'Can approve received Webmentions for publishing.')
+        ]
 
     def __str__(self):
         return (f'{self.source_url} -> {self.target_url} '
