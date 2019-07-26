@@ -61,7 +61,6 @@ class MentionableMixin(models.Model):
 
     def save(self, *args, **kwargs):
         if self.allow_outgoing_webmentions:
-            process_outgoing_webmentions(
-                self.get_absolute_url(), self.all_text())
+            process_outgoing_webmentions.delay(self.get_absolute_url(), self.all_text())
 
         super().save(*args, **kwargs)
