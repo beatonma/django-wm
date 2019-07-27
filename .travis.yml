@@ -7,5 +7,8 @@ python:
   - "3.6"
   - "3.7"
 
+install:
+  pip install -r mentions/requirments.txt
+
 script:
   python runtests.py
