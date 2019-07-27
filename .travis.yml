@@ -8,8 +8,4 @@ install:
   pip install -r mentions/requirements.txt
 
 script:
-  - cd mentions/
-  - python manage.py makemigrations
-  - python manage.py migrate
-  - cd ..
   - python runtests.py
