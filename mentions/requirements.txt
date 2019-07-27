@@ -1,5 +1,6 @@
 beautifulsoup4==4.6.3
 celery==4.2.1
+django==2.2
 mf2py==1.1.2
 requests==2.20.0
 django-nose==1.4.6
