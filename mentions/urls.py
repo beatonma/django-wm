@@ -5,12 +5,12 @@ from mentions.views.webmention import GetWebmentionsView, WebmentionView
 
 """
 /webmention/
-Configure in django.conf.settings.WEBMENTION_NAMESPACE and root project urls.py
+Configure in root project urls.py
 e.g.
     from django.conf import settings
     urlpatterns = [
         ...,
-        re_path(fr'{settings.WEBMENTION_NAMESPACE}/', include('mentions.urls')),
+        path(r'webmention/', include('mentions.urls')),
         ...,
     ]
 """
