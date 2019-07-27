@@ -22,9 +22,23 @@ setup(
     },
     author='Michael Beaton',
     author_email='michael@beatonma.org',
+    install_requires=[
+        'beautifulsoup4',
+        'celery',
+        'django',
+        'mf2py',
+        'requests',
+    ],
+    python_requires='>=3.6',
+    tests_require=[
+        'django-nose',
+        'pinocchio',
+    ],
     classifiers=[
         'Framework :: Django',
         'Intended Audience :: Developers',
-        'Programming Language :: Python',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
     ]
 )
