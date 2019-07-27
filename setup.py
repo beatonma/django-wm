@@ -6,7 +6,7 @@ with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
     README = readme.read()
 
 setup(
-    name='mentions',
+    name='django-wm',
     version=mentions.__version__,
     packages=find_packages(),
     include_package_data=True,
