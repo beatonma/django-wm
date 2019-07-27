@@ -11,14 +11,15 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     license='GPLv3',
-    description='Automatic webmentions for Django with minimal setup.',
+    description='Webmention support for any Django model.',
     long_description=README,
+    long_description_content_type='text/x-rst',
     url='https://beatonma.org/django-wm',
     author='Michael Beaton',
     author_email='michael@beatonma.org',
     classifiers=[
         'Framework :: Django',
         'Intended Audience :: Developers',
-        'Programming Language :: Python'
+        'Programming Language :: Python',
     ]
 )
