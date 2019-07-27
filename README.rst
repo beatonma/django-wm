@@ -52,7 +52,11 @@ Project code
 
 1. Root project :code:`settings.py`:
 
-    * Add "mentions" to INSTALLED_APPS::
+    * Set :code:`DOMAIN_NAME`::
+
+        DOMAIN_NAME = 'your.url.here'  # e.g. 'django-wm.dev'
+
+    * Add "mentions" to :code:`INSTALLED_APPS`::
 
         INSTALLED_APPS = [
             'django.contrib.auth',
@@ -63,7 +67,7 @@ Project code
             'mentions',
         ]
 
-    * Add 'mentions.middleware.WebmentionHeadMiddleware' to MIDDLEWARE::
+    * Add :code:'mentions.middleware.WebmentionHeadMiddleware' to :code:`MIDDLEWARE`::
 
         MIDDLEWARE = [
             ...
