@@ -5,7 +5,7 @@ python:
   - "3.7"
 
 addons:
-  postgresql: "11.4"
+  postgresql: "10.7"
 
 install:
   - pip install -r mentions/requirements.txt
