@@ -7,8 +7,12 @@ python:
 addons:
   postgresql: "10.7"
 
+services:
+  - postgresql
+
 install:
   - pip install -r mentions/requirements.txt
+  - pip install psycopg2
 
 before_script:
   - psql -c "CREATE USER 'django-wm' WITH CREATEDB PASSWORD 'django-wm-tests';" -U postgres
