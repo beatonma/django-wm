@@ -7,10 +7,8 @@ python:
 install:
   - pip install -r mentions/requirements.txt
 
-before_script:
+script:
   - python travis_prescript.py makemigrations
   - python travis_prescript.py migrate
-
-script:
   - python travis_prescript.py test
 #  - python runtests.py
