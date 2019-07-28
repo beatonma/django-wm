@@ -11,7 +11,7 @@ install:
   - pip install -r mentions/requirements.txt
 
 before_script:
-  - psql -c 'CREATE USER 'django-wm' WITH CREATEDB PASSWORD 'django-wm-tests'
+  - psql -c "CREATE USER 'django-wm' WITH CREATEDB PASSWORD 'django-wm-tests';" -U postgres
 
 script:
   - python runtests.py
