@@ -4,11 +4,14 @@ python:
   - "3.6"
   - "3.7"
 
+addons:
+  postgresql: "11.4"
+
 install:
   - pip install -r mentions/requirements.txt
 
+before_script:
+  - psql -c 'CREATE USER 'django-wm' WITH CREATEDB PASSWORD 'django-wm-tests'
+
 script:
-  - python travis_prescript.py makemigrations
-  - python travis_prescript.py migrate
-  - python travis_prescript.py test
-#  - python runtests.py
+  - python runtests.py
