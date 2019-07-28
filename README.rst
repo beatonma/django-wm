@@ -11,7 +11,12 @@ code available here_.
 
 Installation
 ============
+
+PyPI: django-wm_
+
 :code:`pip install django-wm`
+
+.. _django-wm: https://pypi.org/project/django-wm/
 
 
 Setup
