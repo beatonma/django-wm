@@ -34,11 +34,11 @@ MIDDLEWARE = [
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'django-wm',
-        'USER': 'django-wm',
-        'PASSWORD': 'django-wm-tests',
+        'NAME': 'djangowm_test',
+        'USER': 'postgres',
+        'PASSWORD': '',
         'HOST': 'localhost',
-        'PORT': '5432',
+        'PORT': '',
     }
 }
 
