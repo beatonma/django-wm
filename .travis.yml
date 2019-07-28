@@ -12,5 +12,5 @@ before_script:
   - python travis_prescript.py migrate
 
 script:
-  - python travis-prescript.py test
+  - python travis_prescript.py test
 #  - python runtests.py
