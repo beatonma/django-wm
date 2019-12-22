@@ -84,7 +84,7 @@ Project code
 
     urlpatterns = [
         ...
-        path('webmentions/, include('mentions.urls')),
+        path('webmentions/', include('mentions.urls')),
     ]
 
 
