@@ -94,7 +94,7 @@ Project code
    IMPORTANT: Any models that include the mixin must also
    implement :code:`all_text` and :code:`get_absolute_url` methods::
 
-    from mentions import MentionableMixin
+    from mentions.models.mixins.mentionable import MentionableMixin
     ...
 
     class MyModel(MentionableMixin, models.Model):
