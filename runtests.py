@@ -15,6 +15,14 @@ log = logging.getLogger(__name__)
 
 if __name__ == '__main__':
     os.environ['DJANGO_SETTINGS_MODULE'] = 'mentions.tests.config.test_settings'
+    from django.core.management import execute_from_command_line
+
+    execute_from_command_line([
+        'manage.py',
+        'makemigrations',
+        '--settings=mentions.tests.config.test_settings',
+    ])
+
     django.setup()
 
     # Update value of constants.webmention_api_absolute_url after django
