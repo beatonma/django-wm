@@ -45,6 +45,7 @@ class MockResponse:
 
 
 class IncomingWebmentionsTests(TestCase):
+    """"""
 
     def setUp(self):
         self.target_id, self.target_slug = functions.get_id_and_slug()

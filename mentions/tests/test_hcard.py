@@ -13,6 +13,7 @@ log = logging.getLogger(__name__)
 
 
 class HCardTests(TestCase):
+    """"""
     def test_hcard__with_name_homepage_noavatar(self):
         sample = '''<a class="h-card" href="http://joebloggs.com">Joe Bloggs</a>'''
         beautifulsoup = BeautifulSoup(sample, features='html5lib')

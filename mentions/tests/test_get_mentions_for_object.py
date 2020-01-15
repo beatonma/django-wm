@@ -27,6 +27,7 @@ def _create_quick_webmention(source, target, valid=True, approved=True):
 
 
 class WebmentionGetTests(TestCase):
+    """"""
     def setUp(self):
         self.target_stub_id, self.target_slug = functions.get_id_and_slug()
 
@@ -65,6 +66,7 @@ class WebmentionGetTests(TestCase):
 
 
 class WebmentionGetBadRequestTests(TestCase):
+    """"""
     def test_get_webmentions_view__require_http_get(self):
         """Ensure that webmentions get view does not accept HTTP POST."""
         response = self.client.post(constants.webmention_api_get_relative_url)

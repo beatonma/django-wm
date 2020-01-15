@@ -2,7 +2,6 @@
 Tests for webmentions that originate on our server, usually pointing somewhere else.
 """
 import logging
-from dataclasses import dataclass, field
 
 from django.test import TestCase
 from django.urls import reverse
@@ -16,14 +15,15 @@ from mentions.tests.util import constants
 log = logging.getLogger(__name__)
 
 
-@dataclass
 class MockResponse:
-    url: str
-    text: str = None
-    headers: dict = field(default_factory=dict)
+    def __init__(self, url: str, text: str = None, headers: dict = {}):
+        self.url = url
+        self.text = text
+        self.headers = headers
 
 
 class OutgoingWebmentionsTests(TestCase):
+    """"""
 
     def setUp(self):
         self.target_stub_id, self.target_slug = functions.get_id_and_slug()
