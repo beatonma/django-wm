@@ -21,6 +21,7 @@ if __name__ == '__main__':
         'manage.py',
         'makemigrations',
         '--settings=mentions.tests.config.test_settings',
+        'mentions',
     ])
 
     django.setup()
