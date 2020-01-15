@@ -5,6 +5,7 @@ NOSE_ARGS = [
     '--with-spec',
     '--spec-color',
     '--logging-clear-handlers',
+    '--traverse-namespace',  # Required since Python 3.8
 ]
 
 DOMAIN_NAME = 'example.org'

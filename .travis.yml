@@ -3,9 +3,13 @@ language: python
 python:
   - "3.6"
   - "3.7"
+  - "3.8"
 
 install:
   - pip install -r mentions/requirements.txt
+
+before_script:
+  - python manage.py makemigrations --settings=mentions.tests.config.test_settings
 
 script:
   - python runtests.py
