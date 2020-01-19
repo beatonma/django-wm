@@ -2,6 +2,8 @@ Mentions
 ========
 .. image:: https://travis-ci.org/beatonma/django-wm.svg?branch=master
     :target: https://travis-ci.org/beatonma/django-wm
+.. image:: https://badge.fury.io/py/django-wm.svg
+    :target: https://badge.fury.io/py/django-wm
 
 Mentions lets you add Webmention_ functionality to any Django model with minimal
 setup. There is an implementation running at https://django-wm.dev/ with source
