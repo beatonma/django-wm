@@ -52,7 +52,10 @@ class Webmention(QuotableMixin, MentionsBaseModel):
 
 
 class OutgoingWebmentionStatus(MentionsBaseModel):
-    """Status tracker for webmentions that you (attempt to) send from your server."""
+    """Status tracker for webmentions that you (attempt to) send from your server.
+
+    Currently used primarily for logging of outgoing mentions.
+    """
     source_url = models.URLField(
         help_text='The URL on your server where this mention originates',
     )
@@ -77,3 +80,6 @@ class OutgoingWebmentionStatus(MentionsBaseModel):
                 f'(endpoint={self.target_webmention_endpoint}): '
                 f'[{self.successful}] {self.status_message} '
                 f'[{self.response_code}]')
+
+    class Meta:
+        ordering = ['-created_at']
