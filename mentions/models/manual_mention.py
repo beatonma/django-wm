@@ -5,13 +5,12 @@ Needs to be input manually.
 
 import logging
 
-from django.db import models
-
+from . import MentionsBaseModel
 from .mixins.quotable import QuotableMixin
 
 
 log = logging.getLogger(__name__)
 
 
-class SimpleMention(QuotableMixin, models.Model):
+class SimpleMention(QuotableMixin, MentionsBaseModel):
     pass

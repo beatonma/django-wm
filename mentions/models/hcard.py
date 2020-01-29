@@ -5,10 +5,12 @@ from django.db import models
 
 import mf2py
 
+from mentions.models import MentionsBaseModel
+
 log = logging.getLogger(__name__)
 
 
-class HCard(models.Model):
+class HCard(MentionsBaseModel):
     name = models.CharField(
         blank=True, max_length=50, help_text='Name of the person/organisation')
     avatar = models.URLField(
