@@ -61,6 +61,7 @@ class MentionableMixin(models.Model):
 
     def save(self, *args, **kwargs):
         if self.allow_outgoing_webmentions:
+            log.info('Outgoing webmention processing task added to queue...')
             process_outgoing_webmentions.delay(self.get_absolute_url(), self.all_text())
 
         super().save(*args, **kwargs)
