@@ -4,8 +4,6 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
-from mentions.models.hcard import HCard
-
 log = logging.getLogger()
 
 
@@ -29,7 +27,7 @@ class QuotableMixin(models.Model):
     published = models.DateTimeField(auto_now_add=True)
 
     hcard = models.ForeignKey(
-        HCard,
+        'HCard',
         blank=True,
         null=True,
         on_delete=models.CASCADE)
