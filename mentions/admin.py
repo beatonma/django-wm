@@ -1,6 +1,11 @@
 from django.contrib import admin
 
-from .models import HCard, SimpleMention, Webmention
+from .models import (
+    HCard,
+    SimpleMention,
+    Webmention,
+    OutgoingWebmentionStatus,
+)
 
 
 def approve_webmention(modeladmin, request, queryset):
@@ -64,6 +69,7 @@ class WebmentionAdmin(QuotableAdmin):
         }),
         ('Metadata', {
             'fields': (
+                'created_at',
                 'published',
                 'approved',
                 'validated',
@@ -71,6 +77,26 @@ class WebmentionAdmin(QuotableAdmin):
             ),
         })
     )
+
+
+@admin.register(OutgoingWebmentionStatus)
+class OutgoingWebmentionStatusAdmin(BaseAdmin):
+    readonly_fields = [
+        'created_at',
+        'source_url',
+        'target_url',
+        'target_webmention_endpoint',
+        'status_message',
+        'response_code',
+        'successful',
+    ]
+    list_display = [
+        'source_url',
+        'target_url',
+        'successful',
+        'created_at',
+    ]
+    date_hierarchy = 'created_at'
 
 
 @admin.register(HCard)
