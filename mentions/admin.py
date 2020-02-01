@@ -69,7 +69,6 @@ class WebmentionAdmin(QuotableAdmin):
         }),
         ('Metadata', {
             'fields': (
-                'created_at',
                 'published',
                 'approved',
                 'validated',
