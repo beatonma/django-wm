@@ -44,7 +44,7 @@ class WebmentionAdmin(QuotableAdmin):
         'approved',
         'content_type',
     ]
-    date_hierarchy = 'created'
+    date_hierarchy = 'created_at'
     fieldsets = (
         ('Remote source', {
             'fields': (
