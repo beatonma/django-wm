@@ -30,7 +30,7 @@ class Webmention(QuotableMixin, MentionsBaseModel):
         help_text='True if both source and target have been validated, '
                   'confirmed to exist, and source really does link to target')
 
-    notes = models.CharField(max_length=255, blank=True)
+    notes = models.CharField(max_length=1024, blank=True)
 
     @classmethod
     def create(cls, source_url, target_url, sent_by=None):
