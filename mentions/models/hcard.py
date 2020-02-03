@@ -28,7 +28,7 @@ class HCard(MentionsBaseModel):
         }
 
     @classmethod
-    def from_soup(cls, soup):
+    def from_soup(cls, soup, save=False):
         """See https://github.com/microformats/mf2py"""
         parser = mf2py.Parser(doc=soup)
         j = parser.to_dict()
@@ -51,6 +51,10 @@ class HCard(MentionsBaseModel):
                     card.name = _name
                     card.avatar = _avatar
                     card.json = _json
+
+                    if save:
+                        card.save()
+
                     return card
                 else:
                     log.info('Could not read "properties"')
