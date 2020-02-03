@@ -17,6 +17,7 @@ from mentions.tasks import process_incoming_webmention
 from mentions.util import (
     get_mentions_for_url_path,
     serialize_mentions,
+    split_url,
 )
 
 log = logging.getLogger(__name__)
@@ -87,17 +88,22 @@ class GetWebmentionsView(View):
         if not for_url:
             return HttpResponseBadRequest('Missing args')
 
+        scheme, domain, path = split_url(request.build_absolute_uri())
+        full_target_url = f'{scheme}://{domain}{for_url}'
+
         try:
-            wm = get_mentions_for_url_path(for_url)
+            wm = get_mentions_for_url_path(for_url, full_target_url=full_target_url)
         except TargetDoesNotExist as e:
             log.warning(e)
             return JsonResponse({
                 'status': 0,
+                'target_url': full_target_url,
                 'message': 'Target not found',
             })
 
         log.info(wm)
         return JsonResponse({
             'status': 1,
+            'target_url': full_target_url,
             'mentions': serialize_mentions(wm),
         })
