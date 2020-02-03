@@ -14,6 +14,7 @@ from mentions.tests.util import (
     constants,
 )
 from mentions.tests.models import MentionableTestModel
+from mentions.util import split_url
 
 log = logging.getLogger(__name__)
 
@@ -64,7 +65,7 @@ class IncomingWebmentionsTests(TestCase):
 
     def test_get_target_path(self):
         """Ensure that path is retrieved from url correctly."""
-        scheme, domain, path = incoming_webmentions._get_target_path(self.target_url)
+        scheme, domain, path = split_url(self.target_url)
         self.assertEqual(reverse(constants.view_all_endpoints, args=[self.target_slug]), path)
 
     def test_get_target_object(self):
