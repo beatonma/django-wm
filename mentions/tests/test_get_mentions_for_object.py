@@ -6,6 +6,7 @@ import json
 import logging
 
 from django.test import TestCase
+from django.urls import reverse
 
 from mentions.models import Webmention
 from mentions.tests.models import MentionableTestModel
@@ -58,10 +59,10 @@ class WebmentionGetTests(TestCase):
         log.info(json_response)
         self.assertEqual(json_response['status'], 1)
 
-        mentions = json_response['mentions']
-        self.assertEqual(len(mentions), 1)
+        _mentions = json_response['mentions']
+        self.assertEqual(len(_mentions), 1)
 
-        first_mention = mentions[0]
+        first_mention = _mentions[0]
         self.assertEqual(first_mention['source_url'], self.source_url)
 
 
@@ -80,4 +81,33 @@ class WebmentionGetBadRequestTests(TestCase):
         response = self.client.get(
             constants.webmention_api_get_relative_url,
             data={'url': '/does-not-exist'})
-        self.assertEqual(json.loads(response.content)['status'], 0)
+
+        json_response = json.loads(response.content)
+        self.assertEqual(json_response['status'], 0)
+
+
+
+class WebmentionNoModelTests(TestCase):
+    """"""
+    def setUp(self) -> None:
+        self.target_url = reverse(constants.view_no_mentionable_object)
+        Webmention.objects.create(
+            source_url='https://django-wm.dev/',
+            target_url=self.target_url,
+            approved=True,
+            validated=True,
+        ).save()
+
+    def test_get_webmentions_view__no_mentionable_model(self):
+        response = self.client.get(
+            constants.webmention_api_get_relative_url,
+            data={'url': self.target_url})
+
+        json_response = json.loads(response.content)
+        print(json_response)
+
+        _mentions = json_response['mentions']
+        self.assertEqual(len(_mentions), 1)
+
+        first_mention = _mentions[0]
+        self.assertEqual(first_mention['source_url'], 'https://django-wm.dev/')

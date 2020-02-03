@@ -12,10 +12,12 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import View
 
-from mentions.exceptions import BadConfig, TargetDoesNotExist
+from mentions.exceptions import TargetDoesNotExist
 from mentions.tasks import process_incoming_webmention
-from mentions.util import get_model_for_url_path
-
+from mentions.util import (
+    get_mentions_for_url_path,
+    serialize_mentions,
+)
 
 log = logging.getLogger(__name__)
 
@@ -86,24 +88,16 @@ class GetWebmentionsView(View):
             return HttpResponseBadRequest('Missing args')
 
         try:
-            obj = get_model_for_url_path(for_url)
+            wm = get_mentions_for_url_path(for_url)
         except TargetDoesNotExist as e:
-            log.info(e)
+            log.warning(e)
             return JsonResponse({
                 'status': 0,
-                'message': 'Target object not found'
-            })
-        except BadConfig as e:
-            log.error(e)
-            return JsonResponse({
-                'status': 0,
-                'message': 'Config error'
+                'message': 'Target not found',
             })
 
-        log.info(f'retrieved object {obj}')
-        wm = obj.mentions
         log.info(wm)
         return JsonResponse({
             'status': 1,
-            'mentions': obj.mentions_json(),
+            'mentions': serialize_mentions(wm),
         })

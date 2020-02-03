@@ -5,6 +5,7 @@ from django.db import models
 
 from mentions.models.webmention import Webmention
 from mentions.tasks import process_outgoing_webmentions
+from mentions.util import serialize_mentions
 
 log = logging.getLogger(__name__)
 
@@ -28,16 +29,7 @@ class MentionableMixin(models.Model):
         return webmentions
 
     def mentions_json(self):
-        mentions = self.mentions
-        items = []
-        for x in mentions:
-            items.append({
-                'hcard': x.hcard.as_json() if x.hcard else {},
-                'quote': x.quote,
-                'source_url': x.source_url,
-                'published': x.published,
-            })
-        return items
+        return serialize_mentions(self.mentions)
 
     def all_text(self) -> str:
         """

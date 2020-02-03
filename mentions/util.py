@@ -1,21 +1,28 @@
 import logging
 
 from importlib import import_module
+from typing import (
+    List,
+    Dict,
+)
 
 from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.urls import Resolver404
+from django.urls import (
+    Resolver404,
+    ResolverMatch,
+)
 
 from mentions.exceptions import BadConfig, TargetDoesNotExist
-
+from mentions.models import Webmention
 
 log = logging.getLogger(__name__)
 
 
-def get_model_for_url_path(target_path: str):
+def _find_urlpattern(target_path: str) -> ResolverMatch:
     """
-    Find a match in urlpatterns and return the corresponding model instance.
+    Find a match in urlpatterns or raise TargetDoesNotExist
     """
     target_path = target_path.lstrip('/')  # Remove any leading slashes
     urlconf = import_module(settings.ROOT_URLCONF)
@@ -42,8 +49,16 @@ def get_model_for_url_path(target_path: str):
         # No match found
         raise TargetDoesNotExist(
             f'Cannot find a matching urlpattern entry for path={target_path}')
-
     log.debug(f'Found matching urlpattern: {match}')
+    return match
+
+
+def get_model_for_url_path(target_path: str, match: ResolverMatch = None):
+    """
+    Find a match in urlpatterns and return the corresponding model instance.
+    """
+    if match is None:
+        match = _find_urlpattern(target_path)
 
     # Dotted path to model class declaration
     model_name = match.kwargs.get('model_name')
@@ -70,3 +85,36 @@ def get_model_for_url_path(target_path: str):
     except ObjectDoesNotExist:
         raise TargetDoesNotExist(
             f'Cannot find instance of model=\'{model}\' with slug=\'{slug}\'')
+
+
+def get_mentions_for_url_path(target_path: str, match: ResolverMatch = None):
+    """
+    Return a list of webmentions or raise TargetDoesNotExist.
+    """
+    if match is None:
+        match = _find_urlpattern(target_path)
+
+    try:
+        obj = get_model_for_url_path(target_path, match)
+        return obj.mentions
+    except (BadConfig, TargetDoesNotExist):
+        pass
+
+    mentions = Webmention.objects.filter(
+        target_url=target_path,
+        approved=True,
+        validated=True,
+    )
+
+    return mentions
+
+
+def serialize_mentions(mentions: List[Webmention]) -> List[Dict]:
+    return [
+        {
+            'hcard': mention.hcard.as_json() if mention.hcard else {},
+            'quote': mention.quote,
+            'source_url': mention.source_url,
+            'published': mention.published,
+        } for mention in mentions
+    ]

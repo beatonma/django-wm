@@ -1,7 +1,10 @@
 from django.urls import path, include, re_path
 
 from mentions.tests.util import constants
-from mentions.tests.views import AllEndpointsMentionableTestView
+from mentions.tests.views import (
+    AllEndpointsMentionableTestView,
+    SimpleNoObjectTestView,
+)
 
 urlpatterns = [
     re_path(
@@ -12,4 +15,5 @@ urlpatterns = [
         },
         name=constants.view_all_endpoints),
     path(f'{constants.namespace}/', include('mentions.urls')),
+    path('some-page/', SimpleNoObjectTestView.as_view(), name=constants.view_no_mentionable_object)
 ]

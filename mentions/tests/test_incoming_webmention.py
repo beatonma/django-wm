@@ -6,9 +6,13 @@ import logging
 
 from django.http import HttpResponse
 from django.test import TestCase, Client
+from django.urls import reverse
 
 from mentions.tasks import incoming_webmentions
-from mentions.tests.util import functions
+from mentions.tests.util import (
+    functions,
+    constants,
+)
 from mentions.tests.models import MentionableTestModel
 
 log = logging.getLogger(__name__)
@@ -57,6 +61,11 @@ class IncomingWebmentionsTests(TestCase):
             content='some html content',
             allow_incoming_webmentions=True)
         target.save()
+
+    def test_get_target_path(self):
+        """Ensure that path is retrieved from url correctly."""
+        scheme, domain, path = incoming_webmentions._get_target_path(self.target_url)
+        self.assertEqual(reverse(constants.view_all_endpoints, args=[self.target_slug]), path)
 
     def test_get_target_object(self):
         """Ensure that database object is retrieved from url correctly."""

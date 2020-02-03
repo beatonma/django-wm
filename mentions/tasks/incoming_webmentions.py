@@ -1,3 +1,4 @@
+from typing import Tuple
 from urllib.parse import urlsplit
 
 import requests
@@ -46,6 +47,10 @@ def process_incoming_webmention(http_post: QueryDict, client_ip: str) -> None:
         error_message = f'Unable to find matching page on our server {e}'
         log.warn(error_message)
         notes.append(error_message)
+    except BadConfig as e:
+        error_message = f'Unable to find a model associated with url {target}: {e}'
+        log.warn(error_message)
+        notes.append(error_message)
 
     # Verify that the source page exists and really contains a link
     # to the target
@@ -77,6 +82,12 @@ def process_incoming_webmention(http_post: QueryDict, client_ip: str) -> None:
     log.info(f'Webmention saved: {wm}')
 
 
+def _get_target_path(target_url: str) -> Tuple[str, str, str]:
+    scheme, full_domain, path, _, _ = urlsplit(target_url)
+    domain = full_domain.split(':')[0]  # Remove port number if present
+    return scheme, domain, path
+
+
 def _get_target_object(target_url: str) -> models.Model:
     r"""
     Confirm that the page exists on our server and return object.
@@ -101,8 +112,7 @@ def _get_target_object(target_url: str) -> models.Model:
         TargetWrongDomain: If the target_url points to a domain not listed in settings.ALLOWED_HOSTS
         BadConfig: Raised from get_model_for_url
     """
-    scheme, full_domain, path, _, _ = urlsplit(target_url)
-    domain = full_domain.split(':')[0]  # Remove port number if present
+    scheme, domain, path = _get_target_path(target_url)
 
     if domain not in settings.ALLOWED_HOSTS:
         raise TargetWrongDomain(f'Wrong domain: {domain} (from url={target_url})')
@@ -110,7 +120,7 @@ def _get_target_object(target_url: str) -> models.Model:
     try:
         return get_model_for_url_path(path)
     except BadConfig as e:
-        log.critical(f'Failed to process incoming webmention! BAD CONFIG: {e}')
+        log.warning(f'Failed to process incoming webmention! BAD CONFIG: {e}')
         raise e
 
 

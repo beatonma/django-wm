@@ -18,6 +18,7 @@ model_name = 'tests.MentionableTestModel'
 
 """Name of the View used for testing (for reverse lookup)"""
 view_all_endpoints = 'all_endpoints_view'
+view_no_mentionable_object = 'no_object_view'
 
 """Path as configured in the local urlpatterns"""
 correct_config = 'with_correct_config'
