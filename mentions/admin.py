@@ -44,6 +44,7 @@ class WebmentionAdmin(QuotableAdmin):
     ]
     list_display = [
         'source_url',
+        'target_url',
         'published',
         'validated',
         'approved',
