@@ -1,6 +1,3 @@
-from typing import Tuple
-from urllib.parse import urlsplit
-
 import requests
 from bs4 import BeautifulSoup
 from celery import shared_task
@@ -37,13 +34,13 @@ class Notes:
         self.notes.append(note)
         return self
 
-    def __str__(self):
+    def join_to_string(self):
         return '\n'.join(self.notes)
 
 
 def _update_wm(
         mention,
-        target_object = None,
+        target_object=None,
         notes: Notes = None,
         hcard: HCard = None,
         validated: bool = None,
@@ -53,15 +50,15 @@ def _update_wm(
     if target_object is not None:
         mention.target_object = target_object
     if notes is not None:
-        mention.notes = str(notes)
+        mention.notes = notes.join_to_string()[:1000]
     if hcard is not None:
         mention.hcard = hcard
     if validated is not None:
         mention.validated = validated
 
     if save:
-        mention.save()
         log.info(f'Webmention saved: {mention}')
+        mention.save()
 
     return mention
 
@@ -142,7 +139,6 @@ def _get_target_object(target_url: str) -> models.Model:
     try:
         return get_model_for_url_path(path)
     except BadConfig as e:
-        # log.warning(f'Failed to process incoming webmention! BAD CONFIG: {e}')
         raise e
 
 
