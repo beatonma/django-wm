@@ -4,11 +4,14 @@ from importlib import import_module
 from typing import (
     List,
     Dict,
+    Tuple,
 )
+from urllib.parse import urlsplit
 
 from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from django.db.models import Q
 from django.urls import (
     Resolver404,
     ResolverMatch,
@@ -53,6 +56,12 @@ def _find_urlpattern(target_path: str) -> ResolverMatch:
     return match
 
 
+def split_url(target_url: str) -> Tuple[str, str, str]:
+    scheme, full_domain, path, _, _ = urlsplit(target_url)
+    domain = full_domain.split(':')[0]  # Remove port number if present
+    return scheme, domain, path
+
+
 def get_model_for_url_path(target_path: str, match: ResolverMatch = None):
     """
     Find a match in urlpatterns and return the corresponding model instance.
@@ -87,7 +96,7 @@ def get_model_for_url_path(target_path: str, match: ResolverMatch = None):
             f'Cannot find instance of model=\'{model}\' with slug=\'{slug}\'')
 
 
-def get_mentions_for_url_path(target_path: str, match: ResolverMatch = None):
+def get_mentions_for_url_path(target_path: str, full_target_url=None, match: ResolverMatch = None):
     """
     Return a list of webmentions or raise TargetDoesNotExist.
     """
@@ -100,8 +109,11 @@ def get_mentions_for_url_path(target_path: str, match: ResolverMatch = None):
     except (BadConfig, TargetDoesNotExist):
         pass
 
+    # Add or remove a trailing slash to full_target_url so we can look for both.
+    full_target_url_invert_slash = full_target_url[:-1] if full_target_url.endswith('/') else f'{full_target_url}/'
+
     mentions = Webmention.objects.filter(
-        target_url=target_path,
+        Q(target_url=full_target_url) | Q(target_url=full_target_url_invert_slash) | Q(target_url=target_path),
         approved=True,
         validated=True,
     )
