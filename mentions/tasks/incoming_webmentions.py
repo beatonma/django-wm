@@ -16,9 +16,54 @@ from mentions.exceptions import (
     SourceNotAccessible,
 )
 from mentions.models import Webmention, HCard
-from mentions.util import get_model_for_url_path
+from mentions.util import (
+    get_model_for_url_path,
+    split_url,
+)
 
 log = get_task_logger(__name__)
+
+
+class Notes:
+    notes = []
+
+    def info(self, note) -> 'Notes':
+        log.info(note)
+        self.notes.append(note)
+        return self
+
+    def warn(self, note) -> 'Notes':
+        log.warning(note)
+        self.notes.append(note)
+        return self
+
+    def __str__(self):
+        return '\n'.join(self.notes)
+
+
+def _update_wm(
+        mention,
+        target_object = None,
+        notes: Notes = None,
+        hcard: HCard = None,
+        validated: bool = None,
+        save: bool = False,
+):
+    """Update a webmention with the given kwargs"""
+    if target_object is not None:
+        mention.target_object = target_object
+    if notes is not None:
+        mention.notes = str(notes)
+    if hcard is not None:
+        mention.hcard = hcard
+    if validated is not None:
+        mention.validated = validated
+
+    if save:
+        mention.save()
+        log.info(f'Webmention saved: {mention}')
+
+    return mention
 
 
 @shared_task
@@ -31,61 +76,38 @@ def process_incoming_webmention(http_post: QueryDict, client_ip: str) -> None:
     target = http_post['target']
 
     wm = Webmention.create(source, target, sent_by=client_ip)
-    # wm.sent_by = client_ip
 
     # If anything fails, write it to notes and attach to webmention object
     # so it can be checked later
-    notes = []
+    notes = Notes()
 
     # Check that the target page is accessible on our server and fetch
     # the corresponding object.
     try:
         obj = _get_target_object(target)
-        log.info('Found webmention target object')
-        wm.target_object = obj
+        notes.info('Found webmention target object')
+        _update_wm(wm, target_object=obj)
     except (TargetWrongDomain, TargetDoesNotExist) as e:
-        error_message = f'Unable to find matching page on our server {e}'
-        log.warn(error_message)
-        notes.append(error_message)
+        notes.warn(f'Unable to find matching page on our server {e}')
     except BadConfig as e:
-        error_message = f'Unable to find a model associated with url {target}: {e}'
-        log.warn(error_message)
-        notes.append(error_message)
+        notes.warn(f'Unable to find a model associated with url {target}: {e}')
 
     # Verify that the source page exists and really contains a link
     # to the target
     try:
         response_text = _get_incoming_source(source)
     except SourceNotAccessible as e:
-        log.warn(e)
-        notes.append(f'Source not accessible: {e}')
-        wm.notes = '\n'.join(notes)
-        wm.save()
+        _update_wm(wm, notes=notes.warn(f'Source not accessible: {e}'), save=True)
         return
 
     soup = BeautifulSoup(response_text, 'html.parser')
     if not soup.find('a', href=target):
-        notes.append('Source does not contain a link to our content')
-        wm.notes = '\n'.join(notes)
-        wm.save()
+        _update_wm(wm, notes=notes.info('Source does not contain a link to our content'), save=True)
         return
 
-    hcard = HCard.from_soup(soup)
-    if hcard:
-        hcard.save()
-        wm.hcard = hcard
+    hcard = HCard.from_soup(soup, save=True)
 
-    wm.validated = True
-    wm.notes = '\n'.join(notes)
-
-    wm.save()
-    log.info(f'Webmention saved: {wm}')
-
-
-def _get_target_path(target_url: str) -> Tuple[str, str, str]:
-    scheme, full_domain, path, _, _ = urlsplit(target_url)
-    domain = full_domain.split(':')[0]  # Remove port number if present
-    return scheme, domain, path
+    _update_wm(wm, validated=True, notes=notes, hcard=hcard, save=True)
 
 
 def _get_target_object(target_url: str) -> models.Model:
@@ -112,7 +134,7 @@ def _get_target_object(target_url: str) -> models.Model:
         TargetWrongDomain: If the target_url points to a domain not listed in settings.ALLOWED_HOSTS
         BadConfig: Raised from get_model_for_url
     """
-    scheme, domain, path = _get_target_path(target_url)
+    scheme, domain, path = split_url(target_url)
 
     if domain not in settings.ALLOWED_HOSTS:
         raise TargetWrongDomain(f'Wrong domain: {domain} (from url={target_url})')
@@ -120,7 +142,7 @@ def _get_target_object(target_url: str) -> models.Model:
     try:
         return get_model_for_url_path(path)
     except BadConfig as e:
-        log.warning(f'Failed to process incoming webmention! BAD CONFIG: {e}')
+        # log.warning(f'Failed to process incoming webmention! BAD CONFIG: {e}')
         raise e
 
 
