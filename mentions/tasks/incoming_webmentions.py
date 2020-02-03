@@ -87,17 +87,17 @@ def process_incoming_webmention(http_post: QueryDict, client_ip: str) -> None:
         obj = _get_target_object(target)
         notes.info('Found webmention target object')
         _update_wm(wm, target_object=obj)
-    except (TargetWrongDomain, TargetDoesNotExist) as e:
-        notes.warn(f'Unable to find matching page on our server {e}')
-    except BadConfig as e:
-        notes.warn(f'Unable to find a model associated with url {target}: {e}')
+    except (TargetWrongDomain, TargetDoesNotExist):
+        notes.warn(f'Unable to find matching page on our server for url {target}')
+    except BadConfig:
+        notes.warn(f'Unable to find a model associated with url {target}')
 
     # Verify that the source page exists and really contains a link
     # to the target
     try:
         response_text = _get_incoming_source(source)
-    except SourceNotAccessible as e:
-        _update_wm(wm, notes=notes.warn(f'Source not accessible: {e}'), save=True)
+    except SourceNotAccessible:
+        _update_wm(wm, notes=notes.warn(f'Source not accessible: {source}'), save=True)
         return
 
     soup = BeautifulSoup(response_text, 'html.parser')
