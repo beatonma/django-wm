@@ -83,3 +83,4 @@ class OutgoingWebmentionStatus(MentionsBaseModel):
 
     class Meta:
         ordering = ['-created_at']
+        verbose_name_plural = 'Outgoing Webmention Statuses'
