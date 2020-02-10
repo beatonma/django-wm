@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manual webmention submission</title>
+</head>
+<body>
+    <form id="webmention_manual_submit" name="webmention_manual_submit" method="POST" action="{% url 'incoming_webmention_api_view' %}">
+        {% csrf_token %}
+        {% for field in form %}<div>
+            {{ field.errors }} {{ field.label_tag }} {{ field }}
+        </div>
+        {% endfor %}
+        <input name="Submit" title="Submit" type="submit">
+    </form>
+</body>
+</html>

@@ -22,6 +22,11 @@ setup(
     },
     author='Michael Beaton',
     author_email='michael@beatonma.org',
+    data_files=[
+        ('', [
+            'mentions/templates/webmention-submit-manual.html',
+        ]),
+    ],
     install_requires=[
         'beautifulsoup4',
         'celery',

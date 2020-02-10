@@ -8,11 +8,13 @@ from django.http import (
     HttpResponseBadRequest,     # HTTP 400
     HttpResponseNotAllowed,     # HTTP 405
 )
+from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import View
 
 from mentions.exceptions import TargetDoesNotExist
+from mentions.forms.manual_submit_webmention import ManualSubmitWebmentionForm
 from mentions.tasks import process_incoming_webmention
 from mentions.util import (
     get_mentions_for_url_path,
@@ -48,12 +50,11 @@ class WebmentionView(View):
 
     @method_decorator(csrf_exempt)
     def dispatch(self, request, *args, **kwargs):
-        log.info('Receiving webmention...')
-        if request.method != 'POST':
-            return HttpResponseNotAllowed(
-                ['POST', ],
-                'Only POST requests are accepted')
+        if request.method == 'GET':
+            form = ManualSubmitWebmentionForm()
+            return render(request, 'webmention-submit-manual.html', {'form': form})
 
+        log.info('Receiving webmention...')
         http_post = request.POST
         try:
             client_ip = _get_client_ip(request)
@@ -71,7 +72,7 @@ class WebmentionView(View):
             return HttpResponseBadRequest()
 
         process_incoming_webmention.delay(http_post, client_ip)
-        return HttpResponse(status=202)
+        return HttpResponse('Thank you, your webmention has been accepted.', status=202)
 
 
 # /webmention/get
