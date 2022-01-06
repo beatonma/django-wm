@@ -1,5 +1,5 @@
 beautifulsoup4==4.6.3
-celery==4.2.1
+celery==5.2.2
 django==2.2.24
 mf2py==1.1.2
 requests==2.20.0
