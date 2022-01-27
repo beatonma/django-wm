@@ -77,19 +77,19 @@ Project code
     * Add "mentions" to :code:`INSTALLED_APPS`::
 
         INSTALLED_APPS = [
-            'django.contrib.auth',
-            'django.contrib.contenttypes',
-            'django.contrib.flatpages',
-            'django.contrib.sites',
+            "django.contrib.auth",
+            "django.contrib.contenttypes",
+            "django.contrib.flatpages",
+            "django.contrib.sites",
             ...
-            'mentions',
+            "mentions",
         ]
 
-    * Add :code:'mentions.middleware.WebmentionHeadMiddleware' to :code:`MIDDLEWARE`::
+    * Add :code:"mentions.middleware.WebmentionHeadMiddleware" to :code:`MIDDLEWARE`::
 
         MIDDLEWARE = [
             ...
-            'mentions.middleware.WebmentionHeadMiddleware',
+            "mentions.middleware.WebmentionHeadMiddleware",
         ]
 
 
@@ -97,7 +97,7 @@ Project code
 
     urlpatterns = [
         ...
-        path('webmentions/', include('mentions.urls')),
+        path("webmentions/", include("mentions.urls")),
     ]
 
 
@@ -113,10 +113,10 @@ Project code
     class MyModel(MentionableMixin, models.Model):
         ...
         def all_text(self) -> str:
-            return f'{self.introduction} {self.content}'
+            return f"{self.introduction} {self.content}"
 
         def get_absolute_url() -> str:
-            return reverse('app.views.name', kwargs={'slug': self.slug})
+            return reverse("app.views.name", kwargs={"slug": self.slug})
 
 
 4. Update database tables::
