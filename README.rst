@@ -6,8 +6,7 @@ Mentions
     :target: https://badge.fury.io/py/django-wm
 
 Mentions lets you add Webmention_ functionality to any Django model with minimal
-setup. There is an implementation running at https://django-wm.dev/ with source
-code available here_.
+setup. Code for an example implementation is available  here_.
 
 .. _webmention: https://indieweb.org/Webmention
 .. _here: https://github.com/beatonma/django-wm-example
@@ -63,7 +62,7 @@ Project code
 
     * Set :code:`DOMAIN_NAME`::
 
-        DOMAIN_NAME = 'your.url.here'  # e.g. 'django-wm.dev'
+        DOMAIN_NAME = "your.url.here"  # e.g. "beatonma.org"
 
     * Add "mentions" to :code:`INSTALLED_APPS`::
 
