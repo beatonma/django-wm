@@ -1,7 +1,5 @@
 Mentions
 ========
-.. image:: https://travis-ci.org/beatonma/django-wm.svg?branch=master
-    :target: https://travis-ci.org/beatonma/django-wm
 .. image:: https://badge.fury.io/py/django-wm.svg
     :target: https://badge.fury.io/py/django-wm
 
