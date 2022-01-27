@@ -12,6 +12,18 @@ setup. Code for an example implementation is available  here_.
 .. _here: https://github.com/beatonma/django-wm-example
 
 
+Migration warning for existing users
+====================================
+`1.x.x` releases have not included Django migration files, requiring users to run `makemigrations` themselves. This may
+result in problems for those users when models defined in `django-wm` change. `1.3.1` is the last release affected by this.
+
+Migration files *will* be included from version `2.0.0` onwards, as they should have been from the beginning. Unfortunately
+this will require some manual intervention for existing users who need to update. Full instructions for that upgrade will
+be provided (thanks to @GriceTurrble).
+
+I apologise to any existing users affected by this change.
+
+
 Installation
 ============
 
