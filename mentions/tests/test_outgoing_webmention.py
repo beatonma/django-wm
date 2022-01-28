@@ -25,15 +25,15 @@ log = logging.getLogger(__name__)
 OUTGOING_WEBMENTION_HTML = """<html>
 <head><link rel="webmention" href="/webmention/" /></head>
 <body>blah blah 
-<a href="https://django-wm.dev/">This is a mentionable link</a> 
+<a href="https://beatonma.org/">This is a mentionable link</a> 
 blah blah</body></html>
 """
 
 OUTGOING_WEBMENTION_HTML_MULTIPLE_LINKS = """<html>
 <head><link rel="webmention" href="/webmention/" /></head>
 <body>blah blah 
-<a href="https://django-wm.dev/">This is a mentionable link</a> 
-<a href="https://django-wm.dev/some-article/">This is another mentionable link</a> 
+<a href="https://beatonma.org/">This is a mentionable link</a> 
+<a href="https://beatonma.org/some-article/">This is another mentionable link</a> 
 blah blah</body></html>
 """
 
@@ -74,14 +74,14 @@ class MockResponse:
 
 def _get_mock_get_response_ok(url, *args, **kwargs):
     return {
-        "https://django-wm.dev/": MockResponse(
-            "https://django-wm.dev/",
+        "https://beatonma.org/": MockResponse(
+            "https://beatonma.org/",
             text=OUTGOING_WEBMENTION_HTML,
             headers=kwargs.get("headers", {}),
             status_code=200,
         ),
-        "https://django-wm.dev/some-article/": MockResponse(
-            "https://django-wm.dev/some-article/",
+        "https://beatonma.org/some-article/": MockResponse(
+            "https://beatonma.org/some-article/",
             text=OUTGOING_WEBMENTION_HTML_MULTIPLE_LINKS,
             headers=kwargs.get("headers", {}),
             status_code=200,
@@ -91,8 +91,8 @@ def _get_mock_get_response_ok(url, *args, **kwargs):
 
 def _get_mock_post_response_ok(url, *args, **kwargs):
     return {
-        "https://django-wm.dev/webmention/": MockResponse(
-            "https://django-wm.dev/webmention/",
+        "https://beatonma.org/webmention/": MockResponse(
+            "https://beatonma.org/webmention/",
             headers=kwargs.get("headers", {}),
             status_code=200,
         ),
@@ -101,8 +101,8 @@ def _get_mock_post_response_ok(url, *args, **kwargs):
 
 def _get_mock_post_response_endpoint_error(url, *args, **kwargs):
     return {
-        "https://django-wm.dev/webmention/": MockResponse(
-            "https://django-wm.dev/webmention/",
+        "https://beatonma.org/webmention/": MockResponse(
+            "https://beatonma.org/webmention/",
             text=OUTGOING_WEBMENTION_HTML,
             headers=kwargs.get("headers", {}),
             status_code=400,
@@ -241,8 +241,8 @@ class OutgoingWebmentionsTests(TestCase):
         page_url = f"https://{constants.domain}/some-url-path/"
         success, status_code = _send_webmention(
             source_url=page_url,
-            endpoint="https://django-wm.dev/webmention/",
-            target="https://django-wm.dev/",
+            endpoint="https://beatonma.org/webmention/",
+            target="https://beatonma.org/",
         )
         self.assertTrue(success)
         self.assertEqual(200, status_code)
@@ -254,8 +254,8 @@ class OutgoingWebmentionsTests(TestCase):
         page_url = f"https://{constants.domain}/some-url-path/"
         success, status_code = _send_webmention(
             source_url=page_url,
-            endpoint="https://django-wm.dev/webmention/",
-            target="https://django-wm.dev/",
+            endpoint="https://beatonma.org/webmention/",
+            target="https://beatonma.org/",
         )
         self.assertFalse(success)
         self.assertEqual(400, status_code)
