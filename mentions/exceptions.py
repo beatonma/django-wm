@@ -1,28 +1,34 @@
-class TargetWrongDomain(Exception):
+class WebmentionsException(Exception):
+    """Base class for mentions-specific exceptions."""
+
+    pass
+
+
+class TargetWrongDomain(WebmentionsException):
     """Target URL does not point to any domain in settings.ALLOWED_HOSTS."""
 
     pass
 
 
-class TargetDoesNotExist(Exception):
+class TargetDoesNotExist(WebmentionsException):
     """Target URL does not point to an object on our server."""
 
     pass
 
 
-class SourceNotAccessible(Exception):
+class SourceNotAccessible(WebmentionsException):
     """Source URL does not exist, or returns an error code."""
 
     pass
 
 
-class SourceDoesNotLink(Exception):
+class SourceDoesNotLink(WebmentionsException):
     """Source URL exists but does not contain link to our content."""
 
     pass
 
 
-class BadConfig(Exception):
+class BadConfig(WebmentionsException):
     """
     URL resolution completed but did not include required data.
 
