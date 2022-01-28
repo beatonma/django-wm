@@ -2,7 +2,7 @@ import os
 from setuptools import find_packages, setup
 import mentions
 
-with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
+with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
     README = readme.read()
 
 setup(
@@ -13,7 +13,7 @@ setup(
     license='GPLv3',
     description='Webmention support for any Django model.',
     long_description=README,
-    long_description_content_type='text/x-rst',
+    long_description_content_type='text/markdown',
     url='https://beatonma.org/django-wm',
     project_urls={
         'Source': 'https://github.com/beatonma/django-wm',
