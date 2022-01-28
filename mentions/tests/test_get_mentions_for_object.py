@@ -92,7 +92,7 @@ class WebmentionNoModelTests(TestCase):
     def setUp(self) -> None:
         self.target_url = reverse(constants.view_no_mentionable_object)
         Webmention.objects.create(
-            source_url='https://django-wm.dev/',
+            source_url="https://beatonma.org/",
             target_url=self.target_url,
             approved=True,
             validated=True,
