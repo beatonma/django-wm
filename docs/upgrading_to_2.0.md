@@ -1,12 +1,12 @@
-# Upgrading to v1.4+
+# Upgrading to v2.0
 
-The following guide seeks to alleviate potential issues when upgrading from `django-wm<1.4` to **v1.4.0** and beyond.
+The following guide seeks to alleviate potential issues when upgrading from `django-wm<2.0` to `django-wm>=2.0`.
 
 ⚠ **Breaking change** ⚠
 
 Prior versions of `django-wm` omitted [migration files] for the `mentions` app that this package provides. This was an oversight: when running `manage.py makemigrations`, one or more migration files would be generated within the `django-wm` package installation. This can cause issues when/if `django-wm` is upgraded with changes to its concrete models.
 
-Starting in **v1.4.0**, migrations for `mentions` app's _concrete_ models - models that are NOT [abstract base classes] - will be included with the package distribution. This way, new changes to those concrete models can be smoothly migrated in any environment that uses `django-wm`.
+Starting in **v2.0.0**, migrations for `mentions` app's _concrete_ models - models that are NOT [abstract base classes] - will be included with the package distribution. This way, new changes to those concrete models can be smoothly migrated in any environment that uses `django-wm`.
 
 The following models are affected by the change:
 
@@ -17,13 +17,13 @@ The following models are affected by the change:
 
 **Notes**:
 
-- **Database tables created by mentions models in v1.3.0 are identical to those created with v1.4.0**. Any database environment with up-to-date model migrations as of **v1.3.0** should be able to upgrade to **v1.4.0** with no impacts on data or database schemas.
+- **Database tables created by mentions models in v1.3.1 are identical to those created with v2.0.0**. Any database environment with up-to-date model migrations as of **v1.3.1** should be able to upgrade to **v2.0** with no impacts on data or database schemas.
 - **Model _mixins_ are not affected**. Mixins are [abstract base classes], and do not generate migrations in the `mentions` app under any circumstances.
 - **Models that inherit from mixins are also not affected**. You do not need to generate new migrations for your own apps if you inherit from these mixin classes.
 
 ## Manually upgrading migrations in a running application
 
-If you are uncertain if your app will be adversely affected by this change, you may take the following steps to safely migrate your existing environment to `django-wm>=1.4`. This is a one-time process for the upgrade to **v1.4+**. All future upgrades for `django-wm` do not need to follow this same process.
+If you are uncertain if your app will be adversely affected by this change, you may take the following steps to safely migrate your existing environment to `django-wm>=2.0`. This is a one-time process for the upgrade to **v2.0+**. All future upgrades for `django-wm` do not need to follow this same process.
 
 ⚠ **DO NOT** upgrade the `django-wm` package yet! You will need the generated migration files from your _current_ installation in order to follow this guide.
 
@@ -40,11 +40,11 @@ If you are uncertain if your app will be adversely affected by this change, you 
 
 1. Navigate to the Python installation or virtual environment where `django-wm` is installed, and locate the `lib/site-packages/mentions` directory (where the installed code for this package resides). From there, copy the `migrations` directory and its contents to a safe location _outside_ the Python virtual environment.
 
-   - The migration files here will be ones your Django project generated using the `makemigrations` command in **v1.3.0** and below.
+   - The migration files here will be ones your Django project generated using the `makemigrations` command in **v1.3.1** and below.
 
-2. Upgrade `django-wm` using `pip install --upgrade django-wm` (preferably, specify the version with `django-wm==1.4.0`).
+2. Upgrade `django-wm` using `pip install --upgrade django-wm` (preferably, specify the version with `django-wm==2.0.0`).
 
-   - This will install the _new_ migration file(s) introduced in **v1.4+**.
+   - This will install the _new_ migration file(s) introduced in **v2.0+**.
 
 3. Again, navigate to `lib/site-packages/mentions` in the Python virtual environment. This time, _remove_ the `migrations` directory entirely.
 4. Move your _old_ migration files (from Step 1) _back_ to `lib/site-packages/mentions` within your Python virtual environment.
@@ -53,11 +53,11 @@ If you are uncertain if your app will be adversely affected by this change, you 
 
 5. From your Django project, run `manage.py makemigrations mentions`
 
-   - This may create new migration files in the `mentions` app. These will cover the differences between your _old_ migrations and any new changes introduced in **v1.4+**.
+   - This may create new migration files in the `mentions` app. These will cover the differences between your _old_ migrations and any new changes introduced in **v2.0+**.
 
 6. Run `manage.py migrate`
 
-   - Now your database should match the expected schema for `django-wm>=1.4`.
+   - Now your database should match the expected schema for `django-wm>=2.0`.
 
 7. Run `manage.py migrate mentions zero --fake`
 
