@@ -17,7 +17,6 @@ setup(
     url='https://beatonma.org/django-wm',
     project_urls={
         'Source': 'https://github.com/beatonma/django-wm',
-        'Implementation tester': 'https://django-wm.dev',
         'Example implementation source': 'https://github.com/beatonma/django-wm-example'
     },
     author='Michael Beaton',

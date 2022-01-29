@@ -1,16 +1,25 @@
 Mentions
 ========
-.. image:: https://travis-ci.org/beatonma/django-wm.svg?branch=master
-    :target: https://travis-ci.org/beatonma/django-wm
 .. image:: https://badge.fury.io/py/django-wm.svg
     :target: https://badge.fury.io/py/django-wm
 
 Mentions lets you add Webmention_ functionality to any Django model with minimal
-setup. There is an implementation running at https://django-wm.dev/ with source
-code available here_.
+setup. Code for an example implementation is available  here_.
 
 .. _webmention: https://indieweb.org/Webmention
 .. _here: https://github.com/beatonma/django-wm-example
+
+
+Migration warning for existing users
+====================================
+`1.x.x` releases have not included Django migration files, requiring users to run `makemigrations` themselves. This may
+result in problems for those users when models defined in `django-wm` change. `1.3.1` is the last release affected by this.
+
+Migration files *will* be included from version `2.0.0` onwards, as they should have been from the beginning. Unfortunately
+this will require some manual intervention for existing users who need to update. Full instructions for that upgrade will
+be provided (thanks to @GriceTurrble).
+
+I apologise to any existing users affected by this change.
 
 
 Installation
@@ -63,24 +72,24 @@ Project code
 
     * Set :code:`DOMAIN_NAME`::
 
-        DOMAIN_NAME = 'your.url.here'  # e.g. 'django-wm.dev'
+        DOMAIN_NAME = "your.url.here"  # e.g. "beatonma.org"
 
     * Add "mentions" to :code:`INSTALLED_APPS`::
 
         INSTALLED_APPS = [
-            'django.contrib.auth',
-            'django.contrib.contenttypes',
-            'django.contrib.flatpages',
-            'django.contrib.sites',
+            "django.contrib.auth",
+            "django.contrib.contenttypes",
+            "django.contrib.flatpages",
+            "django.contrib.sites",
             ...
-            'mentions',
+            "mentions",
         ]
 
-    * Add :code:'mentions.middleware.WebmentionHeadMiddleware' to :code:`MIDDLEWARE`::
+    * Add :code:"mentions.middleware.WebmentionHeadMiddleware" to :code:`MIDDLEWARE`::
 
         MIDDLEWARE = [
             ...
-            'mentions.middleware.WebmentionHeadMiddleware',
+            "mentions.middleware.WebmentionHeadMiddleware",
         ]
 
 
@@ -88,7 +97,7 @@ Project code
 
     urlpatterns = [
         ...
-        path('webmentions/', include('mentions.urls')),
+        path("webmentions/", include("mentions.urls")),
     ]
 
 
@@ -104,10 +113,10 @@ Project code
     class MyModel(MentionableMixin, models.Model):
         ...
         def all_text(self) -> str:
-            return f'{self.introduction} {self.content}'
+            return f"{self.introduction} {self.content}"
 
         def get_absolute_url() -> str:
-            return reverse('app.views.name', kwargs={'slug': self.slug})
+            return reverse("app.views.name", kwargs={"slug": self.slug})
 
 
 4. Update database tables::
