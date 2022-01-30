@@ -9,15 +9,10 @@ from django.test import TestCase
 from django.urls import reverse
 
 from mentions.models import OutgoingWebmentionStatus
+from mentions.tasks import outgoing_webmentions, process_outgoing_webmentions
 from mentions.tasks.outgoing_webmentions import _send_webmention
-from mentions.tests.util import snippets
-from mentions.tasks import (
-    outgoing_webmentions,
-    process_outgoing_webmentions,
-)
-from mentions.tests.util import functions
 from mentions.tests.models import MentionableTestModel
-from mentions.tests.util import constants
+from mentions.tests.util import constants, functions, snippets
 
 log = logging.getLogger(__name__)
 
@@ -40,6 +35,15 @@ blah blah</body></html>
 OUTGOING_WEBMENTION_HTML_NO_LINKS = """<html>
 <head><link rel="webmention" href="/webmention/" /></head>
 <body>blah blah no links here blah blah</body></html>
+"""
+
+OUTGOING_WEBMENTION_HTML_DUPLICATE_LINKS = """<html>
+<head><link rel="webmention" href="/webmention/" /></head>
+<body>blah blah 
+<a href="https://beatonma.org/">This is a mentionable link</a> 
+blah blah duplicate links
+<a href="https://beatonma.org/">This is a duplicate link</a> 
+</body></html>
 """
 
 
@@ -111,17 +115,14 @@ def _get_mock_post_response_endpoint_error(url, *args, **kwargs):
 
 
 class OutgoingWebmentionsTests(TestCase):
-    """"""
-
     def setUp(self):
         self.target_stub_id, self.target_slug = functions.get_id_and_slug()
 
-        target = MentionableTestModel.objects.create(
+        MentionableTestModel.objects.create(
             stub_id=self.target_stub_id,
             slug=self.target_slug,
             allow_incoming_webmentions=True,
         )
-        target.save()
 
     def _get_target_url(self, viewname):
         return reverse(viewname, args=[self.target_slug])
@@ -141,14 +142,17 @@ class OutgoingWebmentionsTests(TestCase):
             outgoing_links, [functions.url(constants.correct_config, self.target_slug)]
         )
 
+    def test_find_links_in_text__should_remove_duplicates(self):
+        raise NotImplementedError("TODO remove duplicate links")
+
     def test_get_absolute_endpoint_from_response(self):
         """Ensure that any exposed endpoints are found and returned as an absolute url."""
         mock_response = MockResponse(
             url=self._get_absolute_target_url(constants.view_all_endpoints),
             headers={"Link": snippets.http_link_endpoint()},
         )
-        absolute_endpoint_from_http_headers = outgoing_webmentions._get_absolute_endpoint_from_response(
-            mock_response
+        absolute_endpoint_from_http_headers = (
+            outgoing_webmentions._get_absolute_endpoint_from_response(mock_response)
         )
         self.assertEqual(
             constants.webmention_api_absolute_url, absolute_endpoint_from_http_headers
@@ -156,8 +160,8 @@ class OutgoingWebmentionsTests(TestCase):
 
         mock_response.headers = {}
         mock_response.text = snippets.html_head_endpoint()
-        absolute_endpoint_from_html_head = outgoing_webmentions._get_absolute_endpoint_from_response(
-            mock_response
+        absolute_endpoint_from_html_head = (
+            outgoing_webmentions._get_absolute_endpoint_from_response(mock_response)
         )
         self.assertEqual(
             constants.webmention_api_absolute_url, absolute_endpoint_from_html_head
@@ -165,8 +169,8 @@ class OutgoingWebmentionsTests(TestCase):
 
         mock_response.headers = {}
         mock_response.text = snippets.html_body_endpoint()
-        absolute_endpoint_from_html_body = outgoing_webmentions._get_absolute_endpoint_from_response(
-            mock_response
+        absolute_endpoint_from_html_body = (
+            outgoing_webmentions._get_absolute_endpoint_from_response(mock_response)
         )
         self.assertEqual(
             constants.webmention_api_absolute_url, absolute_endpoint_from_html_body
@@ -235,7 +239,9 @@ class OutgoingWebmentionsTests(TestCase):
         )
 
     @mock.patch.object(
-        requests, "post", mock.Mock(side_effect=_get_mock_post_response_ok,)
+        requests,
+        "post",
+        mock.Mock(side_effect=_get_mock_post_response_ok),
     )
     def test_send_webmention(self):
         page_url = f"https://{constants.domain}/some-url-path/"
@@ -248,7 +254,9 @@ class OutgoingWebmentionsTests(TestCase):
         self.assertEqual(200, status_code)
 
     @mock.patch.object(
-        requests, "post", mock.Mock(side_effect=_get_mock_post_response_endpoint_error,)
+        requests,
+        "post",
+        mock.Mock(side_effect=_get_mock_post_response_endpoint_error),
     )
     def test_send_webmention__with_endpoint_error(self):
         page_url = f"https://{constants.domain}/some-url-path/"
@@ -261,10 +269,14 @@ class OutgoingWebmentionsTests(TestCase):
         self.assertEqual(400, status_code)
 
     @mock.patch.object(
-        requests, "get", mock.Mock(side_effect=_get_mock_get_response_ok,)
+        requests,
+        "get",
+        mock.Mock(side_effect=_get_mock_get_response_ok),
     )
     @mock.patch.object(
-        requests, "post", mock.Mock(side_effect=_get_mock_post_response_ok,)
+        requests,
+        "post",
+        mock.Mock(side_effect=_get_mock_post_response_ok),
     )
     def test_process_outgoing_webmentions(self):
         """Test the entire process_outgoing_webmentions task."""
@@ -287,7 +299,7 @@ class OutgoingWebmentionsTests(TestCase):
         requests,
         "get",
         mock.Mock(
-            return_value=None,  # No network requests should be made if links not found in text
+            return_value=None  # No network requests should be made if links not found in text
         ),
     )
     @mock.patch.object(
@@ -309,10 +321,18 @@ class OutgoingWebmentionsTests(TestCase):
         self.assertEqual(0, OutgoingWebmentionStatus.objects.count())
 
     @mock.patch.object(
-        requests, "get", mock.Mock(side_effect=_get_mock_get_response_ok,)
+        requests,
+        "get",
+        mock.Mock(
+            side_effect=_get_mock_get_response_ok,
+        ),
     )
     @mock.patch.object(
-        requests, "post", mock.Mock(side_effect=_get_mock_post_response_endpoint_error,)
+        requests,
+        "post",
+        mock.Mock(
+            side_effect=_get_mock_post_response_endpoint_error,
+        ),
     )
     def test_process_outgoing_webmentions__with_endpoint_error(self):
         """Test the entire process_outgoing_webmentions task."""
