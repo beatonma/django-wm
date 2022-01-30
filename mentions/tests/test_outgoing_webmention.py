@@ -42,6 +42,7 @@ OUTGOING_WEBMENTION_HTML_DUPLICATE_LINKS = """<html>
 <body>blah blah 
 <a href="https://beatonma.org/">This is a mentionable link</a> 
 blah blah duplicate links
+<a href="https://snommoc.org/">This is some other link</a> 
 <a href="https://beatonma.org/">This is a duplicate link</a> 
 </body></html>
 """
@@ -138,12 +139,18 @@ class OutgoingWebmentionsTests(TestCase):
         )
 
         outgoing_links = outgoing_webmentions._find_links_in_text(outgoing_content)
-        self.assertEqual(
-            outgoing_links, [functions.url(constants.correct_config, self.target_slug)]
+        self.assertSetEqual(
+            outgoing_links, {functions.url(constants.correct_config, self.target_slug)}
         )
 
     def test_find_links_in_text__should_remove_duplicates(self):
-        raise NotImplementedError("TODO remove duplicate links")
+        outgoing_links = outgoing_webmentions._find_links_in_text(
+            OUTGOING_WEBMENTION_HTML_DUPLICATE_LINKS
+        )
+
+        self.assertSetEqual(
+            {"https://beatonma.org/", "https://snommoc.org/"}, outgoing_links
+        )
 
     def test_get_absolute_endpoint_from_response(self):
         """Ensure that any exposed endpoints are found and returned as an absolute url."""

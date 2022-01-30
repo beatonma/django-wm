@@ -132,9 +132,9 @@ def process_outgoing_webmentions(source_url: str, text: str) -> int:
     return mentions_sent
 
 
-def _find_links_in_text(text: str) -> List[str]:
-    soup = BeautifulSoup(text, 'html.parser')
-    return [a['href'] for a in soup.find_all('a', href=True)]
+def _find_links_in_text(text: str) -> Set[str]:
+    soup = BeautifulSoup(text, "html.parser")
+    return {a["href"] for a in soup.find_all("a", href=True)}
 
 
 def _get_absolute_endpoint_from_response(response: requests.Response) -> Optional[str]:
