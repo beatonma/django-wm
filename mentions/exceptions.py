@@ -38,3 +38,15 @@ class BadConfig(WebmentionsException):
     """
 
     pass
+
+
+class ImplementationRequired(WebmentionsException):
+    """A MentionableMixin model has not implemented a required method."""
+
+    pass
+
+
+class NotEnoughData(WebmentionsException):
+    """Attempted to build a model instance but did not have enough data to do so."""
+
+    pass
