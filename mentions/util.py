@@ -8,6 +8,7 @@ from typing import (
 )
 from urllib.parse import urlsplit
 
+from bs4 import BeautifulSoup
 from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -142,3 +143,7 @@ def serialize_hcard(hcard: Optional[HCard]) -> Optional[Dict]:
         "avatar": hcard.avatar,
         "homepage": hcard.homepage,
     }
+
+
+def html_parser(content) -> BeautifulSoup:
+    return BeautifulSoup(content, features="html5lib")

@@ -12,11 +12,8 @@ from mentions.exceptions import (
     TargetWrongDomain,
     SourceNotAccessible,
 )
-from mentions.models import Webmention, HCard
-from mentions.util import (
-    get_model_for_url_path,
-    split_url,
-)
+from mentions.models import HCard, Webmention
+from mentions.util import get_model_for_url_path, html_parser, split_url
 
 log = get_task_logger(__name__)
 
@@ -97,9 +94,13 @@ def process_incoming_webmention(http_post: QueryDict, client_ip: str) -> None:
         _update_wm(wm, notes=notes.warn(f'Source not accessible: {source}'), save=True)
         return
 
-    soup = BeautifulSoup(response_text, 'html.parser')
-    if not soup.find('a', href=target):
-        _update_wm(wm, notes=notes.info('Source does not contain a link to our content'), save=True)
+    soup = html_parser(response_text)
+    if not soup.find("a", href=target):
+        _update_wm(
+            wm,
+            notes=notes.info("Source does not contain a link to our content"),
+            save=True,
+        )
         return
 
     hcard = HCard.from_soup(soup, save=True)

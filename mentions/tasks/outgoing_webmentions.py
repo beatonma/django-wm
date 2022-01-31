@@ -10,13 +10,12 @@ from urllib.parse import urlsplit
 from django.conf import settings
 
 import requests
-
-from bs4 import BeautifulSoup
 from celery import shared_task
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 
 from mentions.models import OutgoingWebmentionStatus
+from mentions.util import html_parser
 
 log = logging.getLogger(__name__)
 
@@ -133,7 +132,7 @@ def process_outgoing_webmentions(source_url: str, text: str) -> int:
 
 
 def _find_links_in_text(text: str) -> Set[str]:
-    soup = BeautifulSoup(text, "html.parser")
+    soup = html_parser(text)
     return {a["href"] for a in soup.find_all("a", href=True)}
 
 
@@ -161,7 +160,7 @@ def _get_endpoint_in_http_headers(response: requests.Response) -> Optional[str]:
 
 def _get_endpoint_in_html(response: requests.Response) -> Optional[str]:
     """Search for a webmention endpoint in HTML."""
-    a_soup = BeautifulSoup(response.text, 'html.parser')
+    a_soup = html_parser(response.text)
 
     # Check HTML <head> for <link> webmention endpoint
     try:
