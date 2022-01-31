@@ -91,4 +91,4 @@ def _parse_hcard(item: dict, save: bool) -> Optional[HCard]:
 
             return card
         else:
-            log.info('Could not read "properties"')
+            log.debug('_parse_hcard could not read "properties"')
