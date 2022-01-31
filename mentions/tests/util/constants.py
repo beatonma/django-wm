@@ -2,7 +2,7 @@
 from django.conf import settings
 from django.urls import reverse_lazy
 
-import mentions.views.view_names as view_names
+from mentions.views import view_names
 
 domain = settings.DOMAIN_NAME
 
