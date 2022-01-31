@@ -5,14 +5,13 @@ import logging
 from unittest import mock
 
 import requests
-from django.test import TestCase
 from django.urls import reverse
 
 from mentions.models import OutgoingWebmentionStatus
 from mentions.tasks import outgoing_webmentions, process_outgoing_webmentions
-from mentions.tasks.outgoing_webmentions import _send_webmention
+from mentions.tests import WebmentionTestCase
 from mentions.tests.models import MentionableTestModel
-from mentions.tests.util import constants, functions, snippets
+from mentions.tests.util import constants, snippets, testfunc, viewname
 
 log = logging.getLogger(__name__)
 
@@ -115,12 +114,12 @@ def _get_mock_post_response_endpoint_error(url, *args, **kwargs):
     }.get(url)
 
 
-class OutgoingWebmentionsTests(TestCase):
+class OutgoingWebmentionsTests(WebmentionTestCase):
     def setUp(self):
-        self.target_stub_id, self.target_slug = functions.get_id_and_slug()
+        target_pk, self.target_slug = testfunc.get_id_and_slug()
 
         MentionableTestModel.objects.create(
-            stub_id=self.target_stub_id,
+            pk=target_pk,
             slug=self.target_slug,
             allow_incoming_webmentions=True,
         )
@@ -132,15 +131,16 @@ class OutgoingWebmentionsTests(TestCase):
         return f"https://{constants.domain}{self._get_target_url(viewname)}"
 
     def test_find_links_in_text(self):
-        """Ensure that outgoing links are found correctly."""
+        """Ensure outgoing links are found correctly."""
 
-        outgoing_content = functions.get_mentioning_content(
-            reverse(constants.view_all_endpoints, args=[self.target_slug])
+        outgoing_content = testfunc.get_mentioning_content(
+            reverse(viewname.with_all_endpoints, args=[self.target_slug])
         )
 
         outgoing_links = outgoing_webmentions._find_links_in_text(outgoing_content)
         self.assertSetEqual(
-            outgoing_links, {functions.url(constants.correct_config, self.target_slug)}
+            outgoing_links,
+            {testfunc.url_path(constants.correct_config, self.target_slug)},
         )
 
     def test_find_links_in_text__should_remove_duplicates(self):
@@ -155,7 +155,7 @@ class OutgoingWebmentionsTests(TestCase):
     def test_get_absolute_endpoint_from_response(self):
         """Ensure that any exposed endpoints are found and returned as an absolute url."""
         mock_response = MockResponse(
-            url=self._get_absolute_target_url(constants.view_all_endpoints),
+            url=self._get_absolute_target_url(viewname.with_all_endpoints),
             headers={"Link": snippets.http_link_endpoint()},
         )
         absolute_endpoint_from_http_headers = (
@@ -187,7 +187,7 @@ class OutgoingWebmentionsTests(TestCase):
         """Ensure that endpoints exposed in http header are found correctly."""
 
         mock_response = MockResponse(
-            url=self._get_absolute_target_url(constants.view_all_endpoints),
+            url=self._get_absolute_target_url(viewname.with_all_endpoints),
             headers={"Link": snippets.http_link_endpoint()},
         )
         endpoint_from_http_headers = outgoing_webmentions._get_endpoint_in_http_headers(
@@ -201,7 +201,7 @@ class OutgoingWebmentionsTests(TestCase):
         """Ensure that endpoints exposed in html <head> are found correctly."""
 
         mock_response = MockResponse(
-            url=self._get_absolute_target_url(constants.view_all_endpoints),
+            url=self._get_absolute_target_url(viewname.with_all_endpoints),
             text=snippets.html_head_endpoint(),
         )
         endpoint_from_html_head = outgoing_webmentions._get_endpoint_in_html(
@@ -213,7 +213,7 @@ class OutgoingWebmentionsTests(TestCase):
         """Ensure that endpoints exposed in html <body> are found correctly."""
 
         mock_response = MockResponse(
-            url=self._get_absolute_target_url(constants.view_all_endpoints),
+            url=self._get_absolute_target_url(viewname.with_all_endpoints),
             text=snippets.html_body_endpoint(),
         )
         endpoint_from_html_body = outgoing_webmentions._get_endpoint_in_html(
@@ -252,7 +252,7 @@ class OutgoingWebmentionsTests(TestCase):
     )
     def test_send_webmention(self):
         page_url = f"https://{constants.domain}/some-url-path/"
-        success, status_code = _send_webmention(
+        success, status_code = outgoing_webmentions._send_webmention(
             source_url=page_url,
             endpoint="https://beatonma.org/webmention/",
             target="https://beatonma.org/",
@@ -267,7 +267,7 @@ class OutgoingWebmentionsTests(TestCase):
     )
     def test_send_webmention__with_endpoint_error(self):
         page_url = f"https://{constants.domain}/some-url-path/"
-        success, status_code = _send_webmention(
+        success, status_code = outgoing_webmentions._send_webmention(
             source_url=page_url,
             endpoint="https://beatonma.org/webmention/",
             target="https://beatonma.org/",
@@ -286,7 +286,7 @@ class OutgoingWebmentionsTests(TestCase):
         mock.Mock(side_effect=_get_mock_post_response_ok),
     )
     def test_process_outgoing_webmentions(self):
-        """Test the entire process_outgoing_webmentions task."""
+        """Test the entire process_outgoing_webmentions task with no errors."""
         self.assertEqual(0, OutgoingWebmentionStatus.objects.count())
         page_url = f"https://{constants.domain}/some-url-path/"
         page_text = OUTGOING_WEBMENTION_HTML
@@ -322,9 +322,11 @@ class OutgoingWebmentionsTests(TestCase):
         page_url = f"https://{constants.domain}/some-url-path/"
         page_text = OUTGOING_WEBMENTION_HTML_NO_LINKS
 
-        wm = process_outgoing_webmentions(page_url, page_text)
+        successful_webmention_submissions = process_outgoing_webmentions(
+            page_url, page_text
+        )
 
-        self.assertEqual(0, wm)
+        self.assertEqual(0, successful_webmention_submissions)
         self.assertEqual(0, OutgoingWebmentionStatus.objects.count())
 
     @mock.patch.object(
@@ -342,12 +344,13 @@ class OutgoingWebmentionsTests(TestCase):
         ),
     )
     def test_process_outgoing_webmentions__with_endpoint_error(self):
-        """Test the entire process_outgoing_webmentions task."""
-        self.assertEqual(0, OutgoingWebmentionStatus.objects.count())
+        """Test the entire process_outgoing_webmentions task with endpoint error."""
         page_url = f"https://{constants.domain}/some-url-path/"
         page_text = OUTGOING_WEBMENTION_HTML
 
-        wm = process_outgoing_webmentions(page_url, page_text)
+        successful_webmention_submissions = process_outgoing_webmentions(
+            page_url, page_text
+        )
 
-        self.assertEqual(0, wm)
+        self.assertEqual(0, successful_webmention_submissions)
         self.assertEqual(1, OutgoingWebmentionStatus.objects.count())

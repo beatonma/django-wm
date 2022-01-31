@@ -5,23 +5,16 @@ Tests for handling webmentions are sent to us from elsewhere.
 import logging
 
 from django.http import HttpResponse
-from django.test import Client, TestCase
+from django.test import Client
 from django.urls import reverse
 
 from mentions.tasks import incoming_webmentions
+from mentions.tests import WebmentionTestCase
 from mentions.tests.models import MentionableTestModel
-from mentions.tests.util import constants, functions
+from mentions.tests.util import testfunc, viewname
 from mentions.util import split_url
 
 log = logging.getLogger(__name__)
-
-HTML_MENTION = """
-<html>
-<head>
-</head>
-<body><a href="{target_url}">This mentions the target!</a></body>
-</html>
-"""
 
 
 class MockHttpClient:
@@ -46,17 +39,14 @@ class MockResponse:
         self.text = response.content
 
 
-class IncomingWebmentionsTests(TestCase):
-    """"""
-
+class IncomingWebmentionsTests(WebmentionTestCase):
     def setUp(self):
-        self.target_id, self.target_slug = functions.get_id_and_slug()
-        self.target_url = functions.build_object_url(self.target_slug)
+        self.target_id, self.target_slug = testfunc.get_id_and_slug()
+        self.target_url = testfunc.build_object_url(self.target_slug)
 
-        target = MentionableTestModel.objects.create(
-            stub_id=self.target_id,
+        MentionableTestModel.objects.create(
+            pk=self.target_id,
             slug=self.target_slug,
-            content="some html content",
             allow_incoming_webmentions=True,
         )
 
@@ -64,7 +54,7 @@ class IncomingWebmentionsTests(TestCase):
         """Ensure that path is retrieved from url correctly."""
         scheme, domain, path = split_url(self.target_url)
         self.assertEqual(
-            reverse(constants.view_all_endpoints, args=[self.target_slug]), path
+            reverse(viewname.with_all_endpoints, args=[self.target_slug]), path
         )
 
     def test_get_target_object(self):
@@ -78,13 +68,9 @@ class IncomingWebmentionsTests(TestCase):
     def test_get_incoming_source(self):
         """Ensure that webmention source page can be retrieved correctly."""
 
-        source_stub_id, source_slug = functions.get_id_and_slug()
-        MentionableTestModel.objects.create(
-            stub_id=source_stub_id,
-            slug=source_slug,
-            content=HTML_MENTION.format(target_url=self.target_url),
-        )
-        source_url = functions.build_object_url(source_slug)
+        _, source_slug = testfunc.get_id_and_slug()
+        MentionableTestModel.objects.create(slug=source_slug)
+        source_url = testfunc.build_object_url(source_slug)
 
         self.assertIsNotNone(
             incoming_webmentions._get_incoming_source(

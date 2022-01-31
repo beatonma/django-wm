@@ -2,9 +2,11 @@
 from django.conf import settings
 from django.urls import reverse_lazy
 
-import mentions.views.names as view_names
+import mentions.views.view_names as view_names
 
 domain = settings.DOMAIN_NAME
+
+"""The root path for mentions.urls"""
 namespace = "webmention"
 
 webmention_api_relative_url = reverse_lazy(view_names.webmention_api_incoming)
@@ -15,10 +17,6 @@ webmention_api_absolute_url = None
 
 """Dotted name of the model used for testing."""
 model_name = "tests.MentionableTestModel"
-
-"""Name of the View used for testing (for reverse lookup)"""
-view_all_endpoints = "all_endpoints_view"
-view_no_mentionable_object = "no_object_view"
 
 """Path as configured in the local urlpatterns"""
 correct_config = "with_correct_config"

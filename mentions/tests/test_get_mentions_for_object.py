@@ -6,17 +6,17 @@ import json
 import logging
 from typing import Dict, List, Optional, Tuple
 
-from django.test import TestCase
 from django.urls import reverse
 
 from mentions.models import Webmention
+from mentions.tests import WebmentionTestCase
 from mentions.tests.models import MentionableTestModel
-from mentions.tests.util import constants, functions
+from mentions.tests.util import constants, testfunc, viewname
 
 log = logging.getLogger(__name__)
 
 
-class WebmentionTestCase(TestCase):
+class MentionsForObjectTestCase(WebmentionTestCase):
     def get_json_response(
         self, url, data=None, **kwargs
     ) -> Tuple[int, Optional[List[Dict]]]:
@@ -24,30 +24,30 @@ class WebmentionTestCase(TestCase):
         return response.status_code, json.loads(response.content).get("mentions")
 
 
-class WebmentionGetTests(WebmentionTestCase):
+class WebmentionGetTests(MentionsForObjectTestCase):
     """`get/` endpoint: Well-formed requests return mentions associated with URL"""
 
     def setUp(self):
-        self.target_stub_id, self.target_slug = functions.get_id_and_slug()
+        target_pk, target_slug = testfunc.get_id_and_slug()
 
         target = MentionableTestModel.objects.create(
-            stub_id=self.target_stub_id,
-            slug=self.target_slug,
+            pk=target_pk,
+            slug=target_slug,
             allow_incoming_webmentions=True,
         )
-        self.target_url = functions.build_object_relative_url(self.target_slug)
+        self.target_url = reverse(viewname.with_all_endpoints, args=[target_slug])
 
-        self.source_stub_id, self.source_slug = functions.get_id_and_slug()
+        source_pk, source_slug = testfunc.get_id_and_slug()
         source = MentionableTestModel.objects.create(
-            stub_id=self.source_stub_id,
-            slug=self.source_slug,
-            content=functions.get_mentioning_content(self.target_url),
+            pk=source_pk,
+            slug=source_slug,
+            content=testfunc.get_mentioning_content(self.target_url),
         )
-        self.source_url = functions.build_object_url(self.source_slug)
+        self.source_url = testfunc.build_object_url(source_slug)
 
         Webmention.objects.create(
-            source_url=functions.build_object_url(source.slug),
-            target_url=functions.build_object_url(target.slug),
+            source_url=testfunc.build_object_url(source.slug),
+            target_url=testfunc.build_object_url(target.slug),
             sent_by="tests@localhost",
             validated=True,
             approved=True,
@@ -67,7 +67,7 @@ class WebmentionGetTests(WebmentionTestCase):
         self.assertEqual(first_mention["source_url"], self.source_url)
 
 
-class WebmentionGetBadRequestTests(WebmentionTestCase):
+class WebmentionGetBadRequestTests(MentionsForObjectTestCase):
     """`get/` endpoint: Poorly-formed requests should give suitable responses"""
 
     def test_get_webmentions_view__require_http_get(self):
@@ -87,7 +87,7 @@ class WebmentionGetBadRequestTests(WebmentionTestCase):
         self.assertEqual(400, response.status_code)
 
     def test_get_webmentions_view__target_does_not_exist(self):
-        """If the requested URL does not exist"""
+        """If target URL does not exist, return 404 error code with empty mentions list."""
         status, mentions = self.get_json_response(
             constants.webmention_api_get_relative_url,
             data={"url": "/does-not-exist"},
@@ -97,11 +97,11 @@ class WebmentionGetBadRequestTests(WebmentionTestCase):
         self.assertListEqual([], mentions)
 
 
-class WebmentionNoModelTests(WebmentionTestCase):
-    """`get/` endpoint: Pages with no associated model instances should still"""
+class WebmentionNoModelTests(MentionsForObjectTestCase):
+    """`get/` endpoint: Pages with no associated model should still be mentionable."""
 
     def setUp(self) -> None:
-        self.target_url = reverse(constants.view_no_mentionable_object)
+        self.target_url = reverse(viewname.with_no_mentionable_object)
         Webmention.objects.create(
             source_url="https://beatonma.org/",
             target_url=self.target_url,
