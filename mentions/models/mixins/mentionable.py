@@ -17,6 +17,8 @@ class MentionableMixin(models.Model):
     allow_incoming_webmentions = models.BooleanField(default=True)
     allow_outgoing_webmentions = models.BooleanField(default=False)
 
+    slug = models.SlugField(unique=True)
+
     @property
     def mentions(self):
         ctype = ContentType.objects.get_for_model(self.__class__)
