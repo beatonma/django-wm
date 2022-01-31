@@ -18,7 +18,7 @@ from django.urls import (
 )
 
 from mentions.exceptions import BadConfig, TargetDoesNotExist
-from mentions.models import Webmention
+from mentions.models import HCard, Webmention
 
 log = logging.getLogger(__name__)
 
@@ -124,9 +124,21 @@ def get_mentions_for_url_path(target_path: str, full_target_url=None, match: Res
 def serialize_mentions(mentions: List[Webmention]) -> List[Dict]:
     return [
         {
-            'hcard': mention.hcard.as_json() if mention.hcard else {},
-            'quote': mention.quote,
-            'source_url': mention.source_url,
-            'published': mention.published,
-        } for mention in mentions
+            "hcard": serialize_hcard(mention.hcard),
+            "quote": mention.quote,
+            "source_url": mention.source_url,
+            "published": mention.published,
+        }
+        for mention in mentions
     ]
+
+
+def serialize_hcard(hcard: Optional[HCard]) -> Optional[Dict]:
+    if hcard is None:
+        return None
+
+    return {
+        "name": hcard.name,
+        "avatar": hcard.avatar,
+        "homepage": hcard.homepage,
+    }
