@@ -251,6 +251,7 @@ class OutgoingWebmentionsTests(WebmentionTestCase):
         mock.Mock(side_effect=_get_mock_post_response_ok),
     )
     def test_send_webmention(self):
+        """_send_webmention should return True with status code when webmention is accepted by server."""
         page_url = f"https://{constants.domain}/some-url-path/"
         success, status_code = outgoing_webmentions._send_webmention(
             source_url=page_url,
@@ -266,6 +267,7 @@ class OutgoingWebmentionsTests(WebmentionTestCase):
         mock.Mock(side_effect=_get_mock_post_response_endpoint_error),
     )
     def test_send_webmention__with_endpoint_error(self):
+        """_send_webmention should return False with status code when webmention is not accepted by server."""
         page_url = f"https://{constants.domain}/some-url-path/"
         success, status_code = outgoing_webmentions._send_webmention(
             source_url=page_url,
