@@ -16,35 +16,33 @@ from mentions.util import split_url
 log = logging.getLogger(__name__)
 
 
-class MockHttpClient:
+class _MockHttpClient:
     """Wrap Django Client with API for `python-requests`."""
 
     def __init__(self, client: Client):
         self.django_client = client
 
     def get(self, url):
-        return MockResponse(self.django_client.get(url))
+        return _MockResponse(self.django_client.get(url))
 
 
-class MockResponse:
+class _MockResponse:
     """Wrap Django HttpResponse with API for `python-requests`."""
 
     def __init__(self, response: HttpResponse):
         self.response = response
-        self.headers = {
-            "content-type": response._content_type_for_repr,
-        }
+        self.headers = response.headers
         self.status_code = response.status_code
         self.text = response.content
 
 
 class IncomingWebmentionsTests(WebmentionTestCase):
     def setUp(self):
-        self.target_id, self.target_slug = testfunc.get_id_and_slug()
+        target_pk, self.target_slug = testfunc.get_id_and_slug()
         self.target_url = testfunc.get_url(self.target_slug)
 
         MentionableTestModel.objects.create(
-            pk=self.target_id,
+            pk=target_pk,
             slug=self.target_slug,
             allow_incoming_webmentions=True,
         )
@@ -56,8 +54,6 @@ class IncomingWebmentionsTests(WebmentionTestCase):
 
     def test_get_target_object(self):
         """Ensure that database object is retrieved from url correctly."""
-        log.debug(self.target_url)
-
         retrieved_model = incoming_webmentions._get_target_object(self.target_url)
 
         self.assertEqual(retrieved_model.slug, self.target_slug)
@@ -66,11 +62,12 @@ class IncomingWebmentionsTests(WebmentionTestCase):
         """Ensure that webmention source page can be retrieved correctly."""
 
         _, source_slug = testfunc.get_id_and_slug()
-        MentionableTestModel.objects.create(slug=source_slug)
-        source_url = testfunc.get_url(source_slug)
+        source_url = MentionableTestModel.objects.create(
+            slug=source_slug
+        ).get_absolute_url()
 
         self.assertIsNotNone(
             incoming_webmentions._get_incoming_source(
-                source_url, client=MockHttpClient(self.client)
+                source_url, client=_MockHttpClient(self.client)
             )
         )
