@@ -6,7 +6,7 @@ from mentions.tests.views import AllEndpointsMentionableTestView, SimpleNoObject
 urlpatterns = [
     # A page associated with a MentionableMixin model with correct configuration - webmentions linked by model instance.
     re_path(
-        fr"^{constants.correct_config}/{constants.slug_regex}",
+        fr"^with_correct_config/{constants.slug_regex}",
         AllEndpointsMentionableTestView.as_view(),
         kwargs={
             "model_name": constants.model_name,
