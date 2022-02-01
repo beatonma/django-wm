@@ -12,13 +12,30 @@ log = logging.getLogger(__name__)
 
 
 class MentionableTestModel(MentionableMixin, models.Model):
-    """Stub model for testing."""
+    """Basic mentionable model with all required methods implemented."""
 
     content = models.TextField(blank=True, null=True)
 
     def get_absolute_url(self):
-        abs_url = reverse(viewname.with_all_endpoints, args=[self.slug])
-        return abs_url
+        return reverse(viewname.with_all_endpoints, args=[self.slug])
 
     def all_text(self):
         return self.content
+
+
+class BadTestModelMissingGetAbsoluteUrl(MentionableMixin, models.Model):
+    """A MentionableMixin model that forgot to implement get_absolute_url()"""
+
+    content = models.TextField(blank=True, null=True)
+
+    def all_text(self):
+        return self.content
+
+
+class BadTestModelMissingAllText(MentionableMixin, models.Model):
+    """A MentionableMixin model that forgot to implement all_text()"""
+
+    content = models.TextField(blank=True, null=True)
+
+    def get_absolute_url(self):
+        return reverse(viewname.with_all_endpoints, args=[self.slug])
