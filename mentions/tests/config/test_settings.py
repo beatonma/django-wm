@@ -1,4 +1,5 @@
 import os
+import uuid
 
 TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
 NOSE_ARGS = [
@@ -8,7 +9,8 @@ NOSE_ARGS = [
     '--traverse-namespace',  # Required since Python 3.8
 ]
 
-DOMAIN_NAME = 'example.org'
+# Randomise domain name at test runtime.
+DOMAIN_NAME = f"example-url-{uuid.uuid4().hex[::5]}.org"
 ALLOWED_HOSTS = [
     DOMAIN_NAME,
 ]
