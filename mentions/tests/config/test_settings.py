@@ -1,12 +1,12 @@
 import os
 import uuid
 
-TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+TEST_RUNNER = "django_nose.NoseTestSuiteRunner"
 NOSE_ARGS = [
-    '--with-spec',
-    '--spec-color',
-    '--logging-clear-handlers',
-    '--traverse-namespace',  # Required since Python 3.8
+    "--with-spec",
+    "--spec-color",
+    "--logging-clear-handlers",
+    "--traverse-namespace",  # Required since Python 3.8
 ]
 
 # Randomise domain name at test runtime.
@@ -17,28 +17,27 @@ ALLOWED_HOSTS = [
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-SECRET_KEY = 'some-test-key'
+SECRET_KEY = "some-test-key"
 INSTALLED_APPS = [
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.flatpages',
-    'django.contrib.sites',
-
+    "django.contrib.auth",
+    "django.contrib.contenttypes",
+    "django.contrib.flatpages",
+    "django.contrib.sites",
     # Apps for django-wm
-    'mentions',
-    'mentions.tests',
+    "mentions",
+    "mentions.tests",
 ]
 
 MIDDLEWARE = [
     # Middleware for django-wm
-    'mentions.middleware.WebmentionHeadMiddleware',
+    "mentions.middleware.WebmentionHeadMiddleware",
 ]
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.path.join(BASE_DIR, "django-wm-test.sqlite3"),
     }
 }
 
-ROOT_URLCONF = 'mentions.tests.config.test_urls'
+ROOT_URLCONF = "mentions.tests.config.test_urls"
