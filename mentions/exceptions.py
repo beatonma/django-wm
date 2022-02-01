@@ -29,8 +29,7 @@ class SourceDoesNotLink(WebmentionsException):
 
 
 class BadConfig(WebmentionsException):
-    """
-    URL resolution completed but did not include required data.
+    """URL resolution completed but did not include required data.
 
     The returned ResolverMatch.kwargs object must have entries for:
         - 'model_name'

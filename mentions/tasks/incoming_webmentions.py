@@ -1,5 +1,4 @@
 import requests
-from bs4 import BeautifulSoup
 from celery import shared_task
 from celery.utils.log import get_task_logger
 from django.conf import settings
@@ -8,9 +7,9 @@ from django.http import QueryDict
 
 from mentions.exceptions import (
     BadConfig,
+    SourceNotAccessible,
     TargetDoesNotExist,
     TargetWrongDomain,
-    SourceNotAccessible,
 )
 from mentions.models import HCard, Webmention
 from mentions.util import get_model_for_url_path, html_parser, split_url
@@ -21,27 +20,27 @@ log = get_task_logger(__name__)
 class Notes:
     notes = []
 
-    def info(self, note) -> 'Notes':
+    def info(self, note) -> "Notes":
         log.info(note)
         self.notes.append(note)
         return self
 
-    def warn(self, note) -> 'Notes':
+    def warn(self, note) -> "Notes":
         log.warning(note)
         self.notes.append(note)
         return self
 
     def join_to_string(self):
-        return '\n'.join(self.notes)
+        return "\n".join(self.notes)
 
 
 def _update_wm(
-        mention,
-        target_object=None,
-        notes: Notes = None,
-        hcard: HCard = None,
-        validated: bool = None,
-        save: bool = False,
+    mention,
+    target_object=None,
+    notes: Notes = None,
+    hcard: HCard = None,
+    validated: bool = None,
+    save: bool = False,
 ):
     """Update a webmention with the given kwargs"""
     if target_object is not None:
@@ -54,7 +53,7 @@ def _update_wm(
         mention.validated = validated
 
     if save:
-        log.info(f'Webmention saved: {mention}')
+        log.info(f"Webmention saved: {mention}")
         mention.save()
 
     return mention
@@ -62,14 +61,14 @@ def _update_wm(
 
 @shared_task
 def process_incoming_webmention(http_post: QueryDict, client_ip: str) -> None:
-    log.info(f'Processing webmention \'{http_post}\'')
+    log.info(f"Processing webmention '{http_post}'")
 
     # Source and target have already been verified
     # as valid addresses before this method is called
-    source = http_post['source']
-    target = http_post['target']
+    source = http_post["source"]
+    target = http_post["target"]
 
-    wm = Webmention.create(source, target, sent_by=client_ip)
+    wm = Webmention(source_url=source, target_url=target, sent_by=client_ip)
 
     # If anything fails, write it to notes and attach to webmention object
     # so it can be checked later
@@ -79,19 +78,24 @@ def process_incoming_webmention(http_post: QueryDict, client_ip: str) -> None:
     # the corresponding object.
     try:
         obj = _get_target_object(target)
-        notes.info('Found webmention target object')
+        notes.info("Found webmention target object")
         _update_wm(wm, target_object=obj)
+
     except (TargetWrongDomain, TargetDoesNotExist):
-        notes.warn(f'Unable to find matching page on our server for url {target}')
+        notes.warn(f"Unable to find matching page on our server for url '{target}'")
+
     except BadConfig:
-        notes.warn(f'Unable to find a model associated with url {target}')
+        notes.warn(f"Unable to find a model associated with url '{target}'")
 
     # Verify that the source page exists and really contains a link
     # to the target
     try:
         response_text = _get_incoming_source(source)
+
     except SourceNotAccessible:
-        _update_wm(wm, notes=notes.warn(f'Source not accessible: {source}'), save=True)
+        _update_wm(
+            wm, notes=notes.warn(f"Source not accessible: '{source}'"), save=True
+        )
         return
 
     soup = html_parser(response_text)
@@ -135,7 +139,7 @@ def _get_target_object(target_url: str) -> models.Model:
     scheme, domain, path = split_url(target_url)
 
     if domain not in settings.ALLOWED_HOSTS:
-        raise TargetWrongDomain(f'Wrong domain: {domain} (from url={target_url})')
+        raise TargetWrongDomain(f"Wrong domain: {domain} (from url={target_url})")
 
     try:
         return get_model_for_url_path(path)
@@ -162,15 +166,17 @@ def _get_incoming_source(source_url: str, client=requests) -> str:
     try:
         response = client.get(source_url)
     except Exception as e:
-        raise SourceNotAccessible(f'Requests error: {e}')
+        raise SourceNotAccessible(f"Requests error: {e}")
 
     if response.status_code >= 300:
         raise SourceNotAccessible(
-            f'Source \'{source_url}\' returned error code [{response.status_code}]')
+            f"Source '{source_url}' returned error code [{response.status_code}]"
+        )
 
-    content_type = response.headers['content-type']
-    if 'text/html' not in content_type:
+    content_type = response.headers["content-type"]
+    if "text/html" not in content_type:
         raise SourceNotAccessible(
-            f'Source \'{source_url}\' returned unexpected content type: {content_type}')
+            f"Source '{source_url}' returned unexpected content type: {content_type}"
+        )
 
     return response.text
