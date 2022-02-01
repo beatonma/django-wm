@@ -16,7 +16,11 @@ from mentions.tests.util import constants, testfunc, viewname
 log = logging.getLogger(__name__)
 
 
-class MentionsForObjectTestCase(WebmentionTestCase):
+class _MentionsForObjectTestCase(WebmentionTestCase):
+    """Tests for `/get` endpoint"""
+
+    endpoint = testfunc.endpoint_get_webmentions()
+
     def get_json_response(
         self, url, data=None, **kwargs
     ) -> Tuple[int, Optional[List[Dict]]]:
@@ -24,40 +28,29 @@ class MentionsForObjectTestCase(WebmentionTestCase):
         return response.status_code, json.loads(response.content).get("mentions")
 
 
-class WebmentionGetTests(MentionsForObjectTestCase):
-    """`get/` endpoint: Well-formed requests return mentions associated with URL"""
+class WebmentionGetTests(_MentionsForObjectTestCase):
+    """Webmention /get endpoint tests"""
 
     def setUp(self):
         target_pk, target_slug = testfunc.get_id_and_slug()
 
-        target = MentionableTestModel.objects.create(
-            pk=target_pk,
-            slug=target_slug,
-            allow_incoming_webmentions=True,
-        )
-        self.target_url = reverse(viewname.with_all_endpoints, args=[target_slug])
+        target = MentionableTestModel.objects.create(pk=target_pk, slug=target_slug)
+        self.target_urlpath = testfunc.get_urlpath(target_slug)
 
-        source_pk, source_slug = testfunc.get_id_and_slug()
-        source = MentionableTestModel.objects.create(
-            pk=source_pk,
-            slug=source_slug,
-            content=testfunc.get_mentioning_content(self.target_url),
-        )
-        self.source_url = testfunc.build_object_url(source_slug)
+        _, source_slug = testfunc.get_id_and_slug()
+        self.source_url = testfunc.get_url(source_slug)
 
         Webmention.objects.create(
-            source_url=testfunc.build_object_url(source.slug),
-            target_url=testfunc.build_object_url(target.slug),
-            sent_by="tests@localhost",
+            source_url=testfunc.get_url(source_slug),
             validated=True,
             approved=True,
             target_object=target,
         )
 
     def test_get_webmentions_view__with_valid_object(self):
-        """Ensure that we can correctly retrieve webmentions for a given url."""
+        """Correctly resolve webmentions for a MentionableMixin object from a URL."""
         status, mentions = self.get_json_response(
-            constants.webmention_api_get_relative_url, data={"url": self.target_url}
+            self.endpoint, data={"url": self.target_urlpath}
         )
 
         self.assertEqual(status, 200)
@@ -67,29 +60,29 @@ class WebmentionGetTests(MentionsForObjectTestCase):
         self.assertEqual(first_mention["source_url"], self.source_url)
 
 
-class WebmentionGetBadRequestTests(MentionsForObjectTestCase):
+class WebmentionGetBadRequestTests(_MentionsForObjectTestCase):
     """`get/` endpoint: Poorly-formed requests should give suitable responses"""
 
     def test_get_webmentions_view__require_http_get(self):
         """get/ endpoint does not accept HTTP POST/PATCH/DELETE."""
-        response = self.client.post(constants.webmention_api_get_relative_url)
+        response = self.client.post(self.endpoint)
         self.assertEqual(405, response.status_code)
 
-        response = self.client.patch(constants.webmention_api_get_relative_url)
+        response = self.client.patch(self.endpoint)
         self.assertEqual(405, response.status_code)
 
-        response = self.client.delete(constants.webmention_api_get_relative_url)
+        response = self.client.delete(self.endpoint)
         self.assertEqual(405, response.status_code)
 
     def test_get_webmentions_view__require_param_for_url(self):
         """Missing query parameter `url` gives 400 error code."""
-        response = self.client.get(constants.webmention_api_get_relative_url)
+        response = self.client.get(self.endpoint)
         self.assertEqual(400, response.status_code)
 
     def test_get_webmentions_view__target_does_not_exist(self):
         """If target URL does not exist, return 404 error code with empty mentions list."""
         status, mentions = self.get_json_response(
-            constants.webmention_api_get_relative_url,
+            self.endpoint,
             data={"url": "/does-not-exist"},
         )
 
@@ -97,7 +90,7 @@ class WebmentionGetBadRequestTests(MentionsForObjectTestCase):
         self.assertListEqual([], mentions)
 
 
-class WebmentionNoModelTests(MentionsForObjectTestCase):
+class WebmentionNoModelTests(_MentionsForObjectTestCase):
     """`get/` endpoint: Pages with no associated model should still be mentionable."""
 
     def setUp(self) -> None:
@@ -112,7 +105,7 @@ class WebmentionNoModelTests(MentionsForObjectTestCase):
     def test_get_webmentions_view__no_mentionable_model(self):
         """Webmentions can be retrieved for a URL even if there is not a MentionableMixin model associated with it."""
         status, mentions = self.get_json_response(
-            constants.webmention_api_get_relative_url,
+            self.endpoint,
             data={"url": self.target_url},
         )
 

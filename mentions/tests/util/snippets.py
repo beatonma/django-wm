@@ -4,7 +4,7 @@ Chunks of markup.
 
 import logging
 
-from mentions.tests.util import constants
+from mentions.tests.util import testfunc
 
 log = logging.getLogger(__name__)
 
@@ -36,12 +36,12 @@ def _html_body_link(url):
 
 
 def http_link_endpoint():
-    return http_header_link(constants.webmention_api_relative_url)
+    return http_header_link(testfunc.endpoint_submit_webmention())
 
 
 def html_head_endpoint():
     return build_html(
-        head=_html_head_link(constants.webmention_api_relative_url),
+        head=_html_head_link(testfunc.endpoint_submit_webmention()),
         body=None,
     )
 
@@ -49,12 +49,12 @@ def html_head_endpoint():
 def html_body_endpoint():
     return build_html(
         head=None,
-        body=_html_body_link(constants.webmention_api_relative_url),
+        body=_html_body_link(testfunc.endpoint_submit_webmention()),
     )
 
 
 def html_all_endpoints(content):
     return build_html(
-        head=_html_head_link(constants.webmention_api_relative_url),
-        body=f"""<div>{content}{_html_body_link(constants.webmention_api_relative_url)}This is arbitrary...</div>""",
+        head=_html_head_link(testfunc.endpoint_submit_webmention()),
+        body=f"""<div>{content}{_html_body_link(testfunc.endpoint_submit_webmention())}This is arbitrary...</div>""",
     )

@@ -16,14 +16,6 @@ if __name__ == "__main__":
 
     django.setup()
 
-    # Update value of constants.webmention_api_absolute_url after django setup is complete
-    # so we can build strings with resolved reverse_lazy.
-    import mentions.tests.util.constants as constants
-
-    constants.webmention_api_absolute_url = (
-        f"https://{constants.domain}{constants.webmention_api_relative_url}"
-    )
-
     test_runner = get_runner(settings)()
     failures = test_runner.run_tests(["mentions.tests"])
 

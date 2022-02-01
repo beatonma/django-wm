@@ -8,7 +8,7 @@ from django.http import HttpResponse
 from django.views.generic.base import View
 
 from mentions.tests.models import MentionableTestModel
-from mentions.tests.util import constants, snippets
+from mentions.tests.util import snippets, testfunc
 
 log = logging.getLogger(__name__)
 
@@ -23,7 +23,7 @@ class AllEndpointsMentionableTestView(View):
         html = snippets.html_all_endpoints(obj.content)
         response = HttpResponse(html, status=200)
         response["Link"] = snippets.http_header_link(
-            constants.webmention_api_absolute_url
+            testfunc.endpoint_submit_webmention_absolute()
         )
         return response
 
