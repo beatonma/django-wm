@@ -5,7 +5,7 @@ Views that are only used for running tests.
 import logging
 
 from django.http import HttpResponse
-from django.views.generic.base import View
+from django.views.generic.base import TemplateView, View
 
 from mentions.tests.models import MentionableTestModel
 from mentions.tests.util import snippets, testfunc
@@ -36,3 +36,7 @@ class SimpleNoObjectTestView(View):
 
     def get(self, request):
         return HttpResponse(snippets.html_all_endpoints("whatever content"), status=200)
+
+
+class TemplateTagTestView(TemplateView):
+    template_name = "templatetags_example.html"

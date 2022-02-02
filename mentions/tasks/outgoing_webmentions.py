@@ -168,12 +168,16 @@ def _find_links_in_text(text: str) -> Set[str]:
 
 
 def _get_absolute_endpoint_from_response(response: requests.Response) -> Optional[str]:
-    endpoint = _get_endpoint_in_http_headers(response) or _get_endpoint_in_html(
+    endpoint = _get_endpoint_in_http_headers(
         response
-    )
+    ) or _get_endpoint_in_html_response(response)
     abs_url = _relative_to_absolute_url(response, endpoint)
     log.debug(f"Absolute url: {endpoint} -> {abs_url}")
     return abs_url
+
+
+def _get_endpoint_in_html_response(response: requests.Response) -> Optional[str]:
+    return _get_endpoint_in_html(response.text)
 
 
 def _get_endpoint_in_http_headers(response: requests.Response) -> Optional[str]:
@@ -190,9 +194,9 @@ def _get_endpoint_in_http_headers(response: requests.Response) -> Optional[str]:
         log.debug(f"Unable to read HTTP headers: {e}")
 
 
-def _get_endpoint_in_html(response: requests.Response) -> Optional[str]:
+def _get_endpoint_in_html(html_text: str) -> Optional[str]:
     """Search for a webmention endpoint in HTML."""
-    a_soup = html_parser(response.text)
+    a_soup = html_parser(html_text)
 
     # Check HTML <head> for <link> webmention endpoint
     try:

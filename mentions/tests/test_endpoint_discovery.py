@@ -71,7 +71,7 @@ class EndpointDiscoveryTests(WebmentionTestCase):
             url=self._get_absolute_target_url(),
             text=snippets.html_head_endpoint(),
         )
-        endpoint_from_html_head = outgoing_webmentions._get_endpoint_in_html(
+        endpoint_from_html_head = outgoing_webmentions._get_endpoint_in_html_response(
             mock_response
         )
         self.assertEqual(self.relative_endpoint, endpoint_from_html_head)
@@ -83,7 +83,7 @@ class EndpointDiscoveryTests(WebmentionTestCase):
             url=self._get_absolute_target_url(),
             text=snippets.html_body_endpoint(),
         )
-        endpoint_from_html_body = outgoing_webmentions._get_endpoint_in_html(
+        endpoint_from_html_body = outgoing_webmentions._get_endpoint_in_html_response(
             mock_response
         )
         self.assertEqual(self.relative_endpoint, endpoint_from_html_body)
