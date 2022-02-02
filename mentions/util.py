@@ -94,7 +94,7 @@ def get_model_for_url_path(target_path: str, match: ResolverMatch = None):
 def get_mentions_for_url_path(
     target_path: str,
     full_target_url: str,
-) -> QuerySet[Webmention]:
+) -> "QuerySet[Webmention]":
     """If target_path resolves to a page associated with a MentionableMixin model"""
     match = _find_urlpattern(target_path)
 
