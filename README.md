@@ -6,7 +6,9 @@
 
 ### Upgrading
 
-**Version `2.0.0` has potentially BREAKING CHANGES for any users upgrading from `1.x.x`!** If you used any `1.x.x` version of `django-wm` please follow [these instructions](docs/upgrading_to_2.0.md) to upgrade to `2.0.0` without data loss. Please complete the upgrade to `2.0.0` before upgrading further to any later versions.
+**Version `2.0.0` has potentially BREAKING CHANGES for any users upgrading from `1.x.x`!**
+
+If you used any `1.x.x` version of `django-wm` please follow [these instructions](docs/upgrading_to_2.0.md) to upgrade to `2.0.0` without data loss. Please complete the upgrade to `2.0.0` before upgrading further to any later versions.
 
 ### Getting started
 [Setup instructions](docs/getting_started.md).
