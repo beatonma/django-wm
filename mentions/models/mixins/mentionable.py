@@ -3,6 +3,7 @@ import logging
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
+from mentions.exceptions import ImplementationRequired
 from mentions.models.webmention import Webmention
 from mentions.tasks import process_outgoing_webmentions
 from mentions.util import serialize_mentions
@@ -17,6 +18,8 @@ class MentionableMixin(models.Model):
     allow_incoming_webmentions = models.BooleanField(default=True)
     allow_outgoing_webmentions = models.BooleanField(default=False)
 
+    slug = models.SlugField(unique=True)
+
     @property
     def mentions(self):
         ctype = ContentType.objects.get_for_model(self.__class__)
@@ -24,12 +27,18 @@ class MentionableMixin(models.Model):
             content_type=ctype,
             object_id=self.id,
             approved=True,
-            validated=True)
+            validated=True,
+        )
         # manual_mentions = TODO
         return webmentions
 
     def mentions_json(self):
         return serialize_mentions(self.mentions)
+
+    def get_absolute_url(self):
+        raise ImplementationRequired(
+            f"{self.__class__.__name__} does not implement get_absolute_url()"
+        )
 
     def all_text(self) -> str:
         """
@@ -45,15 +54,13 @@ class MentionableMixin(models.Model):
             def all_text(self) -> str:
                 return f'{self.introduction} {self.main_content}'
         """
-        log.warning(
-            'This model extends WebMentionableMixin but has not '
-            'implemented all_text() so outgoing webmentions will '
-            'not work!')
-        return ''
+        raise ImplementationRequired(
+            f"{self.__class__.__name__} does not implement all_text()"
+        )
 
     def save(self, *args, **kwargs):
         if self.allow_outgoing_webmentions:
-            log.info('Outgoing webmention processing task added to queue...')
+            log.info("Outgoing webmention processing task added to queue...")
             process_outgoing_webmentions.delay(self.get_absolute_url(), self.all_text())
 
         super().save(*args, **kwargs)
