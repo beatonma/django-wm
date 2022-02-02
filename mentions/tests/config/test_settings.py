@@ -1,12 +1,30 @@
 import os
+import sys
 import uuid
 
-TEST_RUNNER = "django_nose.NoseTestSuiteRunner"
+
+def _python_version_at_least(required_major, required_minor, required_micro=0):
+    major, minor, micro, releaselevel, serial = sys.version_info
+    return (
+        (major >= required_major)
+        and (minor >= required_minor)
+        and (micro >= required_micro)
+    )
+
+
+if _python_version_at_least(3, 10, 0):
+    # NoseTests is not compatible with Python versions >= 3.10
+    TEST_RUNNER = "django.test.runner.DiscoverRunner"
+else:
+    # Pretty print test results with NoseTests
+    TEST_RUNNER = "django_nose.NoseTestSuiteRunner"
+
 NOSE_ARGS = [
     "--with-spec",
     "--spec-color",
     "--logging-clear-handlers",
     "--traverse-namespace",  # Required since Python 3.8
+    "--exe",
 ]
 
 # Randomise domain name at test runtime.
@@ -60,3 +78,5 @@ TEMPLATES = [
         },
     },
 ]
+
+DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
