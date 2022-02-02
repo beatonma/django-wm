@@ -7,6 +7,3 @@ namespace = uuid.uuid4().hex
 
 """Dotted name of the model used for testing."""
 model_name = "tests.MentionableTestModel"
-
-"""Regular expression for the slug used in urlpatterns."""
-slug_regex = r"(?P<slug>[\w\-.]+)/?$"

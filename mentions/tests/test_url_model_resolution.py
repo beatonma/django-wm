@@ -1,6 +1,6 @@
 import logging
 
-from django.urls import re_path
+from django.urls import path
 
 from mentions import util
 from mentions.exceptions import BadConfig, TargetDoesNotExist
@@ -19,15 +19,15 @@ bad_path = "some_unresolvable_slug"
 """Url patterns that are only used for tests in this file.
 Should be added to test_urls.urlpatterns in setUp and removed again in tearDown."""
 local_urlpatterns = [
-    re_path(
-        fr"^{bad_modelname_key}/{constants.slug_regex}",
+    path(
+        fr"{bad_modelname_key}/<slug:slug>",
         AllEndpointsMentionableTestView.as_view(),
         kwargs={
             "model_name_with_mistyped_or_missing_key": constants.model_name,
         },
     ),
-    re_path(
-        fr"^{bad_modelname_value}/{constants.slug_regex}",
+    path(
+        fr"{bad_modelname_value}/<slug:slug>",
         AllEndpointsMentionableTestView.as_view(),
         kwargs={
             "model_name": "tests.UnresolvableModel",
