@@ -37,7 +37,7 @@ setup(
         "mf2py",
         "requests",
     ],
-    python_requires=">=3.6",
+    python_requires=">=3.7",
     tests_require=[
         "django-nose",
         "pinocchio",
@@ -46,8 +46,9 @@ setup(
         "Framework :: Django",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
     ],
 )
