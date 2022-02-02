@@ -7,8 +7,8 @@ import logging
 from django.http import HttpResponse
 from django.views.generic.base import TemplateView, View
 
-from mentions.tests.models import MentionableTestModel
-from mentions.tests.util import snippets, testfunc
+from tests.models import MentionableTestModel
+from tests.util import snippets, testfunc
 
 log = logging.getLogger(__name__)
 

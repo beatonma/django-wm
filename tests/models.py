@@ -6,7 +6,7 @@ from django.db import models
 from django.urls import reverse
 
 from mentions.models.mixins.mentionable import MentionableMixin
-from mentions.tests.util import viewname
+from tests.util import viewname
 
 log = logging.getLogger(__name__)
 
@@ -22,6 +22,9 @@ class MentionableTestModel(MentionableMixin, models.Model):
     def all_text(self):
         return self.content
 
+    class Meta:
+        app_label = "tests"
+
 
 class BadTestModelMissingGetAbsoluteUrl(MentionableMixin, models.Model):
     """A MentionableMixin model that forgot to implement get_absolute_url()"""
@@ -31,6 +34,9 @@ class BadTestModelMissingGetAbsoluteUrl(MentionableMixin, models.Model):
     def all_text(self):
         return self.content
 
+    class Meta:
+        app_label = "tests"
+
 
 class BadTestModelMissingAllText(MentionableMixin, models.Model):
     """A MentionableMixin model that forgot to implement all_text()"""
@@ -39,3 +45,6 @@ class BadTestModelMissingAllText(MentionableMixin, models.Model):
 
     def get_absolute_url(self):
         return reverse(viewname.with_all_endpoints, args=[self.slug])
+
+    class Meta:
+        app_label = "tests"

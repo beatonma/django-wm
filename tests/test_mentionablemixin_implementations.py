@@ -1,11 +1,11 @@
 from mentions.exceptions import ImplementationRequired
-from mentions.tests import WebmentionTestCase
-from mentions.tests.models import (
+from tests import WebmentionTestCase
+from tests.models import (
     BadTestModelMissingAllText,
     BadTestModelMissingGetAbsoluteUrl,
     MentionableTestModel,
 )
-from mentions.tests.util import testfunc
+from tests.util import testfunc
 
 
 def _create_model_instance(Model):

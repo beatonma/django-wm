@@ -9,9 +9,9 @@ from typing import Dict, List, Optional, Tuple
 from django.urls import reverse
 
 from mentions.models import Webmention
-from mentions.tests import WebmentionTestCase
-from mentions.tests.models import MentionableTestModel
-from mentions.tests.util import constants, testfunc, viewname
+from tests import WebmentionTestCase
+from tests.models import MentionableTestModel
+from tests.util import testfunc, viewname
 
 log = logging.getLogger(__name__)
 

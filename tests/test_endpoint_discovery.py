@@ -1,8 +1,8 @@
 from django.conf import settings
 
 from mentions.tasks import outgoing_webmentions
-from mentions.tests import MockResponse, WebmentionTestCase
-from mentions.tests.util import snippets, testfunc
+from tests import MockResponse, WebmentionTestCase
+from tests.util import snippets, testfunc
 
 OUTGOING_WEBMENTION_HTML_DUPLICATE_LINKS = f"""<html>
 <head><link rel="webmention" href="/webmention/" /></head>

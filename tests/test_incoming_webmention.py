@@ -8,10 +8,10 @@ from django.http import HttpResponse
 from django.test import Client
 
 from mentions.tasks import incoming_webmentions
-from mentions.tests import WebmentionTestCase
-from mentions.tests.models import MentionableTestModel
-from mentions.tests.util import testfunc
 from mentions.util import split_url
+from tests import WebmentionTestCase
+from tests.models import MentionableTestModel
+from tests.util import testfunc
 
 log = logging.getLogger(__name__)
 

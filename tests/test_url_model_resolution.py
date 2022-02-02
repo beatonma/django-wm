@@ -4,10 +4,10 @@ from django.urls import path
 
 from mentions import util
 from mentions.exceptions import BadConfig, TargetDoesNotExist
-from mentions.tests import WebmentionTestCase
-from mentions.tests.models import MentionableTestModel
-from mentions.tests.util import constants, testfunc
-from mentions.tests.views import AllEndpointsMentionableTestView
+from tests import WebmentionTestCase
+from tests.models import MentionableTestModel
+from tests.util import constants, testfunc
+from tests.views import AllEndpointsMentionableTestView
 
 log = logging.getLogger(__name__)
 
@@ -71,7 +71,7 @@ class GetModelForUrlPathWithBadConfigTests(_BaseTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        from mentions.tests.config.test_urls import urlpatterns
+        from tests.config.test_urls import urlpatterns
 
         urlpatterns += local_urlpatterns
 
@@ -87,7 +87,7 @@ class GetModelForUrlPathWithBadConfigTests(_BaseTestCase):
 
     @classmethod
     def tearDownClass(cls) -> None:
-        from mentions.tests.config.test_urls import urlpatterns
+        from tests.config.test_urls import urlpatterns
 
         for x in local_urlpatterns:
             urlpatterns.remove(x)

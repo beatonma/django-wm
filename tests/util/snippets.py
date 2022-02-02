@@ -4,7 +4,7 @@ Chunks of markup.
 
 import logging
 
-from mentions.tests.util import testfunc
+from tests.util import testfunc
 
 log = logging.getLogger(__name__)
 

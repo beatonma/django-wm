@@ -1,7 +1,7 @@
 from django.urls import include, path, re_path
 
-from mentions.tests.util import constants, viewname
-from mentions.tests.views import AllEndpointsMentionableTestView, SimpleNoObjectTestView
+from tests.util import constants, viewname
+from tests.views import AllEndpointsMentionableTestView, SimpleNoObjectTestView
 
 urlpatterns = [
     # A page associated with a MentionableMixin model with correct configuration - webmentions linked by model instance.

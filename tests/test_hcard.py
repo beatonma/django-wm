@@ -6,8 +6,8 @@ import logging
 from typing import Optional
 
 from mentions.models import HCard
-from mentions.tests import WebmentionTestCase
 from mentions.util import html_parser
+from tests import WebmentionTestCase
 
 log = logging.getLogger(__name__)
 

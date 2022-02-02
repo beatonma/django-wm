@@ -9,8 +9,8 @@ from django.conf import settings
 
 from mentions.models import OutgoingWebmentionStatus
 from mentions.tasks import outgoing_webmentions, process_outgoing_webmentions
-from mentions.tests import MockResponse, WebmentionTestCase
-from mentions.tests.util import testfunc
+from tests import MockResponse, WebmentionTestCase
+from tests.util import testfunc
 
 log = logging.getLogger(__name__)
 

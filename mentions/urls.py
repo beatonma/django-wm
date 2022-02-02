@@ -1,9 +1,8 @@
 from django.urls import path, re_path
-from django.views.generic import TemplateView
 
-from mentions.tests.views import TemplateTagTestView
 from mentions.views import view_names
 from mentions.views.webmention import GetWebmentionsView, WebmentionView
+from tests.views import TemplateTagTestView
 
 """
 /webmention/

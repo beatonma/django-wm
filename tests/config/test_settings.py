@@ -43,7 +43,7 @@ INSTALLED_APPS = [
     "django.contrib.sites",
     # Apps for django-wm
     "mentions",
-    "mentions.tests",
+    "tests",
 ]
 
 MIDDLEWARE = [
@@ -58,7 +58,7 @@ DATABASES = {
     }
 }
 
-ROOT_URLCONF = "mentions.tests.config.test_urls"
+ROOT_URLCONF = "tests.config.test_urls"
 
 
 TEMPLATES = [

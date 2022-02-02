@@ -1,8 +1,8 @@
 from django.urls import reverse
 
 from mentions.tasks import outgoing_webmentions
-from mentions.tests import WebmentionTestCase
-from mentions.tests.util import testfunc
+from tests import WebmentionTestCase
+from tests.util import testfunc
 
 
 class TemplateTagTests(WebmentionTestCase):
