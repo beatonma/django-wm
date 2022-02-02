@@ -12,7 +12,6 @@ class TemplateTagTests(WebmentionTestCase):
 
         self.assertTemplateUsed(response, "templatetags_example.html")
         self.assertContains(response, expected_endpoint)
-        print(response.content)
 
         self.assertEqual(
             outgoing_webmentions._get_endpoint_in_html(response.content),
