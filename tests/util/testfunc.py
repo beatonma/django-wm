@@ -10,8 +10,8 @@ from django.urls import reverse
 from django.utils.text import slugify
 
 from mentions.views import view_names
-
-from . import viewname
+from tests.models import MentionableTestModel
+from tests.util import viewname
 
 
 def get_id_and_slug() -> Tuple[int, str]:
@@ -19,6 +19,12 @@ def get_id_and_slug() -> Tuple[int, str]:
     _id = random.randint(1, 1_000_000)
     slug = slugify(_id)
     return _id, slug
+
+
+def create_mentionable_object(content: str = ""):
+    pk, slug = get_id_and_slug()
+    obj = MentionableTestModel.objects.create(pk=pk, slug=slug, content=content)
+    return obj
 
 
 def get_url(slug):

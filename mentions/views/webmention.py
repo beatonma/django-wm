@@ -2,15 +2,14 @@ import logging
 
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from django.http import HttpResponseBadRequest  # HTTP 400
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse, HttpResponseBadRequest, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import View
 
 from mentions.exceptions import TargetDoesNotExist
 from mentions.forms.manual_submit_webmention import ManualSubmitWebmentionForm
-from mentions.tasks import process_incoming_webmention
+from mentions.tasks.scheduling import handle_incoming_webmention
 from mentions.util import get_mentions_for_url_path, serialize_mentions, split_url
 
 log = logging.getLogger(__name__)
@@ -67,7 +66,7 @@ class WebmentionView(View):
         else:
             return HttpResponseBadRequest()
 
-        process_incoming_webmention.delay(http_post, client_ip)
+        handle_incoming_webmention(http_post, client_ip)
         return HttpResponse("Thank you, your webmention has been accepted.", status=202)
 
 

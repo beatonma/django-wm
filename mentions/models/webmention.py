@@ -1,18 +1,16 @@
 import logging
 
-from django.conf import settings
 from django.db import models
 
-from .base import MentionsBaseModel
-from .mixins.quotable import QuotableMixin
+from mentions import options
+from mentions.models import MentionsBaseModel
+from mentions.models.mixins.quotable import QuotableMixin
 
 log = logging.getLogger(__name__)
 
 
 def _approve_default():
-    if hasattr(settings, "WEBMENTIONS_AUTO_APPROVE"):
-        return settings.WEBMENTIONS_AUTO_APPROVE
-    return False
+    return options.auto_approve()
 
 
 class Webmention(QuotableMixin, MentionsBaseModel):

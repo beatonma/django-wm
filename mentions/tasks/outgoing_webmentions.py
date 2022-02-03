@@ -4,16 +4,24 @@ from typing import Optional, Set, Tuple
 from urllib.parse import urlsplit
 
 import requests
-from celery import shared_task
+
+try:
+    from celery import shared_task
+    from celery.utils.log import get_task_logger
+
+    log = get_task_logger(__name__)
+except (ImportError, ModuleNotFoundError):
+    from mentions.util import noop_shared_task
+
+    shared_task = noop_shared_task
+    log = logging.getLogger(__name__)
+
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 
 from mentions.models import OutgoingWebmentionStatus
 from mentions.util import html_parser
-
-log = logging.getLogger(__name__)
-
 
 STATUS_MESSAGE_TARGET_UNREACHABLE = "The target URL could not be retrieved."
 STATUS_MESSAGE_TARGET_ERROR_CODE = "The target URL returned an HTTP error code."

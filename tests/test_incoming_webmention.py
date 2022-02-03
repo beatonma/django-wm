@@ -67,7 +67,7 @@ class IncomingWebmentionsTests(WebmentionTestCase):
         ).get_absolute_url()
 
         self.assertIsNotNone(
-            incoming_webmentions._get_incoming_source(
+            incoming_webmentions._get_incoming_source_text(
                 source_url, client=_MockHttpClient(self.client)
             )
         )

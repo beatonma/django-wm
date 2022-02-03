@@ -5,9 +5,8 @@ Needs to be input manually.
 
 import logging
 
-from . import MentionsBaseModel
-from .mixins.quotable import QuotableMixin
-
+from mentions.models import MentionsBaseModel
+from mentions.models.mixins.quotable import QuotableMixin
 
 log = logging.getLogger(__name__)
 

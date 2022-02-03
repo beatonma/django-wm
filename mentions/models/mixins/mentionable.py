@@ -5,7 +5,7 @@ from django.db import models
 
 from mentions.exceptions import ImplementationRequired
 from mentions.models.webmention import Webmention
-from mentions.tasks import process_outgoing_webmentions
+from mentions.tasks.scheduling import handle_outgoing_webmentions
 from mentions.util import serialize_mentions
 
 log = logging.getLogger(__name__)
@@ -60,7 +60,6 @@ class MentionableMixin(models.Model):
 
     def save(self, *args, **kwargs):
         if self.allow_outgoing_webmentions:
-            log.info("Outgoing webmention processing task added to queue...")
-            process_outgoing_webmentions.delay(self.get_absolute_url(), self.all_text())
+            handle_outgoing_webmentions(self.get_absolute_url(), self.all_text())
 
         super().save(*args, **kwargs)
