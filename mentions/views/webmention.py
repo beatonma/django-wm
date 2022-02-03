@@ -41,7 +41,7 @@ class WebmentionView(View):
 
     @csrf_exempt
     def dispatch(self, request, *args, **kwargs):
-        return super().dispatch(*args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def get(self, request):
         form = ManualSubmitWebmentionForm()
