@@ -17,7 +17,7 @@ class MentionableTestModel(MentionableMixin, models.Model):
     content = models.TextField(blank=True, null=True)
 
     def get_absolute_url(self):
-        return reverse(viewname.with_all_endpoints, args=[self.slug])
+        return reverse(viewname.with_target_object_view, args=[self.slug])
 
     def all_text(self):
         return self.content
@@ -44,7 +44,7 @@ class BadTestModelMissingAllText(MentionableMixin, models.Model):
     content = models.TextField(blank=True, null=True)
 
     def get_absolute_url(self):
-        return reverse(viewname.with_all_endpoints, args=[self.slug])
+        return reverse(viewname.with_target_object_view, args=[self.slug])
 
     class Meta:
         app_label = "tests"

@@ -1,4 +1,4 @@
-from django.urls import include, path, re_path
+from django.urls import include, path
 
 from tests.util import constants, viewname
 from tests.views import AllEndpointsMentionableTestView, SimpleNoObjectTestView
@@ -11,13 +11,13 @@ urlpatterns = [
         kwargs={
             "model_name": constants.model_name,
         },
-        name=viewname.with_all_endpoints,
+        name=viewname.with_target_object_view,
     ),
     # An arbitrary page with no model association - webmentions are linked by URL.
     path(
         "some-page/",
         SimpleNoObjectTestView.as_view(),
-        name=viewname.with_no_mentionable_object,
+        name=viewname.no_object_view,
     ),
     path(f"{constants.namespace}/", include("mentions.urls")),
 ]

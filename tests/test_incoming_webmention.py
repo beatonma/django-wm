@@ -39,20 +39,19 @@ class IncomingWebmentionsTests(WebmentionTestCase):
     def setUp(self):
         target_pk, self.target_slug = testfunc.get_id_and_slug()
 
-        target = testfunc.create_mentionable_object()
-        self.target_slug = target.slug
-        self.target_url = testfunc.get_url(target.slug)
+        self.target = testfunc.create_mentionable_object()
+        self.target_url = testfunc.get_url_for_slug(self.target.slug)
 
     def test_get_target_path(self):
         """Ensure that path is retrieved from url correctly."""
         scheme, domain, path = split_url(self.target_url)
-        self.assertEqual(testfunc.get_urlpath(self.target_slug), path)
+        self.assertEqual(self.target.get_absolute_url(), path)
 
     def test_get_target_object(self):
         """Ensure that database object is retrieved from url correctly."""
         retrieved_model = incoming_webmentions._get_target_object(self.target_url)
 
-        self.assertEqual(retrieved_model.slug, self.target_slug)
+        self.assertEqual(retrieved_model.slug, self.target.slug)
 
     def test_get_incoming_source(self):
         """Ensure that webmention source page can be retrieved correctly."""

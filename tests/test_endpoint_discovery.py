@@ -25,7 +25,7 @@ class EndpointDiscoveryTests(WebmentionTestCase):
         target_pk, self.target_slug = testfunc.get_id_and_slug()
 
     def _get_absolute_target_url(self):
-        return testfunc.get_url(self.target_slug)
+        return testfunc.get_url_for_slug(self.target_slug)
 
     def test_get_absolute_endpoint_from_response(self):
         """Any exposed endpoints (in HTTP header, HTML <head> or <body>) are found and returned as an absolute url."""
@@ -120,6 +120,7 @@ class EndpointDiscoveryTests(WebmentionTestCase):
             f"http://{testfunc.random_domain()}/some-path",
             f"{testfunc.random_domain()}/some-path/something_else_04/",
             f"https://subdomain.{testfunc.random_domain()}/blah-blah/",
+            *{testfunc.random_url() for _ in range(0, 5)},
         }
 
         outgoing_content = "".join(

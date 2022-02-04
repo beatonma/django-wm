@@ -39,7 +39,7 @@ def _get_urlpath_for_slug(slug: str) -> str:
 
 def get_simple_urlpath():
     """Return relative URL for a simple page with no associated models."""
-    return reverse(viewname.with_no_mentionable_object)
+    return reverse(viewname.no_object_view)
 
 
 def endpoint_submit_webmention() -> str:  #

@@ -4,9 +4,11 @@ from django.conf import settings
 from django.http import QueryDict
 
 from mentions.models import PendingIncomingWebmention, PendingOutgoingContent
-from mentions.tasks.scheduling import (handle_incoming_webmention,
-                                       handle_outgoing_webmentions,
-                                       handle_pending_webmentions)
+from mentions.tasks.scheduling import (
+    handle_incoming_webmention,
+    handle_outgoing_webmentions,
+    handle_pending_webmentions,
+)
 from tests import WebmentionTestCase
 from tests.util import testfunc
 
@@ -30,7 +32,7 @@ class IncomingWebmentionDelegationTests(_BaseTestCase):
 
         obj = testfunc.create_mentionable_object()
         self.source = testfunc.random_url()
-        self.target = testfunc.get_url(obj.slug)
+        self.target = testfunc.get_url_for_slug(obj.slug)
         self.http_post = QueryDict(f"source={self.source}&target={self.target}")
         self.sent_by = "localhost"
 
@@ -97,6 +99,7 @@ class OutgoingWebmentionDelegationTests(_BaseTestCase):
 
 class HandlePendingMentionsTests(_BaseTestCase):
     """Check behaviour of scheduling.handle_pending_webmentions."""
+
     def setUp(self) -> None:
         super().setUp()
 
@@ -105,7 +108,7 @@ class HandlePendingMentionsTests(_BaseTestCase):
 
         PendingIncomingWebmention.objects.create(
             source_url=source,
-            target_url=testfunc.get_url(obj.slug),
+            target_url=testfunc.get_url_for_slug(obj.slug),
             sent_by="localhost",
         )
         PendingOutgoingContent.objects.create(
