@@ -1,10 +1,12 @@
 from django.contrib import admin
 
-from .models import (
+from mentions.models import (
     HCard,
+    OutgoingWebmentionStatus,
+    PendingIncomingWebmention,
+    PendingOutgoingContent,
     SimpleMention,
     Webmention,
-    OutgoingWebmentionStatus,
 )
 
 
@@ -23,83 +25,108 @@ class BaseAdmin(admin.ModelAdmin):
 @admin.register(SimpleMention)
 class QuotableAdmin(BaseAdmin):
     list_display = [
-        'source_url',
-        'target_url',
-        'hcard',
+        "source_url",
+        "target_url",
+        "hcard",
     ]
     search_fields = [
-        'source_url',
-        'target_url',
-        'hcard',
+        "source_url",
+        "target_url",
+        "hcard",
     ]
-    date_hierarchy = 'published'
+    readonly_fields = [
+        "target_object",
+        "published",
+    ]
+    date_hierarchy = "published"
 
 
 @admin.register(Webmention)
 class WebmentionAdmin(QuotableAdmin):
-    readonly_fields = ['target_object', 'published', ]
+    readonly_fields = QuotableAdmin.readonly_fields + [
+        "content_type",
+        "object_id",
+    ]
     actions = [
         approve_webmention,
         disapprove_webmention,
     ]
     list_display = [
-        'source_url',
-        'target_url',
-        'published',
-        'validated',
-        'approved',
-        'content_type',
+        "source_url",
+        "target_url",
+        "published",
+        "validated",
+        "approved",
+        "target_object",
     ]
-    date_hierarchy = 'created_at'
     fieldsets = (
-        ('Remote source', {
-            'fields': (
-                'source_url',
-                'sent_by',
-                'hcard',
-                'quote',
-            ),
-        }),
-        ('Local target', {
-            'fields': (
-                'target_url',
-                'content_type',
-                'object_id',
-                'target_object',
-            ),
-        }),
-        ('Metadata', {
-            'fields': (
-                'published',
-                'approved',
-                'validated',
-                'notes',
-            ),
-        })
+        (
+            "Remote source",
+            {
+                "fields": (
+                    "source_url",
+                    "sent_by",
+                    "hcard",
+                    "quote",
+                ),
+            },
+        ),
+        (
+            "Local target",
+            {
+                "fields": (
+                    "target_url",
+                    "content_type",
+                    "object_id",
+                    "target_object",
+                ),
+            },
+        ),
+        (
+            "Metadata",
+            {
+                "fields": (
+                    "published",
+                    "approved",
+                    "validated",
+                    "notes",
+                ),
+            },
+        ),
     )
 
 
 @admin.register(OutgoingWebmentionStatus)
 class OutgoingWebmentionStatusAdmin(BaseAdmin):
     readonly_fields = [
-        'created_at',
-        'source_url',
-        'target_url',
-        'target_webmention_endpoint',
-        'status_message',
-        'response_code',
-        'successful',
+        "created_at",
+        "source_url",
+        "target_url",
+        "target_webmention_endpoint",
+        "status_message",
+        "response_code",
+        "successful",
     ]
     list_display = [
-        'source_url',
-        'target_url',
-        'successful',
-        'created_at',
+        "source_url",
+        "target_url",
+        "successful",
+        "created_at",
     ]
-    date_hierarchy = 'created_at'
+    date_hierarchy = "created_at"
 
 
 @admin.register(HCard)
 class HCardAdmin(BaseAdmin):
-    list_display = ['name', 'homepage']
-    search_fields = ['name', 'homepage']
+    list_display = ["name", "homepage"]
+    search_fields = ["name", "homepage"]
+
+
+@admin.register(PendingIncomingWebmention)
+class PendingIncomingAdmin(BaseAdmin):
+    pass
+
+
+@admin.register(PendingOutgoingContent)
+class PendingOutgoingAdmin(BaseAdmin):
+    pass
