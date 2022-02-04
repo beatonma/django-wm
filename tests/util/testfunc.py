@@ -15,25 +15,31 @@ from tests.util import viewname
 
 
 def get_id_and_slug() -> Tuple[int, str]:
-    """Create a random id and slug for a MentionableTestModel."""
+    """Create a random id and slug."""
     _id = random.randint(1, 1_000_000)
     slug = slugify(random_str())
     return _id, slug
 
 
 def create_mentionable_object(content: str = ""):
+    """Create and return an instance of MentionableTestModel."""
     pk, slug = get_id_and_slug()
     return MentionableTestModel.objects.create(pk=pk, slug=slug, content=content)
 
 
-def get_url(slug):
+def get_url_for_slug(slug):
     """Return the absolute URL for the target slug on our domain."""
-    return f"https://{settings.DOMAIN_NAME}{get_urlpath(slug)}"
+    return f"https://{settings.DOMAIN_NAME}{_get_urlpath_for_slug(slug)}"
 
 
-def get_urlpath(slug: str) -> str:
+def _get_urlpath_for_slug(slug: str) -> str:
     """Return the relative URL for the target slug."""
-    return reverse(viewname.with_all_endpoints, args=[slug])
+    return reverse(viewname.with_target_object_view, args=[slug])
+
+
+def get_simple_urlpath():
+    """Return relative URL for a simple page with no associated models."""
+    return reverse(viewname.with_no_mentionable_object)
 
 
 def endpoint_submit_webmention() -> str:  #
@@ -57,6 +63,7 @@ def random_domain() -> str:
 
 
 def random_url() -> str:
+    """Generate a random URL."""
     scheme = random.choice(["http", "https"])
     subdomain = random.choice(["", "", f"{random_str()}."])
     domain = random_domain()
@@ -68,4 +75,5 @@ def random_url() -> str:
 
 
 def random_str(length: int = 5) -> str:
+    """Generate a short string of random characters."""
     return uuid.uuid4().hex[:length]
