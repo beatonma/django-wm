@@ -1,9 +1,11 @@
 import logging
+from typing import List
 
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
 from mentions.exceptions import ImplementationRequired
+from mentions.models import QuotableMixin, SimpleMention
 from mentions.models.webmention import Webmention
 from mentions.tasks.scheduling import handle_outgoing_webmentions
 from mentions.util import serialize_mentions
@@ -21,7 +23,7 @@ class MentionableMixin(models.Model):
     slug = models.SlugField(unique=True)
 
     @property
-    def mentions(self):
+    def mentions(self) -> List[QuotableMixin]:
         ctype = ContentType.objects.get_for_model(self.__class__)
         webmentions = Webmention.objects.filter(
             content_type=ctype,
@@ -29,8 +31,11 @@ class MentionableMixin(models.Model):
             approved=True,
             validated=True,
         )
-        # manual_mentions = TODO
-        return webmentions
+        simple_mentions = SimpleMention.objects.filter(
+            content_type=ctype,
+            object_id=self.id,
+        )
+        return list(webmentions) + list(simple_mentions)
 
     def mentions_json(self):
         return serialize_mentions(self.mentions)

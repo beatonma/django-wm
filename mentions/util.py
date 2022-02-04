@@ -7,11 +7,11 @@ from bs4 import BeautifulSoup
 from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q, QuerySet
+from django.db.models import Q
 from django.urls import Resolver404, ResolverMatch
 
 from mentions.exceptions import BadConfig, TargetDoesNotExist
-from mentions.models import HCard, Webmention
+from mentions.models import HCard, QuotableMixin, SimpleMention, Webmention
 
 log = logging.getLogger(__name__)
 
@@ -94,7 +94,7 @@ def get_model_for_url_path(target_path: str, match: ResolverMatch = None):
 def get_mentions_for_url_path(
     target_path: str,
     full_target_url: str,
-) -> "QuerySet[Webmention]":
+) -> List["QuotableMixin"]:
     """If target_path resolves to a page associated with a MentionableMixin model"""
     match = _find_urlpattern(target_path)
 
@@ -109,24 +109,38 @@ def get_mentions_for_url_path(
         full_target_url[:-1] if full_target_url.endswith("/") else f"{full_target_url}/"
     )
 
-    mentions = Webmention.objects.filter(
+    q_filter = (
         Q(target_url=full_target_url)
         | Q(target_url=full_target_url_invert_slash)
-        | Q(target_url=target_path),
+        | Q(target_url=target_path)
+    )
+
+    webmentions = Webmention.objects.filter(
+        q_filter,
         approved=True,
         validated=True,
     )
+    simple_mentions = SimpleMention.objects.filter(q_filter)
 
-    return mentions
+    return list(webmentions) + list(simple_mentions)
 
 
-def serialize_mentions(mentions: Iterable[Webmention]) -> List[Dict]:
+def serialize_mentions(mentions: Iterable["QuotableMixin"]) -> List[Dict]:
+    def _typeof(mention) -> str:
+        if isinstance(mention, Webmention):
+            return "webmention"
+        elif isinstance(mention, SimpleMention):
+            return "simple"
+        else:
+            raise ValueError(f"Unhandled mention type: {mention}")
+
     return [
         {
             "hcard": serialize_hcard(mention.hcard),
             "quote": mention.quote,
             "source_url": mention.source_url,
             "published": mention.published,
+            "type": _typeof(mention),
         }
         for mention in mentions
     ]
