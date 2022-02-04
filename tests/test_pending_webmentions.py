@@ -4,10 +4,9 @@ from django.conf import settings
 from django.http import QueryDict
 
 from mentions.models import PendingIncomingWebmention, PendingOutgoingContent
-from mentions.tasks.scheduling import (
-    handle_incoming_webmention,
-    handle_outgoing_webmentions,
-)
+from mentions.tasks.scheduling import (handle_incoming_webmention,
+                                       handle_outgoing_webmentions,
+                                       handle_pending_webmentions)
 from tests import WebmentionTestCase
 from tests.util import testfunc
 
@@ -30,7 +29,7 @@ class IncomingWebmentionDelegationTests(_BaseTestCase):
         super().setUp()
 
         obj = testfunc.create_mentionable_object()
-        self.source = f"https://{testfunc.random_domain()}/some-article"
+        self.source = testfunc.random_url()
         self.target = testfunc.get_url(obj.slug)
         self.http_post = QueryDict(f"source={self.source}&target={self.target}")
         self.sent_by = "localhost"
@@ -61,8 +60,8 @@ class IncomingWebmentionDelegationTests(_BaseTestCase):
         self.assertEqual(0, pending.count())
 
 
-class OutgiongWebmentionDelegationTests(_BaseTestCase):
-    """Check behaviour of scheduling.handle_outoging_webmentions based on settings.WEBMENTIONS_USE_CELERY."""
+class OutgoingWebmentionDelegationTests(_BaseTestCase):
+    """Check behaviour of scheduling.handle_outgoing_webmentions based on settings.WEBMENTIONS_USE_CELERY."""
 
     def setUp(self) -> None:
         super().setUp()
@@ -94,3 +93,50 @@ class OutgiongWebmentionDelegationTests(_BaseTestCase):
 
         all_pending = PendingOutgoingContent.objects.all()
         self.assertEqual(0, all_pending.count())
+
+
+class HandlePendingMentionsTests(_BaseTestCase):
+    """Check behaviour of scheduling.handle_pending_webmentions."""
+    def setUp(self) -> None:
+        super().setUp()
+
+        source = testfunc.random_url()
+        obj = testfunc.create_mentionable_object(content=testfunc.random_str())
+
+        PendingIncomingWebmention.objects.create(
+            source_url=source,
+            target_url=testfunc.get_url(obj.slug),
+            sent_by="localhost",
+        )
+        PendingOutgoingContent.objects.create(
+            absolute_url=obj.get_absolute_url(),
+            text=obj.content,
+        )
+
+    def test_handle_pending_incoming_mentions(self):
+        """PendingIncomingWebmentions are passed to process_incoming_webmention, then deleted."""
+        with patch(
+            "mentions.tasks.scheduling.process_incoming_webmention"
+        ) as incoming_task, patch(
+            "mentions.tasks.scheduling.process_outgoing_webmentions"
+        ) as outgoing_task:
+            handle_pending_webmentions(incoming=True, outgoing=False)
+            self.assertTrue(incoming_task.called)
+            self.assertFalse(outgoing_task.called)
+
+        self.assertEqual(0, PendingIncomingWebmention.objects.all().count())
+        self.assertEqual(1, PendingOutgoingContent.objects.all().count())
+
+    def test_handle_pending_outgoing_content(self):
+        """PendingOutgoingContent are passed to process_outgoing_webmentions, then deleted."""
+        with patch(
+            "mentions.tasks.scheduling.process_outgoing_webmentions"
+        ) as outgoing_task, patch(
+            "mentions.tasks.scheduling.process_incoming_webmention"
+        ) as incoming_task:
+            handle_pending_webmentions(incoming=False, outgoing=True)
+            self.assertTrue(outgoing_task.called)
+            self.assertFalse(incoming_task.called)
+
+        self.assertEqual(0, PendingOutgoingContent.objects.all().count())
+        self.assertEqual(1, PendingIncomingWebmention.objects.all().count())

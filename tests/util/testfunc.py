@@ -17,7 +17,7 @@ from tests.util import viewname
 def get_id_and_slug() -> Tuple[int, str]:
     """Create a random id and slug for a MentionableTestModel."""
     _id = random.randint(1, 1_000_000)
-    slug = slugify(_id)
+    slug = slugify(random_str())
     return _id, slug
 
 
@@ -53,4 +53,19 @@ def endpoint_submit_webmention_absolute() -> str:
 
 def random_domain() -> str:
     """Return a randomised domain name."""
-    return f"example-url-{uuid.uuid4().hex[:5]}.org"
+    return f"example-url-{random_str()}.org"
+
+
+def random_url() -> str:
+    scheme = random.choice(["http", "https"])
+    subdomain = random.choice(["", "", f"{random_str()}."])
+    domain = random_domain()
+    port = random.choice(([""] * 5) + [":8000"])
+    path = "/".join([random_str() for _ in range(random.randint(0, 2))])
+    path = (f"/{path}" if path else "") + random.choice(["", "/"])
+
+    return f"{scheme}://{subdomain}{domain}{port}{path}"
+
+
+def random_str(length: int = 5) -> str:
+    return uuid.uuid4().hex[:length]
