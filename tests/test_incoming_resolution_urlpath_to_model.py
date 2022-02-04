@@ -2,10 +2,9 @@ import logging
 
 from django.urls import path
 
-from mentions import util
+from mentions import resolution
 from mentions.exceptions import BadConfig, TargetDoesNotExist
 from tests import WebmentionTestCase
-from tests.models import MentionableTestModel
 from tests.util import constants, testfunc
 from tests.views import AllEndpointsMentionableTestView
 
@@ -44,22 +43,24 @@ class _BaseTestCase(WebmentionTestCase):
 
 
 class GetModelForUrlPathTests(_BaseTestCase):
-    """Tests for util.get_model_for_url_path with correct `urlpatterns` configuration."""
+    """INCOMING: Tests for get_model_for_url_path with correct `urlpatterns` configuration."""
 
     def test_get_model_for_url__with_correct_slug(self):
         """Reverse URL lookup finds the correct object."""
-        retrieved_object = util.get_model_for_url_path(self.target.get_absolute_url())
+        retrieved_object = resolution.get_model_for_url_path(
+            self.target.get_absolute_url()
+        )
 
         self.assertEqual(retrieved_object.pk, self.target.pk)
 
     def test_get_model_for_url__with_unknown_url(self):
-        """URL with an unrecognised model_name path raises TargetDoesNotExist exception."""
+        """URL with an unrecognised path raises TargetDoesNotExist exception."""
         with self.assertRaises(TargetDoesNotExist):
-            util.get_model_for_url_path("/some/nonexistent/urlpath")
+            resolution.get_model_for_url_path("/some/nonexistent/urlpath")
 
 
 class GetModelForUrlPathWithBadConfigTests(_BaseTestCase):
-    """Tests for util.get_model_for_url_path when there are errors in urlpatterns path configuration."""
+    """INCOMING: Tests for get_model_for_url_path when there are errors in `urlpatterns` configuration."""
 
     @classmethod
     def setUpClass(cls):
@@ -71,12 +72,16 @@ class GetModelForUrlPathWithBadConfigTests(_BaseTestCase):
     def test_get_model_for_url__with_bad_model_name_config(self):
         """urlpatterns with no entry for model_name in path kwargs raises BadConfig exception."""
         with self.assertRaises(BadConfig):
-            util.get_model_for_url_path(_urlpath(bad_modelname_key, self.target.slug))
+            resolution.get_model_for_url_path(
+                _urlpath(bad_modelname_key, self.target.slug)
+            )
 
     def test_get_model_for_url__raises_badconfig_when_model_name_unresolvable(self):
         """Unresolvable model_name raises BadConfig exception."""
         with self.assertRaises(BadConfig):
-            util.get_model_for_url_path(_urlpath(bad_modelname_value, self.target.slug))
+            resolution.get_model_for_url_path(
+                _urlpath(bad_modelname_value, self.target.slug)
+            )
 
     @classmethod
     def tearDownClass(cls) -> None:

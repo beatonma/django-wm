@@ -22,7 +22,7 @@ def handle_incoming_webmention(http_post: QueryDict, sent_by: str) -> None:
 
     if use_celery:
         process_incoming_webmention.delay(
-            source_url=source, target_url=target, client_ip=sent_by
+            source_url=source, target_url=target, sent_by=sent_by
         )
 
     else:

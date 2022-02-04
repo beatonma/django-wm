@@ -25,14 +25,14 @@ class _BaseTestCase(WebmentionTestCase):
 
 
 class IncomingWebmentionDelegationTests(_BaseTestCase):
-    """Check behaviour of scheduling.handle_incoming_webmention based on settings.WEBMENTIONS_USE_CELERY."""
+    """INCOMING: Check behaviour of scheduling.handle_incoming_webmention based on settings.WEBMENTIONS_USE_CELERY."""
 
     def setUp(self) -> None:
         super().setUp()
 
         obj = testfunc.create_mentionable_object()
         self.source = testfunc.random_url()
-        self.target = testfunc.get_url_for_slug(obj.slug)
+        self.target = testfunc.get_absolute_url_for_object(obj)
         self.http_post = QueryDict(f"source={self.source}&target={self.target}")
         self.sent_by = "localhost"
 
@@ -63,7 +63,7 @@ class IncomingWebmentionDelegationTests(_BaseTestCase):
 
 
 class OutgoingWebmentionDelegationTests(_BaseTestCase):
-    """Check behaviour of scheduling.handle_outgoing_webmentions based on settings.WEBMENTIONS_USE_CELERY."""
+    """OUTGOING: Check behaviour of scheduling.handle_outgoing_webmentions based on settings.WEBMENTIONS_USE_CELERY."""
 
     def setUp(self) -> None:
         super().setUp()
@@ -98,7 +98,7 @@ class OutgoingWebmentionDelegationTests(_BaseTestCase):
 
 
 class HandlePendingMentionsTests(_BaseTestCase):
-    """Check behaviour of scheduling.handle_pending_webmentions."""
+    """PENDING: Check behaviour of scheduling.handle_pending_webmentions."""
 
     def setUp(self) -> None:
         super().setUp()
@@ -108,7 +108,7 @@ class HandlePendingMentionsTests(_BaseTestCase):
 
         PendingIncomingWebmention.objects.create(
             source_url=source,
-            target_url=testfunc.get_url_for_slug(obj.slug),
+            target_url=testfunc.get_absolute_url_for_object(obj),
             sent_by="localhost",
         )
         PendingOutgoingContent.objects.create(

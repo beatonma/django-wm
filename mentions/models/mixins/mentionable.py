@@ -7,8 +7,8 @@ from django.db import models
 from mentions.exceptions import ImplementationRequired
 from mentions.models import QuotableMixin, SimpleMention
 from mentions.models.webmention import Webmention
+from mentions.serialize import serialize_mentions
 from mentions.tasks.scheduling import handle_outgoing_webmentions
-from mentions.util import serialize_mentions
 
 log = logging.getLogger(__name__)
 

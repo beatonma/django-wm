@@ -19,7 +19,7 @@ def _create_model_instance(Model):
 
 
 class MentionableMixinImplementationTests(WebmentionTestCase):
-    """MentionableMixin implementation tests"""
+    """MODELS: MentionableMixin implementation tests."""
 
     def test_correct_implementation(self):
         """Basic MentionableMixin implementation works correctly."""
@@ -30,14 +30,14 @@ class MentionableMixinImplementationTests(WebmentionTestCase):
         self.assertEqual(obj.all_text(), obj.content)
 
     def test_missing_get_absolute_url(self):
-        """Mentionable model that does not override get_absolute_url raises ImplementationRequired exception"""
+        """Mentionable model that does not override get_absolute_url raises ImplementationRequired exception."""
         obj = _create_model_instance(BadTestModelMissingGetAbsoluteUrl)
 
         with self.assertRaises(ImplementationRequired):
             obj.get_absolute_url()
 
     def test_unimplemented_alltext(self):
-        """Mentionable model that does not override all_text raises ImplementationRequired exception"""
+        """Mentionable model that does not override all_text raises ImplementationRequired exception."""
         obj = _create_model_instance(BadTestModelMissingAllText)
 
         with self.assertRaises(ImplementationRequired):

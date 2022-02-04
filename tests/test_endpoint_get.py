@@ -25,7 +25,7 @@ class _BaseTestCase(WebmentionTestCase):
         return response.status_code, json.loads(response.content).get("mentions")
 
 
-class WebmentionGetTests(_BaseTestCase):
+class GetWebmentionsForModelTests(_BaseTestCase):
     """ENDPOINT `/get`: Retrieve mentions associated with a MentionableMixin object."""
 
     def setUp(self):
@@ -46,7 +46,7 @@ class WebmentionGetTests(_BaseTestCase):
         )
 
     def test_webmentions_retrieved_correctly(self):
-        """Webmentions that target an object are retrieved correctly"""
+        """Webmentions that target an object are retrieved correctly."""
         status, mentions = self.get_json_response(
             self.endpoint, data={"url": self.target_object.get_absolute_url()}
         )
@@ -59,7 +59,7 @@ class WebmentionGetTests(_BaseTestCase):
         self.assertEqual(webmention["type"], "webmention")
 
     def test_simplementions_retrieved_correctly(self):
-        """SimpleMentions that target an object are retrieved correctly"""
+        """SimpleMentions that target an object are retrieved correctly."""
         status, mentions = self.get_json_response(
             self.endpoint, data={"url": self.target_object.get_absolute_url()}
         )
@@ -72,11 +72,11 @@ class WebmentionGetTests(_BaseTestCase):
         self.assertEqual(simple["type"], "simple")
 
 
-class WebmentionNoModelTests(_BaseTestCase):
+class GetWebmentionsNoModelTests(_BaseTestCase):
     """ENDPOINT `/get`: Retrieve mentions associated with URL."""
 
     def setUp(self):
-        self.target_url = testfunc.get_simple_urlpath()
+        self.target_url = testfunc.get_simple_url()
         self.webmention_source_url = testfunc.random_url()
         self.simplemention_source_url = testfunc.random_url()
 
@@ -93,7 +93,7 @@ class WebmentionNoModelTests(_BaseTestCase):
         )
 
     def test_webmentions_retrieved_correctly(self):
-        """Webmentions that target a URL are retrieved correctly"""
+        """Webmentions that target a URL are retrieved correctly."""
         status, mentions = self.get_json_response(
             self.endpoint, data={"url": self.target_url}
         )
@@ -106,7 +106,7 @@ class WebmentionNoModelTests(_BaseTestCase):
         self.assertEqual(webmention["type"], "webmention")
 
     def test_simpleentions_retrieved_correctly(self):
-        """SimpleMentions that target a URL are retrieved correctly"""
+        """SimpleMentions that target a URL are retrieved correctly."""
         status, mentions = self.get_json_response(
             self.endpoint, data={"url": self.target_url}
         )
@@ -119,8 +119,8 @@ class WebmentionNoModelTests(_BaseTestCase):
         self.assertEqual(simple["type"], "simple")
 
 
-class WebmentionGetBadRequestTests(_BaseTestCase):
-    """ENDPOINT `/get`: Poorly-formed requests should give suitable responses"""
+class GetWebmentionsBadRequestTests(_BaseTestCase):
+    """ENDPOINT `/get`: Poorly-formed requests should give suitable responses."""
 
     def test_get_webmentions_view__require_http_get(self):
         """HTTP POST/PATCH/DELETE gives 405 error code."""

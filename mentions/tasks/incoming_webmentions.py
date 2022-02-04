@@ -2,6 +2,8 @@ import logging
 
 import requests
 
+from mentions.resolution import get_model_for_url_path
+
 try:
     from celery import shared_task
     from celery.utils.log import get_task_logger
@@ -14,7 +16,6 @@ except (ImportError, ModuleNotFoundError):
     log = logging.getLogger(__name__)
 
 from django.conf import settings
-from django.db import models
 
 from mentions.exceptions import (
     BadConfig,
@@ -23,18 +24,18 @@ from mentions.exceptions import (
     TargetWrongDomain,
 )
 from mentions.models import HCard, Webmention
-from mentions.util import get_model_for_url_path, html_parser, split_url
+from mentions.util import html_parser, split_url
 
 
-class Notes:
+class _Notes:
     notes = []
 
-    def info(self, note) -> "Notes":
+    def info(self, note) -> "_Notes":
         log.info(note)
         self.notes.append(note)
         return self
 
-    def warn(self, note) -> "Notes":
+    def warn(self, note) -> "_Notes":
         log.warning(note)
         self.notes.append(note)
         return self
@@ -46,7 +47,7 @@ class Notes:
 def _update_wm(
     mention,
     target_object=None,
-    notes: Notes = None,
+    notes: _Notes = None,
     hcard: HCard = None,
     validated: bool = None,
     save: bool = False,
@@ -62,23 +63,21 @@ def _update_wm(
         mention.validated = validated
 
     if save:
-        log.info(f"Webmention saved: {mention}")
         mention.save()
+        log.info(f"Webmention saved: {mention}")
 
     return mention
 
 
 @shared_task
-def process_incoming_webmention(
-    source_url: str, target_url: str, client_ip: str
-) -> None:
+def process_incoming_webmention(source_url: str, target_url: str, sent_by: str) -> None:
     log.info(f"Processing webmention '{source_url}' -> '{target_url}'")
 
-    wm = Webmention(source_url=source_url, target_url=target_url, sent_by=client_ip)
+    wm = Webmention(source_url=source_url, target_url=target_url, sent_by=sent_by)
 
     # If anything fails, write it to notes and attach to webmention object
     # so it can be checked later
-    notes = Notes()
+    notes = _Notes()
 
     # Check that the target page is accessible on our server and fetch
     # the corresponding object.
@@ -118,10 +117,8 @@ def process_incoming_webmention(
     _update_wm(wm, validated=True, notes=notes, hcard=hcard, save=True)
 
 
-def _get_target_object(target_url: str) -> models.Model:
-    r"""
-    Confirm that the page exists on our server and return object.
-    Throws
+def _get_target_object(target_url: str) -> "MentionableMixin":
+    """Confirm that the page exists on our server and return object.
 
     Any mentionable Views must include the following kwargs:
         - 'model_name' - dotted python path to the model definition
@@ -154,7 +151,8 @@ def _get_target_object(target_url: str) -> models.Model:
 
 
 def _get_incoming_source_text(source_url: str, client=requests) -> str:
-    """
+    """Confirm source exists as HTML and return its text.
+
     Fetch the source, confirm content is suitable and return response.
     Verify that the source URL returns an HTML page with a successful
     status code.
@@ -179,7 +177,7 @@ def _get_incoming_source_text(source_url: str, client=requests) -> str:
             f"Source '{source_url}' returned error code [{response.status_code}]"
         )
 
-    content_type = response.headers["content-type"]
+    content_type = response.headers["content-type"]  # Case-insensitive
     if "text/html" not in content_type:
         raise SourceNotAccessible(
             f"Source '{source_url}' returned unexpected content type: {content_type}"

@@ -87,6 +87,8 @@ def _patch_post(ok: bool):
 
 
 class OutgoingWebmentionsTests(WebmentionTestCase):
+    """OUTOOING: tests for task `process_outgoing_webmentions`."""
+
     source_url = f"https://{settings.DOMAIN_NAME}/some-url-path/"
 
     @_patch_post(ok=True)

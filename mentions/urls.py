@@ -1,7 +1,8 @@
 from django.urls import path, re_path
 
 from mentions.views import view_names
-from mentions.views.webmention import GetWebmentionsView, WebmentionView
+from mentions.views.retrieve_mentions import GetMentionsView
+from mentions.views.submit_mentions import WebmentionView
 from tests.views import TemplateTagTestView
 
 """
@@ -18,7 +19,7 @@ urlpatterns = [
     path("", WebmentionView.as_view(), name=view_names.webmention_api_incoming),
     re_path(
         r"^get/?$",
-        GetWebmentionsView.as_view(),
+        GetMentionsView.as_view(),
         name=view_names.webmention_api_get_for_object,
     ),
     path(

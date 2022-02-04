@@ -6,7 +6,7 @@ from tests.util import testfunc
 
 
 class TestFuncTests(TestCase):
-    """Make sure test functions work as expected."""
+    """TESTS: Make sure test functions work as expected."""
 
     def test_random_url(self):
         """Randomly generated URLs are valid."""

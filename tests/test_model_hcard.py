@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 
 
 class HCardParsingTests(WebmentionTestCase):
-    """HCard parsing tests"""
+    """MODELS: HCard parsing tests."""
 
     def _hcard_from_soup(self, html) -> Optional[HCard]:
         soup = html_parser(html)
@@ -40,7 +40,7 @@ class HCardParsingTests(WebmentionTestCase):
         self.assertEqual(hcard.avatar, "https://janebloggs.org/photo.jpg")
 
     def test_with_only_homepage(self):
-        """Parse an h-card element with a homepage URL but no name or avatar"""
+        """Parse an h-card element with a homepage URL but no name or avatar."""
         hcard = self._hcard_from_soup(
             """<div class="h-card"><a class="u-url" href="https://janebloggs.org"></a><a class="u-email" href="mailto:janebloggs@janebloggs.com">janebloggs@janebloggs.com</a>,<span class="p-street-address">17 Austerstræti</span><span class="p-locality">Reykjavík</span><span class="p-country-name">Iceland</span></div>"""
         )

@@ -3,13 +3,15 @@ from tests.util import testfunc
 
 
 class MentionsEndpointsTests(WebmentionTestCase):
-    """Make sure endpoints actually work."""
+    """ENDPOINT: Make sure endpoints are accessible."""
 
     def test_incoming_endpoint(self):
+        """Primary endpoint is accessible."""
         response = self.client.get(testfunc.endpoint_submit_webmention())
         self.assertEqual(200, response.status_code)
 
     def test_get_endpoint(self):
+        """`/get` endpoint is accessible."""
         obj = testfunc.create_mentionable_object()
 
         response = self.client.get(

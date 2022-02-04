@@ -27,22 +27,24 @@ def create_mentionable_object(content: str = ""):
     return MentionableTestModel.objects.create(pk=pk, slug=slug, content=content)
 
 
-def get_url_for_slug(slug):
-    """Return the absolute URL for the target slug on our domain."""
-    return f"https://{settings.DOMAIN_NAME}{_get_urlpath_for_slug(slug)}"
+def get_absolute_url_for_object(obj):
+    return _absolute_url(obj.get_absolute_url())
 
 
-def _get_urlpath_for_slug(slug: str) -> str:
-    """Return the relative URL for the target slug."""
-    return reverse(viewname.with_target_object_view, args=[slug])
-
-
-def get_simple_urlpath():
+def get_simple_url(absolute: bool = False):
     """Return relative URL for a simple page with no associated models."""
-    return reverse(viewname.no_object_view)
+    path = reverse(viewname.no_object_view)
+    if absolute:
+        return _absolute_url(path)
+    else:
+        return path
 
 
-def endpoint_submit_webmention() -> str:  #
+def _absolute_url(path):
+    return f"https://{settings.DOMAIN_NAME}{path}"
+
+
+def endpoint_submit_webmention() -> str:
     """Return relative URL for our root webmention endpoint."""
     return reverse(view_names.webmention_api_incoming)
 
