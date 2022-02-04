@@ -103,5 +103,4 @@ def _create_mentionable_objects(n: int = 3):
     """Create some arbitrary mentionable objects for noise."""
 
     for x in range(n):
-        pk, slug = testfunc.get_id_and_slug()
-        MentionableTestModel.objects.create(pk=pk, slug=slug)
+        testfunc.create_mentionable_object()

@@ -32,10 +32,8 @@ class WebmentionGetTests(_MentionsForObjectTestCase):
     """Webmention /get endpoint tests"""
 
     def setUp(self):
-        target_pk, target_slug = testfunc.get_id_and_slug()
-
-        target = MentionableTestModel.objects.create(pk=target_pk, slug=target_slug)
-        self.target_urlpath = testfunc.get_urlpath(target_slug)
+        target = testfunc.create_mentionable_object()
+        self.target_urlpath = testfunc.get_urlpath(target.slug)
 
         _, source_slug = testfunc.get_id_and_slug()
         self.source_url = testfunc.get_url(source_slug)

@@ -23,8 +23,7 @@ def get_id_and_slug() -> Tuple[int, str]:
 
 def create_mentionable_object(content: str = ""):
     pk, slug = get_id_and_slug()
-    obj = MentionableTestModel.objects.create(pk=pk, slug=slug, content=content)
-    return obj
+    return MentionableTestModel.objects.create(pk=pk, slug=slug, content=content)
 
 
 def get_url(slug):

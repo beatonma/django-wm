@@ -10,7 +10,6 @@ from django.test import Client
 from mentions.tasks import incoming_webmentions
 from mentions.util import split_url
 from tests import WebmentionTestCase
-from tests.models import MentionableTestModel
 from tests.util import testfunc
 
 log = logging.getLogger(__name__)
@@ -39,13 +38,10 @@ class _MockResponse:
 class IncomingWebmentionsTests(WebmentionTestCase):
     def setUp(self):
         target_pk, self.target_slug = testfunc.get_id_and_slug()
-        self.target_url = testfunc.get_url(self.target_slug)
 
-        MentionableTestModel.objects.create(
-            pk=target_pk,
-            slug=self.target_slug,
-            allow_incoming_webmentions=True,
-        )
+        target = testfunc.create_mentionable_object()
+        self.target_slug = target.slug
+        self.target_url = testfunc.get_url(target.slug)
 
     def test_get_target_path(self):
         """Ensure that path is retrieved from url correctly."""
@@ -60,11 +56,7 @@ class IncomingWebmentionsTests(WebmentionTestCase):
 
     def test_get_incoming_source(self):
         """Ensure that webmention source page can be retrieved correctly."""
-
-        _, source_slug = testfunc.get_id_and_slug()
-        source_url = MentionableTestModel.objects.create(
-            slug=source_slug
-        ).get_absolute_url()
+        source_url = testfunc.create_mentionable_object().get_absolute_url()
 
         self.assertIsNotNone(
             incoming_webmentions._get_incoming_source_text(
