@@ -1,5 +1,22 @@
 # Changelog
 
+# 2.1.0 (2022-02-05)
+
+- Added setting `WEBMENTIONS_USE_CELERY` (boolean, default `True`)  
+  **If `False`**:
+  - `celery` does not need to be installed
+  - New models `PendingIncomingWebmention` and `PendingOutgoingContent` are created to store the required 
+    data for later batch-processing.
+  - New management command: `manage.py pending_mentions` can be used to process these data.
+
+
+- `/get` endpoint:
+  - Now returns results for SimpleMention objects as well as Webmentions.
+  - Added field `type` with value `webmention` or `simple` so they can be differentiated when displaying.
+
+- Updated instructions for installation with or without celery.
+
+
 # 2.0.0 (2022-02-02)
 
 
