@@ -6,7 +6,7 @@ The following guide seeks to alleviate potential issues when upgrading from `dja
 
 Prior versions of `django-wm` omitted [migration files] for the `mentions` app that this package provides. This was an oversight: when running `manage.py makemigrations`, one or more migration files would be generated within the `django-wm` package installation. This can cause issues when/if `django-wm` is upgraded with changes to its concrete models.
 
-Starting in **v2.0.0**, migrations for `mentions` app's _concrete_ models - models that are NOT [abstract base classes] - will be included with the package distribution. This way, new changes to those concrete models can be smoothly migrated in any environment that uses `django-wm`.
+Starting in **v2.0.1**, migrations for `mentions` app's _concrete_ models - models that are NOT [abstract base classes] - will be included with the package distribution. This way, new changes to those concrete models can be smoothly migrated in any environment that uses `django-wm`.
 
 The following models are affected by the change:
 
@@ -17,7 +17,7 @@ The following models are affected by the change:
 
 **Notes**:
 
-- **Database tables created by mentions models in v1.3.1 are identical to those created with v2.0.0**. Any database environment with up-to-date model migrations as of **v1.3.1** should be able to upgrade to **v2.0** with no impacts on data or database schemas.
+- **Database tables created by mentions models in v1.3.1 are identical to those created with v2.0.1**. Any database environment with up-to-date model migrations as of **v1.3.1** should be able to upgrade to **v2.0** with no impacts on data or database schemas.
 - **Model _mixins_ are not affected**. Mixins are [abstract base classes], and do not generate migrations in the `mentions` app under any circumstances.
 - **Models that inherit from mixins are also not affected**. You do not need to generate new migrations for your own apps if you inherit from these mixin classes.
 
@@ -42,7 +42,7 @@ If you are uncertain if your app will be adversely affected by this change, you 
 
    - The migration files here will be ones your Django project generated using the `makemigrations` command in **v1.3.1** and below.
 
-2. Upgrade `django-wm` using `pip install --upgrade django-wm` (preferably, specify the version with `django-wm==2.0.0`).
+2. Upgrade `django-wm` using `pip install --upgrade django-wm` (preferably, specify the version with `django-wm==2.0.1`).
 
    - This will install the _new_ migration file(s) introduced in **v2.0+**.
 
