@@ -16,16 +16,16 @@ blah blah duplicate links
 
 
 class EndpointDiscoveryTests(WebmentionTestCase):
-    """Outgoing webmentions: Endpoint discovery & resolution"""
+    """OUTGOING: Endpoint discovery & resolution."""
 
     absolute_endpoint = testfunc.endpoint_submit_webmention_absolute()
     relative_endpoint = testfunc.endpoint_submit_webmention()
 
     def setUp(self):
-        target_pk, self.target_slug = testfunc.get_id_and_slug()
+        self.target = testfunc.create_mentionable_object()
 
     def _get_absolute_target_url(self):
-        return testfunc.get_url(self.target_slug)
+        return testfunc.get_absolute_url_for_object(self.target)
 
     def test_get_absolute_endpoint_from_response(self):
         """Any exposed endpoints (in HTTP header, HTML <head> or <body>) are found and returned as an absolute url."""
@@ -120,6 +120,7 @@ class EndpointDiscoveryTests(WebmentionTestCase):
             f"http://{testfunc.random_domain()}/some-path",
             f"{testfunc.random_domain()}/some-path/something_else_04/",
             f"https://subdomain.{testfunc.random_domain()}/blah-blah/",
+            *{testfunc.random_url() for _ in range(0, 5)},
         }
 
         outgoing_content = "".join(

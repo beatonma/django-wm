@@ -1,12 +1,14 @@
 import logging
+from typing import List
 
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
 from mentions.exceptions import ImplementationRequired
+from mentions.models import QuotableMixin, SimpleMention
 from mentions.models.webmention import Webmention
-from mentions.tasks import process_outgoing_webmentions
-from mentions.util import serialize_mentions
+from mentions.serialize import serialize_mentions
+from mentions.tasks.scheduling import handle_outgoing_webmentions
 
 log = logging.getLogger(__name__)
 
@@ -21,7 +23,7 @@ class MentionableMixin(models.Model):
     slug = models.SlugField(unique=True)
 
     @property
-    def mentions(self):
+    def mentions(self) -> List[QuotableMixin]:
         ctype = ContentType.objects.get_for_model(self.__class__)
         webmentions = Webmention.objects.filter(
             content_type=ctype,
@@ -29,8 +31,11 @@ class MentionableMixin(models.Model):
             approved=True,
             validated=True,
         )
-        # manual_mentions = TODO
-        return webmentions
+        simple_mentions = SimpleMention.objects.filter(
+            content_type=ctype,
+            object_id=self.id,
+        )
+        return list(webmentions) + list(simple_mentions)
 
     def mentions_json(self):
         return serialize_mentions(self.mentions)
@@ -60,7 +65,6 @@ class MentionableMixin(models.Model):
 
     def save(self, *args, **kwargs):
         if self.allow_outgoing_webmentions:
-            log.info("Outgoing webmention processing task added to queue...")
-            process_outgoing_webmentions.delay(self.get_absolute_url(), self.all_text())
+            handle_outgoing_webmentions(self.get_absolute_url(), self.all_text())
 
         super().save(*args, **kwargs)

@@ -7,16 +7,32 @@ class WebmentionTestCase(TestCase):
         from mentions.models import (
             HCard,
             OutgoingWebmentionStatus,
+            PendingIncomingWebmention,
+            PendingOutgoingContent,
             SimpleMention,
             Webmention,
         )
+        from tests.models import (
+            BadTestModelMissingAllText,
+            BadTestModelMissingGetAbsoluteUrl,
+            MentionableTestModel,
+        )
 
-        for Model in [
+        app_models = [
             Webmention,
             OutgoingWebmentionStatus,
+            PendingIncomingWebmention,
+            PendingOutgoingContent,
             HCard,
             SimpleMention,
-        ]:
+        ]
+        test_models = [
+            MentionableTestModel,
+            BadTestModelMissingAllText,
+            BadTestModelMissingGetAbsoluteUrl,
+        ]
+
+        for Model in app_models + test_models:
             Model.objects.all().delete()
 
 

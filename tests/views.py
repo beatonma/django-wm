@@ -14,9 +14,9 @@ log = logging.getLogger(__name__)
 
 
 class AllEndpointsMentionableTestView(View):
-    """
-    Expose webmention endpoint in HTTP header, HTML HEAD and HTML BODY.
-    """
+    """A view that is associated with a MentionableTestModel.
+
+    Webmentions are retrieved via the associated model instance."""
 
     def get(self, request, *args, **kwargs):
         obj = MentionableTestModel.objects.get(slug=kwargs.get("slug"))
@@ -29,14 +29,15 @@ class AllEndpointsMentionableTestView(View):
 
 
 class SimpleNoObjectTestView(View):
-    """
-    A simple view with no associated Mentionable object. Should be able to accept
-    incoming webmentions but there is no
-    """
+    """A simple view with no associated mentionable object.
+
+    Webmentions should still be able to target this page via its URL."""
 
     def get(self, request):
         return HttpResponse(snippets.html_all_endpoints("whatever content"), status=200)
 
 
 class TemplateTagTestView(TemplateView):
+    """Render page to test `{% webmention_endpoint %}` tag."""
+
     template_name = "templatetags_example.html"

@@ -1,9 +1,21 @@
+import logging
+
 import requests
-from celery import shared_task
-from celery.utils.log import get_task_logger
+
+from mentions.resolution import get_model_for_url_path
+
+try:
+    from celery import shared_task
+    from celery.utils.log import get_task_logger
+
+    log = get_task_logger(__name__)
+except (ImportError, ModuleNotFoundError):
+    from mentions.util import noop_shared_task
+
+    shared_task = noop_shared_task
+    log = logging.getLogger(__name__)
+
 from django.conf import settings
-from django.db import models
-from django.http import QueryDict
 
 from mentions.exceptions import (
     BadConfig,
@@ -12,20 +24,18 @@ from mentions.exceptions import (
     TargetWrongDomain,
 )
 from mentions.models import HCard, Webmention
-from mentions.util import get_model_for_url_path, html_parser, split_url
-
-log = get_task_logger(__name__)
+from mentions.util import html_parser, split_url
 
 
-class Notes:
+class _Notes:
     notes = []
 
-    def info(self, note) -> "Notes":
+    def info(self, note) -> "_Notes":
         log.info(note)
         self.notes.append(note)
         return self
 
-    def warn(self, note) -> "Notes":
+    def warn(self, note) -> "_Notes":
         log.warning(note)
         self.notes.append(note)
         return self
@@ -37,7 +47,7 @@ class Notes:
 def _update_wm(
     mention,
     target_object=None,
-    notes: Notes = None,
+    notes: _Notes = None,
     hcard: HCard = None,
     validated: bool = None,
     save: bool = False,
@@ -53,53 +63,48 @@ def _update_wm(
         mention.validated = validated
 
     if save:
-        log.info(f"Webmention saved: {mention}")
         mention.save()
+        log.info(f"Webmention saved: {mention}")
 
     return mention
 
 
 @shared_task
-def process_incoming_webmention(http_post: QueryDict, client_ip: str) -> None:
-    log.info(f"Processing webmention '{http_post}'")
+def process_incoming_webmention(source_url: str, target_url: str, sent_by: str) -> None:
+    log.info(f"Processing webmention '{source_url}' -> '{target_url}'")
 
-    # Source and target have already been verified
-    # as valid addresses before this method is called
-    source = http_post["source"]
-    target = http_post["target"]
-
-    wm = Webmention(source_url=source, target_url=target, sent_by=client_ip)
+    wm = Webmention(source_url=source_url, target_url=target_url, sent_by=sent_by)
 
     # If anything fails, write it to notes and attach to webmention object
     # so it can be checked later
-    notes = Notes()
+    notes = _Notes()
 
     # Check that the target page is accessible on our server and fetch
     # the corresponding object.
     try:
-        obj = _get_target_object(target)
+        obj = _get_target_object(target_url)
         notes.info("Found webmention target object")
         _update_wm(wm, target_object=obj)
 
     except (TargetWrongDomain, TargetDoesNotExist):
-        notes.warn(f"Unable to find matching page on our server for url '{target}'")
+        notes.warn(f"Unable to find matching page on our server for url '{target_url}'")
 
     except BadConfig:
-        notes.warn(f"Unable to find a model associated with url '{target}'")
+        notes.warn(f"Unable to find a model associated with url '{target_url}'")
 
     # Verify that the source page exists and really contains a link
     # to the target
     try:
-        response_text = _get_incoming_source(source)
+        response_text = _get_incoming_source_text(source_url)
 
     except SourceNotAccessible:
         _update_wm(
-            wm, notes=notes.warn(f"Source not accessible: '{source}'"), save=True
+            wm, notes=notes.warn(f"Source not accessible: '{source_url}'"), save=True
         )
         return
 
     soup = html_parser(response_text)
-    if not soup.find("a", href=target):
+    if not soup.find("a", href=target_url):
         _update_wm(
             wm,
             notes=notes.info("Source does not contain a link to our content"),
@@ -112,10 +117,8 @@ def process_incoming_webmention(http_post: QueryDict, client_ip: str) -> None:
     _update_wm(wm, validated=True, notes=notes, hcard=hcard, save=True)
 
 
-def _get_target_object(target_url: str) -> models.Model:
-    r"""
-    Confirm that the page exists on our server and return object.
-    Throws
+def _get_target_object(target_url: str) -> "MentionableMixin":
+    """Confirm that the page exists on our server and return object.
 
     Any mentionable Views must include the following kwargs:
         - 'model_name' - dotted python path to the model definition
@@ -147,8 +150,9 @@ def _get_target_object(target_url: str) -> models.Model:
         raise e
 
 
-def _get_incoming_source(source_url: str, client=requests) -> str:
-    """
+def _get_incoming_source_text(source_url: str, client=requests) -> str:
+    """Confirm source exists as HTML and return its text.
+
     Fetch the source, confirm content is suitable and return response.
     Verify that the source URL returns an HTML page with a successful
     status code.
@@ -173,7 +177,7 @@ def _get_incoming_source(source_url: str, client=requests) -> str:
             f"Source '{source_url}' returned error code [{response.status_code}]"
         )
 
-    content_type = response.headers["content-type"]
+    content_type = response.headers["content-type"]  # Case-insensitive
     if "text/html" not in content_type:
         raise SourceNotAccessible(
             f"Source '{source_url}' returned unexpected content type: {content_type}"

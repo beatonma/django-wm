@@ -80,3 +80,6 @@ TEMPLATES = [
 ]
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+WEBMENTIONS_USE_CELERY = True
+WEBMENTIONS_AUTO_APPROVE = True
