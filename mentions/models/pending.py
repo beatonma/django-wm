@@ -17,6 +17,9 @@ class PendingIncomingWebmention(MentionsBaseModel):
     )
     sent_by = models.URLField(help_text="The origin of the webmention request.")
 
+    def __str__(self):
+        return f"PendingIncomingWebmention: {self.source_url} -> {self.target_url}"
+
     class Meta:
         ordering = ["-created_at"]
 
@@ -32,6 +35,9 @@ class PendingOutgoingContent(MentionsBaseModel):
     text = models.TextField(
         help_text="Text that may contain mentionable links. (retrieved via MentionableMixin.all_text())"
     )
+
+    def __str__(self):
+        return f"PendingOutgoingContent: {self.absolute_url}"
 
     class Meta:
         ordering = ["-created_at"]
