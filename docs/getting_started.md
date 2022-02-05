@@ -1,42 +1,26 @@
 # Upgrading
 
-**Version `2.0.0` has potentially BREAKING CHANGES for any users upgrading from `1.x.x`!** If you used any `1.x.x` version of `django-wm` please follow [these instructions](upgrading_to_2.0.md) to upgrade to `2.0.0` without data loss. Please complete the upgrade to `2.0.0` before upgrading further to any later versions.
-
+**Version `2.0` has potentially BREAKING CHANGES for any users upgrading from `1.x.x`!** If you used any `1.x.x` version of `django-wm` please follow [these instructions](upgrading_to_2.0.md) to upgrade to `2.0.1` without data loss. Please complete the upgrade to `2.0.1` before upgrading further to any later versions.
 
 
 # Installation
 
 PyPI: [django-wm](https://pypi.org/project/django-wm/)
 
+### With `celery` (recommended)
+```pip install django-wm[celery]```
+
+Please follow [these instructions](getting_started_with_celery.md) to set up Celery, then come back here for the rest.
+
+### Without `celery`:
 ```pip install django-wm```
 
-
-# Setup
-
-### Celery
-
-`django-wm` uses [Celery](https://docs.celeryproject.org/) for running tasks asynchronously. This also requires a [broker](https://docs.celeryproject.org/en/stable/getting-started/backends-and-brokers/index.html) such as [RabbitMQ](https://www.rabbitmq.com).
- 
-System:
-
-```shell
-sudo apt install rabbitmq-server
-
-# Create user for celery service and make sure it can access your database
-# e.g:
-sudo useradd -N -M --system -s /bin/bash celery
-sudo usermod -a -G www-data celery
-
-# Run celery
-sudo -u celery env/bin/celery -A projectname worker
-```
-
-Project:
-
-> Add `celery.py` to your root project. For an example implementation see [celery.py](https://github.com/beatonma/django-wm-example/blob/master/example/celery.py) from the example project.
+Please follow [these instructions](getting_started_without_celery.md), then come back here for the rest.
 
 
-# Project code
+### Project code
+
+For reference, source code for an example project is available [here](https://github.com/beatonma/django-wm-example).
 
 1. Root project `settings.py`:
    - Set `DOMAIN_NAME`:
@@ -93,7 +77,7 @@ Project:
 
 4. `urlpatterns` keywords.
 
-   Any `urlpatterns` `path` or `re_path` entries that represent a `MentionableMixin` model need to provide `slug` and `model_name` kweargs. The `slug` should be defined within the pattern for the path, whereas `model_name` needs to added to the `kwargs` argument.
+   Any `urlpatterns` `path` or `re_path` entries that represent a `MentionableMixin` model need to provide `slug` and `model_name` kwargs. The `slug` should be defined within the pattern for the path, whereas `model_name` needs to added to the `kwargs` argument.
    
    ```djangourlpath
    urlpatterns =  [
@@ -130,4 +114,3 @@ If False, received webmentions require manual approval before they can be made p
 """
 WEBMENTIONS_AUTO_APPROVE = True  # False by default
 ```
-``
