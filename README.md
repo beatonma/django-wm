@@ -15,6 +15,8 @@ If you used any `1.x.x` version of `django-wm` please follow [these instructions
 
 [Code for an example project](https://github.com/beatonma/django-wm-example).
 
+All done? You can use the [testing tool](https://beatonma.org/webmentions_tester/) to make sure it works.
+
 ### Features
 - Endpoints:
   - `/webmention`: Receives incoming Webmentions from other sites.

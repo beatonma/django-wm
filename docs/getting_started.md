@@ -101,6 +101,8 @@ For reference, source code for an example project is available [here](https://gi
    python manage.py makemigrations
    python manage.py migrate
    ```
+   
+6. Test it! [This page](https://beatonma.org/webmentions_tester/) accepts Webmentions and lets you send one to yourself, so you can check that both incoming and outgoing Webmentions work on your server.
 
 
 # Optional Settings
