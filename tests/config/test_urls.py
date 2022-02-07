@@ -1,7 +1,11 @@
 from django.urls import include, path
 
 from tests.util import constants, viewname
-from tests.views import AllEndpointsMentionableTestView, SimpleNoObjectTestView
+from tests.views import (
+    AllEndpointsMentionableTestView,
+    SimpleNoObjectTestView,
+    TemplateTagTestView,
+)
 
 urlpatterns = [
     # A page associated with a MentionableMixin model with correct configuration - webmentions linked by model instance.
@@ -18,6 +22,11 @@ urlpatterns = [
         "some-page/",
         SimpleNoObjectTestView.as_view(),
         name=viewname.no_object_view,
+    ),
+    path(
+        "templatetagstest",
+        TemplateTagTestView.as_view(),
+        name="test-template-tags",
     ),
     path(f"{constants.namespace}/", include("mentions.urls")),
 ]
