@@ -2,6 +2,7 @@ import logging
 
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.utils import timezone
 from django.db import models
 
 log = logging.getLogger()
@@ -23,7 +24,7 @@ class QuotableMixin(models.Model):
         help_text="A short excerpt from the quoted piece",
     )
 
-    published = models.DateTimeField(auto_now_add=True)
+    published = models.DateTimeField(default=timezone.now)
 
     hcard = models.ForeignKey("HCard", blank=True, null=True, on_delete=models.CASCADE)
 
