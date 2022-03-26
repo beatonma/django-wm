@@ -1,15 +1,17 @@
 import logging
 from importlib import import_module
-from typing import List
+from typing import Iterable, List
 
 from django.apps import apps
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
+from django.http import HttpRequest
 from django.urls import Resolver404, ResolverMatch
 
 from mentions.exceptions import BadConfig, TargetDoesNotExist
 from mentions.models import QuotableMixin, SimpleMention, Webmention
+from mentions.util import split_url
 
 log = logging.getLogger(__name__)
 
@@ -115,3 +117,16 @@ def get_mentions_for_url_path(
     simple_mentions = SimpleMention.objects.filter(q_filter)
 
     return list(webmentions) + list(simple_mentions)
+
+
+def get_mentions_for_absolute_url(url: str) -> Iterable[QuotableMixin]:
+    scheme, domain, path = split_url(url)
+    full_target_url = f"{scheme}://{domain}{path}"
+
+    return get_mentions_for_url_path(path, full_target_url=full_target_url)
+
+
+def get_mentions_for_view(request: HttpRequest) -> Iterable[QuotableMixin]:
+    """Call from your View implementation so you can include mentions in your template."""
+
+    return get_mentions_for_absolute_url(request.build_absolute_uri())
