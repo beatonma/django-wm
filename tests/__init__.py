@@ -15,7 +15,9 @@ class WebmentionTestCase(TestCase):
         from tests.models import (
             BadTestModelMissingAllText,
             BadTestModelMissingGetAbsoluteUrl,
+            MentionableTestBlogPost,
             MentionableTestModel,
+            SampleBlog,
         )
 
         app_models = [
@@ -30,9 +32,12 @@ class WebmentionTestCase(TestCase):
             MentionableTestModel,
             BadTestModelMissingAllText,
             BadTestModelMissingGetAbsoluteUrl,
+            MentionableTestBlogPost,
+            SampleBlog,
         ]
 
-        for Model in app_models + test_models:
+        all_models = [*app_models, *test_models]
+        for Model in all_models:
             Model.objects.all().delete()
 
 

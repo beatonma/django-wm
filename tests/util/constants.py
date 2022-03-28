@@ -7,3 +7,4 @@ namespace = uuid.uuid4().hex
 
 """Dotted name of the model used for testing."""
 model_name = "tests.MentionableTestModel"
+model_name_test_blogpost = "tests.MentionableTestBlogPost"
