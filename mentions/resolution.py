@@ -1,6 +1,6 @@
 import logging
 from importlib import import_module
-from typing import Iterable, List
+from typing import Iterable, List, Type
 
 from django.apps import apps
 from django.conf import settings
@@ -52,25 +52,24 @@ def _find_urlpattern(target_path: str) -> ResolverMatch:
     return match
 
 
-def get_model_for_url_path(target_path: str, match: ResolverMatch = None):
+def get_model_for_url_path(
+    target_path: str, match: ResolverMatch = None
+) -> Type["MentionableMixin"]:
     """
     Find a match in urlpatterns and return the corresponding model instance.
     """
     if match is None:
         match = _find_urlpattern(target_path)
 
+    urlpath_kwargs: dict = dict(**match.kwargs)
+
     # Dotted path to model class declaration
-    model_name = match.kwargs.get("model_name")
-
-    # Required to retrieve the target model instance
-    slug = match.kwargs.get("slug")
-
-    if not model_name:
+    try:
+        model_name = urlpath_kwargs.pop("model_name")
+    except KeyError:
         raise BadConfig(
-            f"urlpattern must include a kwarg entry called 'model_name': {match}"
+            f"urlpattern must include a kwargs entry called 'model_name': {match}"
         )
-    if not slug:
-        raise BadConfig(f"urlpattern must include a kwarg entry called 'slug': {match}")
 
     try:
         model = apps.get_model(model_name)
@@ -78,10 +77,10 @@ def get_model_for_url_path(target_path: str, match: ResolverMatch = None):
         raise BadConfig(f"Cannot find model `{model_name}` - check your urlpattern!")
 
     try:
-        return model.objects.get(slug=slug)
+        return model.resolve_from_url_kwargs(**urlpath_kwargs)
     except ObjectDoesNotExist:
         raise TargetDoesNotExist(
-            f"Cannot find instance of model='{model}' with slug='{slug}'"
+            f"Cannot find instance of model='{model}' with kwargs='{urlpath_kwargs}'"
         )
 
 
