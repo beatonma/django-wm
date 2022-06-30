@@ -1,7 +1,6 @@
 """
 Tests for handling webmentions are sent to us from elsewhere.
 """
-
 import logging
 from unittest.mock import Mock, patch
 
@@ -9,7 +8,10 @@ import requests
 
 from mentions.exceptions import SourceNotAccessible, TargetWrongDomain
 from mentions.models import Webmention
+from mentions.models.mixins.quotable import IncomingMentionType
 from mentions.tasks import incoming_webmentions
+from mentions.tasks.incoming_webmentions import _parse_link_type
+from mentions.util import html_parser
 from tests import MockResponse, WebmentionTestCase
 from tests.util import snippets, testfunc
 
@@ -23,7 +25,14 @@ SOURCE_URL_NO_MENTIONS = testfunc.random_url()
 
 TARGET_URL = testfunc.get_simple_url(absolute=True)
 SOURCE_TEXT = f"""<div>
-<a href="{TARGET_URL}">link to target url</a>
+<a href="{TARGET_URL}" class="u-repost-of">link to target url</a>
+<div class="h-card">
+    <a class="u-url" href="https://janebloggs.org">Jane</a>
+</div>
+"""
+
+SOURCE_TEXT_WITH_REPOST = f"""<div>
+<a href="{TARGET_URL}" class="u-repost-of">link to target url</a>
 <div class="h-card">
     <a class="u-url" href="https://janebloggs.org">Jane</a>
 </div>
@@ -42,6 +51,19 @@ SOURCE_TEXT_NO_MENTION = f"""<div>
     <a class="u-url" href="https://janebloggs.org">Jane</a>
 </div>
 """
+
+SOURCE_TEXT_LIKE = f"""<a href="{TARGET_URL}" class="u-like-of another-class"></a><"""
+SOURCE_TEXT_REPLY_IN_HCITE = f"""<div class="h-entry">
+  <div class="h-cite u-in-reply-to">
+    Liked <a class="u-url" href="{TARGET_URL}">a post</a> by
+    <span class="p-author h-card">
+      <a class="u-url p-name" href="https://example.com">Author Name</a>
+    </span>:
+    <blockquote class="e-content">
+      <p>The post being liked</p>
+    </blockquote>
+  </div>
+</div>"""
 
 
 def _response(url, status_code, text, headers=None):
@@ -152,6 +174,25 @@ class IncomingWebmentionsTests(WebmentionTestCase):
         self.assertIsNotNone(hcard)
         self.assertEqual(hcard.name, "Jane")
 
+    def test_process_incoming_webmention_with_post_type(self):
+        with _patch_get(text=SOURCE_TEXT_WITH_REPOST):
+            incoming_webmentions.process_incoming_webmention(
+                source_url=SOURCE_URL_OK,
+                target_url=TARGET_URL,
+                sent_by=testfunc.random_url(),
+            )
+
+        mention: Webmention = Webmention.objects.first()
+        self.assertEqual(mention.source_url, SOURCE_URL_OK)
+        self.assertEqual(mention.target_url, TARGET_URL)
+        self.assertTrue(mention.validated)
+
+        hcard = mention.hcard
+        self.assertIsNotNone(hcard)
+        self.assertEqual(hcard.name, "Jane")
+
+        self.assertEqual(mention.post_type, "repost")
+
     def test_process_incoming_webmention_with_target_object(self):
         """process_incoming_webmention targeting an object creates a validated Webmention object when successful."""
 
@@ -189,3 +230,17 @@ class IncomingWebmentionsTests(WebmentionTestCase):
 
         mention = webmentions.first()
         self.assertFalse(mention.validated)
+
+    def test_parse_link_type(self):
+        soup = html_parser(SOURCE_TEXT_LIKE)
+        link = soup.find("a", href=TARGET_URL)
+
+        link_type = _parse_link_type(link)
+        self.assertEqual(link_type, IncomingMentionType.Like)
+
+    def test_parse_link_type_with_hcite_nesting(self):
+        soup = html_parser(SOURCE_TEXT_REPLY_IN_HCITE)
+        link = soup.find("a", href=TARGET_URL)
+
+        link_type = _parse_link_type(link)
+        self.assertEqual(link_type, IncomingMentionType.Reply)
