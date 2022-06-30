@@ -24,11 +24,6 @@ def _find_urlpattern(target_path: str) -> ResolverMatch:
     urlconf = import_module(settings.ROOT_URLCONF)
     urlpatterns = urlconf.urlpatterns
 
-    try:
-        from django.contrib.flatpages.views import flatpage
-    except ImportError:
-        flatpage = None
-
     for x in urlpatterns:
         # x may be an instance of either:
         # - django.urls.resolvers.URLResolver
@@ -36,10 +31,7 @@ def _find_urlpattern(target_path: str) -> ResolverMatch:
         try:
             match = x.resolve(target_path)
             if match:
-                if flatpage and match.func != flatpage:
-                    break
-                else:
-                    break
+                break
         except Resolver404:
             # May be raised by URLResolver
             pass
