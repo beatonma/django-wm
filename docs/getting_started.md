@@ -33,8 +33,6 @@ For reference, source code for an example project is available [here](https://gi
     INSTALLED_APPS = [
         "django.contrib.auth",
         "django.contrib.contenttypes",
-        "django.contrib.flatpages",
-        "django.contrib.sites",
         ...
         "mentions",
     ]
