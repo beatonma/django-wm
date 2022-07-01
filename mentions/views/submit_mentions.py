@@ -2,7 +2,7 @@ import logging
 
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from django.http import HttpResponse, HttpResponseBadRequest
+from django.http import HttpResponseBadRequest
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import View
@@ -46,7 +46,7 @@ class WebmentionView(View):
             return HttpResponseBadRequest()
 
         handle_incoming_webmention(http_post, client_ip)
-        return HttpResponse("Thank you, your webmention has been accepted.", status=202)
+        return render(request, "webmention-accepted.html", status=202)
 
 
 def _get_client_ip(request):
