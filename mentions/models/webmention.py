@@ -30,7 +30,11 @@ class Webmention(QuotableMixin, MentionsBaseModel):
         "confirmed to exist, and source really does link to target",
     )
 
-    notes = models.CharField(max_length=1024, blank=True)
+    notes = models.CharField(
+        max_length=1024,
+        blank=True,
+        help_text="A description of any errors encountered when building this Webmention.",
+    )
 
     def approve(self):
         self.approved = True
