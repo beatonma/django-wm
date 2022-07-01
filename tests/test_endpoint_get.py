@@ -103,9 +103,22 @@ class GetWebmentionsNoModelTests(_BaseTestCase):
 
         webmention = next(filter(lambda x: x["type"] == "webmention", mentions))
         self.assertEqual(webmention["source_url"], self.webmention_source_url)
-        self.assertEqual(webmention["type"], "webmention")
 
-    def test_simpleentions_retrieved_correctly(self):
+    def test_webmention_type_retrieved_correctly(self):
+        """Webmention with post_type is serialized correctly."""
+        wm: Webmention = Webmention.objects.first()
+        wm.post_type = "bookmark"
+        wm.save(update_fields=["post_type"])
+
+        status, mentions = self.get_json_response(
+            self.endpoint, data={"url": self.target_url}
+        )
+
+        self.assertEqual(status, 200)
+        serialized_wm = next(filter(lambda x: x["type"] == "bookmark", mentions))
+        self.assertIsNotNone(serialized_wm)
+
+    def test_simplementions_retrieved_correctly(self):
         """SimpleMentions that target a URL are retrieved correctly."""
         status, mentions = self.get_json_response(
             self.endpoint, data={"url": self.target_url}

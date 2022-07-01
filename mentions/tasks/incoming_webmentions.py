@@ -1,7 +1,10 @@
 import logging
+from typing import Optional
 
 import requests
+from bs4 import Tag
 
+from mentions.models.mixins.quotable import IncomingMentionType
 from mentions.resolution import get_model_for_url_path
 
 try:
@@ -19,6 +22,7 @@ from django.conf import settings
 
 from mentions.exceptions import (
     BadConfig,
+    SourceDoesNotLink,
     SourceNotAccessible,
     TargetDoesNotExist,
     TargetWrongDomain,
@@ -44,29 +48,9 @@ class _Notes:
         return "\n".join(self.notes)
 
 
-def _update_wm(
-    mention,
-    target_object=None,
-    notes: _Notes = None,
-    hcard: HCard = None,
-    validated: bool = None,
-    save: bool = False,
-):
-    """Update a webmention with the given kwargs"""
-    if target_object is not None:
-        mention.target_object = target_object
-    if notes is not None:
-        mention.notes = notes.join_to_string()[:1000]
-    if hcard is not None:
-        mention.hcard = hcard
-    if validated is not None:
-        mention.validated = validated
-
-    if save:
-        mention.save()
-        log.info(f"Webmention saved: {mention}")
-
-    return mention
+def _mark_as_failed(wm: Webmention, notes: _Notes) -> None:
+    wm.notes = notes.join_to_string()[:999]
+    wm.save()
 
 
 @shared_task
@@ -84,7 +68,7 @@ def process_incoming_webmention(source_url: str, target_url: str, sent_by: str) 
     try:
         obj = _get_target_object(target_url)
         notes.info("Found webmention target object")
-        _update_wm(wm, target_object=obj)
+        wm.target_object = obj
 
     except (TargetWrongDomain, TargetDoesNotExist):
         notes.warn(f"Unable to find matching page on our server for url '{target_url}'")
@@ -98,23 +82,23 @@ def process_incoming_webmention(source_url: str, target_url: str, sent_by: str) 
         response_text = _get_incoming_source_text(source_url)
 
     except SourceNotAccessible:
-        _update_wm(
-            wm, notes=notes.warn(f"Source not accessible: '{source_url}'"), save=True
+        return _mark_as_failed(
+            wm,
+            notes=notes.warn(f"Source not accessible: '{source_url}'"),
         )
-        return
 
-    soup = html_parser(response_text)
-    if not soup.find("a", href=target_url):
-        _update_wm(
+    try:
+        wm = _parse_source_html(wm, html=response_text, target_url=target_url)
+
+    except SourceDoesNotLink:
+        return _mark_as_failed(
             wm,
             notes=notes.info("Source does not contain a link to our content"),
-            save=True,
         )
-        return
 
-    hcard = HCard.from_soup(soup, save=True)
-
-    _update_wm(wm, validated=True, notes=notes, hcard=hcard, save=True)
+    wm.validated = True
+    wm.notes = notes
+    wm.save()
 
 
 def _get_target_object(target_url: str) -> "MentionableMixin":
@@ -184,3 +168,46 @@ def _get_incoming_source_text(source_url: str, client=requests) -> str:
         )
 
     return response.text
+
+
+def _parse_source_html(wm: Webmention, html: str, target_url: str) -> Webmention:
+    """Make sure that the source text really does link to the target_url and
+    parse contextual data for webmention type, related h-card.
+
+    Raises:
+        SourceDoesNotLink: If the `target_url` does not appear in the given text.
+    """
+
+    soup = html_parser(html)
+    link = soup.find("a", href=target_url)
+
+    if link is None:
+        raise SourceDoesNotLink()
+
+    post_type = _parse_link_type(link)
+    wm.post_type = post_type.name.lower() if post_type else None
+    wm.hcard = HCard.from_soup(soup, save=True)
+    return wm
+
+
+def _parse_link_type(link: Tag) -> Optional[IncomingMentionType]:
+    """Return any available type information in the context of the link.
+
+    This may be available as a class on the link itself, or on a parent element
+    that is marked with h-cite."""
+
+    def find_mention_type_in_classlist(element: Tag) -> Optional[IncomingMentionType]:
+        if element.has_attr("class"):
+            classes = set(element["class"])
+
+            for _type in IncomingMentionType.__members__.values():
+                if _type.value in classes:
+                    return _type
+
+    link_type = find_mention_type_in_classlist(link)
+    if link_type is not None:
+        return link_type
+
+    hcite = link.find_parent(class_="h-cite")
+    if hcite:
+        return find_mention_type_in_classlist(hcite)

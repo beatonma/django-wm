@@ -6,7 +6,7 @@ from mentions.models import HCard, QuotableMixin, SimpleMention, Webmention
 def serialize_mentions(mentions: Iterable[QuotableMixin]) -> List[Dict]:
     def _typeof(mention) -> str:
         if isinstance(mention, Webmention):
-            return "webmention"
+            return mention.post_type or "webmention"
         elif isinstance(mention, SimpleMention):
             return "simple"
         else:

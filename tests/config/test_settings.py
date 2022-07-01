@@ -39,8 +39,6 @@ SECRET_KEY = "some-test-key"
 INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
-    "django.contrib.flatpages",
-    "django.contrib.sites",
     # Apps for django-wm
     "mentions",
     "tests",
