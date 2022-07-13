@@ -31,22 +31,6 @@ STATUS_MESSAGE_TARGET_ENDPOINT_ERROR = (
 STATUS_MESSAGE_OK = "The target server accepted the webmention."
 
 
-def _save_status(
-    outgoing_status: OutgoingWebmentionStatus,
-    message: str,
-    success: bool,
-    target_endpoint: Optional[str] = None,
-    response_code: Optional[int] = None,
-):
-    outgoing_status.status_message = message
-    outgoing_status.successful = success
-    if target_endpoint:
-        outgoing_status.target_webmention_endpoint = target_endpoint
-    if response_code:
-        outgoing_status.response_code = response_code
-    outgoing_status.save()
-
-
 @shared_task
 def process_outgoing_webmentions(source_urlpath: str, text: str) -> int:
     """Find links and in the given text and submit a webmention to any servers that support them.
@@ -72,14 +56,14 @@ def process_outgoing_webmentions(source_urlpath: str, text: str) -> int:
     log.info(f"Checking for outgoing webmention links...")
     mentions_attempted = 0
     mentions_sent = 0
-    links_in_text = _find_links_in_text(text)
+    links_in_text = _get_target_links_in_text(text)
 
     if not links_in_text:
         log.debug("No links found in text.")
         return 0
 
     for link_url in links_in_text:
-        result = _process_link(source_urlpath, link_url)
+        result = _try_send_webmention(source_urlpath, link_url)
 
         if result is None:
             # No webmention endpoint found
@@ -103,8 +87,8 @@ def process_outgoing_webmentions(source_urlpath: str, text: str) -> int:
     return mentions_sent
 
 
-def _process_link(source_urlpath: str, link_url: str) -> Optional[bool]:
-    """Try to send a webmention for link_url.
+def _try_send_webmention(source_urlpath: str, target_url: str) -> Optional[bool]:
+    """Try to send a webmention for target_url.
 
     Returns:
         True if a webmention was submitted successfully.
@@ -115,21 +99,21 @@ def _process_link(source_urlpath: str, link_url: str) -> Optional[bool]:
     """
     outgoing_status = OutgoingWebmentionStatus.objects.create(
         source_url=source_urlpath,
-        target_url=link_url,
+        target_url=target_url,
     )
 
     # Confirm that the target url is alive
-    log.debug(f"Checking url='{link_url}' for webmention support...")
+    log.debug(f"Checking url='{target_url}' for webmention support...")
     try:
-        response = requests.get(link_url)
+        response = requests.get(target_url)
     except Exception as e:
-        log.warning(f"Unable to fetch url={link_url}: {e}")
+        log.warning(f"Unable to fetch url={target_url}: {e}")
         _save_status(outgoing_status, STATUS_MESSAGE_TARGET_UNREACHABLE, success=False)
         return None
 
     if response.status_code >= 300:
         log.warning(
-            f"Mentioned link '{link_url}' returned status={response.status_code}"
+            f"Mentioned link '{target_url}' returned status={response.status_code}"
         )
         _save_status(
             outgoing_status,
@@ -142,9 +126,9 @@ def _process_link(source_urlpath: str, link_url: str) -> Optional[bool]:
     endpoint = _get_absolute_endpoint_from_response(response)
     if endpoint:
         log.debug(f"Found webmention endpoint: '{endpoint}'")
-        success, status_code = _send_webmention(source_urlpath, endpoint, link_url)
+        success, status_code = _send_webmention(source_urlpath, endpoint, target_url)
         if success:
-            log.info(f"Webmention submission successful for '{link_url}'")
+            log.info(f"Webmention submission successful for '{target_url}'")
             _save_status(
                 outgoing_status,
                 STATUS_MESSAGE_OK,
@@ -156,7 +140,7 @@ def _process_link(source_urlpath: str, link_url: str) -> Optional[bool]:
 
         else:
             log.warning(
-                f"Webmention submission failed for '{link_url}' [endpoint={endpoint}]"
+                f"Webmention submission failed for '{target_url}' [endpoint={endpoint}]"
             )
             _save_status(
                 outgoing_status,
@@ -167,7 +151,16 @@ def _process_link(source_urlpath: str, link_url: str) -> Optional[bool]:
             )
             return False
     else:
-        log.info(f"No webmention endpoint found for url '{link_url}'")
+        log.info(f"No webmention endpoint found for url '{target_url}'")
+
+
+def _get_target_links_in_text(text: str) -> Set[str]:
+    links = _find_links_in_text(text)
+
+    # Filter self-links
+    links = {link for link in links if not link.startswith("#")}
+
+    return links
 
 
 def _find_links_in_text(text: str) -> Set[str]:
@@ -265,3 +258,22 @@ def _relative_to_absolute_url(response: requests.Response, url: str) -> Optional
         if not scheme or not domain:
             return None
         return f"{scheme}://{domain}/" f'{url if not url.startswith("/") else url[1:]}'
+
+
+def _save_status(
+    outgoing_status: OutgoingWebmentionStatus,
+    message: str,
+    success: bool,
+    target_endpoint: Optional[str] = None,
+    response_code: Optional[int] = None,
+):
+    outgoing_status.status_message = message
+    outgoing_status.successful = success
+
+    if target_endpoint:
+        outgoing_status.target_webmention_endpoint = target_endpoint
+
+    if response_code:
+        outgoing_status.response_code = response_code
+
+    outgoing_status.save()

@@ -14,6 +14,14 @@ blah blah duplicate links
 </body></html>
 """
 
+OUTGOING_WEBMENTION_HTML_SELF_LINKS = f"""<html>
+<head><link rel="webmention" href="/webmention/" /></head>
+<body>blah blah 
+<a href="https://beatonma.org/">This is a mentionable link</a> 
+aesjfgkljasn <a href="#contents">Link to self #ID</a> 
+</body></html>
+"""
+
 
 class EndpointDiscoveryTests(WebmentionTestCase):
     """OUTGOING: Endpoint discovery & resolution."""
@@ -112,7 +120,7 @@ class EndpointDiscoveryTests(WebmentionTestCase):
             f"https://{domain}/already_absolute_path", already_absolute_url
         )
 
-    def test_find_links_in_text(self):
+    def test_get_target_links_in_text(self):
         """Outgoing links are found correctly."""
 
         urls = {
@@ -130,15 +138,26 @@ class EndpointDiscoveryTests(WebmentionTestCase):
             ]
         )
 
-        outgoing_links = outgoing_webmentions._find_links_in_text(outgoing_content)
+        outgoing_links = outgoing_webmentions._get_target_links_in_text(
+            outgoing_content
+        )
         self.assertSetEqual(outgoing_links, urls)
 
-    def test_find_links_in_text__should_remove_duplicates(self):
-        """_find_links_in_text should remove any duplicates."""
-        outgoing_links = outgoing_webmentions._find_links_in_text(
+    def test_get_target_links_in_text__should_remove_duplicates(self):
+        """Outgoing links do not contain duplicates."""
+        outgoing_links = outgoing_webmentions._get_target_links_in_text(
             OUTGOING_WEBMENTION_HTML_DUPLICATE_LINKS
         )
 
         self.assertSetEqual(
             {"https://beatonma.org/", "https://snommoc.org/"}, outgoing_links
         )
+
+    def test_get_target_links_in_text__ignores_self_anchors(self):
+        """_get_target_links_in_text should remove any links that target the source page."""
+
+        outgoing_links = outgoing_webmentions._get_target_links_in_text(
+            OUTGOING_WEBMENTION_HTML_SELF_LINKS
+        )
+
+        self.assertSetEqual({"https://beatonma.org/"}, outgoing_links)
