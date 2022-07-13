@@ -1,21 +1,9 @@
 import logging
 import re
-from typing import Optional, Set, Tuple
+from typing import Optional, Tuple
 from urllib.parse import urlsplit
 
 import requests
-
-try:
-    from celery import shared_task
-    from celery.utils.log import get_task_logger
-
-    log = get_task_logger(__name__)
-except (ImportError, ModuleNotFoundError):
-    from mentions.util import noop_shared_task
-
-    shared_task = noop_shared_task
-    log = logging.getLogger(__name__)
-
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
@@ -30,64 +18,10 @@ STATUS_MESSAGE_TARGET_ENDPOINT_ERROR = (
 )
 STATUS_MESSAGE_OK = "The target server accepted the webmention."
 
-
-@shared_task
-def process_outgoing_webmentions(source_urlpath: str, text: str) -> int:
-    """Find links and in the given text and submit a webmention to any servers that support them.
-
-    Spec:
-    https://www.w3.org/TR/webmention/#sender-discovers-receiver-webmention-endpoint
-
-    For each link found in text:
-        - Check that the link is alive
-        - Search for webmention endpoint in:
-            - HTTP response headers
-            - HTML <head> element
-            - HTML <body> element
-        - If an endpoint is found, send a webmention notification
-
-    source_urlpath should be the value returned by model.get_absolute_url() -
-    it will be appended to settings.DOMAIN_NAME
-
-    Returns:
-         Number of outgoing webmentions that were submitted successfully.
-    """
-
-    log.info(f"Checking for outgoing webmention links...")
-    mentions_attempted = 0
-    mentions_sent = 0
-    links_in_text = _get_target_links_in_text(text)
-
-    if not links_in_text:
-        log.debug("No links found in text.")
-        return 0
-
-    for link_url in links_in_text:
-        result = _try_send_webmention(source_urlpath, link_url)
-
-        if result is None:
-            # No webmention endpoint found
-            continue
-
-        mentions_attempted += 1
-        if result is True:
-            mentions_sent += 1
-
-    if mentions_sent == mentions_attempted:
-        log.info(f"Successfully sent {mentions_sent} webmentions")
-
-    elif mentions_attempted:
-        log.warning(
-            f"Webmention submission errors: {mentions_sent}/{mentions_attempted} submissions were successful"
-        )
-
-    else:
-        log.info(f"No links with webmentionable endpoints were found.")
-
-    return mentions_sent
+log = logging.getLogger(__name__)
 
 
-def _try_send_webmention(source_urlpath: str, target_url: str) -> Optional[bool]:
+def try_send_webmention(source_urlpath: str, target_url: str) -> Optional[bool]:
     """Try to send a webmention for target_url.
 
     Returns:
@@ -154,18 +88,25 @@ def _try_send_webmention(source_urlpath: str, target_url: str) -> Optional[bool]
         log.info(f"No webmention endpoint found for url '{target_url}'")
 
 
-def _get_target_links_in_text(text: str) -> Set[str]:
-    links = _find_links_in_text(text)
-
-    # Filter self-links
-    links = {link for link in links if not link.startswith("#")}
-
-    return links
-
-
-def _find_links_in_text(text: str) -> Set[str]:
-    soup = html_parser(text)
-    return {a["href"] for a in soup.find_all("a", href=True)}
+def _send_webmention(source_url: str, endpoint: str, target: str) -> Tuple[bool, int]:
+    payload = {
+        "target": target,
+        "source": f"https://{settings.DOMAIN_NAME}{source_url}",
+    }
+    response = requests.post(endpoint, data=payload)
+    status_code = response.status_code
+    if status_code >= 300:
+        log.warning(
+            f'Sending webmention to "{endpoint}" '
+            f"FAILED with status_code={status_code}"
+        )
+        return False, status_code
+    else:
+        log.info(
+            f'Sending webmention to "{endpoint}" '
+            f"successful with status_code={status_code}"
+        )
+        return True, status_code
 
 
 def _get_absolute_endpoint_from_response(response: requests.Response) -> Optional[str]:
@@ -220,27 +161,6 @@ def _get_endpoint_in_html(html_text: str) -> Optional[str]:
                 return endpoint
     except Exception as e:
         log.debug(f"Error reading <body> of link: {e}")
-
-
-def _send_webmention(source_url: str, endpoint: str, target: str) -> Tuple[bool, int]:
-    payload = {
-        "target": target,
-        "source": f"https://{settings.DOMAIN_NAME}{source_url}",
-    }
-    response = requests.post(endpoint, data=payload)
-    status_code = response.status_code
-    if status_code >= 300:
-        log.warning(
-            f'Sending webmention to "{endpoint}" '
-            f"FAILED with status_code={status_code}"
-        )
-        return False, status_code
-    else:
-        log.info(
-            f'Sending webmention to "{endpoint}" '
-            f"successful with status_code={status_code}"
-        )
-        return True, status_code
 
 
 def _relative_to_absolute_url(response: requests.Response, url: str) -> Optional[str]:

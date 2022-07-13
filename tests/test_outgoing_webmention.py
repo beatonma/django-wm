@@ -8,7 +8,8 @@ import requests
 from django.conf import settings
 
 from mentions.models import OutgoingWebmentionStatus
-from mentions.tasks import outgoing_webmentions, process_outgoing_webmentions
+from mentions.tasks import process_outgoing_webmentions
+from mentions.tasks.outgoing import remote
 from tests import MockResponse, WebmentionTestCase
 from tests.util import testfunc
 
@@ -95,7 +96,7 @@ class OutgoingWebmentionsTests(WebmentionTestCase):
     def test_send_webmention(self):
         """_send_webmention should return True with status code when webmention is accepted by server."""
 
-        success, status_code = outgoing_webmentions._send_webmention(
+        success, status_code = remote._send_webmention(
             source_url=self.source_url,
             endpoint=f"https://{TARGET_DOMAIN}/webmention/",
             target=f"https://{TARGET_DOMAIN}/",
@@ -108,7 +109,7 @@ class OutgoingWebmentionsTests(WebmentionTestCase):
     def test_send_webmention__with_endpoint_error(self):
         """_send_webmention should return False with status code when webmention is not accepted by server."""
 
-        success, status_code = outgoing_webmentions._send_webmention(
+        success, status_code = remote._send_webmention(
             source_url=self.source_url,
             endpoint=f"https://{TARGET_DOMAIN}/webmention/",
             target=f"https://{TARGET_DOMAIN}/",

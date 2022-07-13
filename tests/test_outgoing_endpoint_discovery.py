@@ -1,6 +1,6 @@
 from django.conf import settings
 
-from mentions.tasks import outgoing_webmentions
+from mentions.tasks.outgoing import local, remote
 from tests import MockResponse, WebmentionTestCase
 from tests.util import snippets, testfunc
 
@@ -42,21 +42,21 @@ class EndpointDiscoveryTests(WebmentionTestCase):
             headers={"Link": snippets.http_link_endpoint()},
         )
         absolute_endpoint_from_http_headers = (
-            outgoing_webmentions._get_absolute_endpoint_from_response(mock_response)
+            remote._get_absolute_endpoint_from_response(mock_response)
         )
         self.assertEqual(self.absolute_endpoint, absolute_endpoint_from_http_headers)
 
         mock_response.headers = {}
         mock_response.text = snippets.html_head_endpoint()
-        absolute_endpoint_from_html_head = (
-            outgoing_webmentions._get_absolute_endpoint_from_response(mock_response)
+        absolute_endpoint_from_html_head = remote._get_absolute_endpoint_from_response(
+            mock_response
         )
         self.assertEqual(self.absolute_endpoint, absolute_endpoint_from_html_head)
 
         mock_response.headers = {}
         mock_response.text = snippets.html_body_endpoint()
-        absolute_endpoint_from_html_body = (
-            outgoing_webmentions._get_absolute_endpoint_from_response(mock_response)
+        absolute_endpoint_from_html_body = remote._get_absolute_endpoint_from_response(
+            mock_response
         )
         self.assertEqual(self.absolute_endpoint, absolute_endpoint_from_html_body)
 
@@ -67,9 +67,7 @@ class EndpointDiscoveryTests(WebmentionTestCase):
             url=self._get_absolute_target_url(),
             headers={"Link": snippets.http_link_endpoint()},
         )
-        endpoint_from_http_headers = outgoing_webmentions._get_endpoint_in_http_headers(
-            mock_response
-        )
+        endpoint_from_http_headers = remote._get_endpoint_in_http_headers(mock_response)
         self.assertEqual(self.relative_endpoint, endpoint_from_http_headers)
 
     def test_get_endpoint_in_html_head(self):
@@ -79,9 +77,7 @@ class EndpointDiscoveryTests(WebmentionTestCase):
             url=self._get_absolute_target_url(),
             text=snippets.html_head_endpoint(),
         )
-        endpoint_from_html_head = outgoing_webmentions._get_endpoint_in_html_response(
-            mock_response
-        )
+        endpoint_from_html_head = remote._get_endpoint_in_html_response(mock_response)
         self.assertEqual(self.relative_endpoint, endpoint_from_html_head)
 
     def test_get_endpoint_in_html_body(self):
@@ -91,9 +87,7 @@ class EndpointDiscoveryTests(WebmentionTestCase):
             url=self._get_absolute_target_url(),
             text=snippets.html_body_endpoint(),
         )
-        endpoint_from_html_body = outgoing_webmentions._get_endpoint_in_html_response(
-            mock_response
-        )
+        endpoint_from_html_body = remote._get_endpoint_in_html_response(mock_response)
         self.assertEqual(self.relative_endpoint, endpoint_from_html_body)
 
     def test_relative_to_absolute_url(self):
@@ -103,17 +97,17 @@ class EndpointDiscoveryTests(WebmentionTestCase):
         page_url = f"https://{domain}/some-url-path"
         response = MockResponse(url=page_url)
 
-        absolute_url_from_root = outgoing_webmentions._relative_to_absolute_url(
+        absolute_url_from_root = remote._relative_to_absolute_url(
             response, "/webmention/"
         )
         self.assertEqual(f"https://{domain}/webmention/", absolute_url_from_root)
 
-        absolute_url_from_relative = outgoing_webmentions._relative_to_absolute_url(
+        absolute_url_from_relative = remote._relative_to_absolute_url(
             response, "webmention/"
         )
         self.assertEqual(f"https://{domain}/webmention/", absolute_url_from_relative)
 
-        already_absolute_url = outgoing_webmentions._relative_to_absolute_url(
+        already_absolute_url = remote._relative_to_absolute_url(
             response, f"https://{domain}/already_absolute_path"
         )
         self.assertEqual(
@@ -138,14 +132,12 @@ class EndpointDiscoveryTests(WebmentionTestCase):
             ]
         )
 
-        outgoing_links = outgoing_webmentions._get_target_links_in_text(
-            outgoing_content
-        )
+        outgoing_links = local.get_target_links_in_text(outgoing_content)
         self.assertSetEqual(outgoing_links, urls)
 
     def test_get_target_links_in_text__should_remove_duplicates(self):
         """Outgoing links do not contain duplicates."""
-        outgoing_links = outgoing_webmentions._get_target_links_in_text(
+        outgoing_links = local.get_target_links_in_text(
             OUTGOING_WEBMENTION_HTML_DUPLICATE_LINKS
         )
 
@@ -156,7 +148,7 @@ class EndpointDiscoveryTests(WebmentionTestCase):
     def test_get_target_links_in_text__ignores_self_anchors(self):
         """_get_target_links_in_text should remove any links that target the source page."""
 
-        outgoing_links = outgoing_webmentions._get_target_links_in_text(
+        outgoing_links = local.get_target_links_in_text(
             OUTGOING_WEBMENTION_HTML_SELF_LINKS
         )
 
