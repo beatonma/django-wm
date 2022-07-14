@@ -1,6 +1,6 @@
 from django.urls import reverse
 
-from mentions.tasks import outgoing_webmentions
+from mentions.tasks.outgoing import remote
 from tests import WebmentionTestCase
 from tests.util import testfunc
 
@@ -17,6 +17,6 @@ class TemplateTagTests(WebmentionTestCase):
         self.assertContains(response, expected_endpoint)
 
         self.assertEqual(
-            outgoing_webmentions._get_endpoint_in_html(response.content),
+            remote._get_endpoint_in_html(response.content),
             expected_endpoint,
         )
