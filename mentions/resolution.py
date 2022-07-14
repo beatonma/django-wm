@@ -49,6 +49,22 @@ def get_model_for_url_path(
 ) -> Type["MentionableMixin"]:
     """
     Find a match in urlpatterns and return the corresponding model instance.
+
+    Any mentionable View that corresponds to a model instance should include
+    kwargs in its `urlpatterns` definition to enable resolution.
+    - `model_name`: dotted python path for the target model.
+    - Any other kwargs are passed to the model's `resolve_from_url_kwargs`
+      classmethod to resolve the model instance. The default implementation
+      uses the `slug` kwarg but this may be overridden.
+
+        e.g.
+        path(
+            r"articles/<slug:slug>/",
+            ArticleView.as_view(),
+            kwargs={
+                "model_name": "blog.Article",
+            },
+            name="blog-article"),
     """
     if match is None:
         match = _find_urlpattern(target_path)
