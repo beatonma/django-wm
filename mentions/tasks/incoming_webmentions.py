@@ -1,23 +1,7 @@
-import logging
 from typing import Optional
 
 import requests
 from bs4 import Tag
-
-from mentions.models.mixins.quotable import IncomingMentionType
-from mentions.resolution import get_model_for_url_path
-
-try:
-    from celery import shared_task
-    from celery.utils.log import get_task_logger
-
-    log = get_task_logger(__name__)
-except (ImportError, ModuleNotFoundError):
-    from mentions.util import noop_shared_task
-
-    shared_task = noop_shared_task
-    log = logging.getLogger(__name__)
-
 from django.conf import settings
 
 from mentions.exceptions import (
@@ -28,29 +12,12 @@ from mentions.exceptions import (
     TargetWrongDomain,
 )
 from mentions.models import HCard, Webmention
+from mentions.models.mixins.quotable import IncomingMentionType
+from mentions.resolution import get_model_for_url_path
+from mentions.tasks.celeryproxy import get_logger, shared_task
 from mentions.util import html_parser, split_url
 
-
-class _Notes:
-    notes = []
-
-    def info(self, note) -> "_Notes":
-        log.info(note)
-        self.notes.append(note)
-        return self
-
-    def warn(self, note) -> "_Notes":
-        log.warning(note)
-        self.notes.append(note)
-        return self
-
-    def join_to_string(self):
-        return "\n".join(self.notes)
-
-
-def _mark_as_failed(wm: Webmention, notes: _Notes) -> None:
-    wm.notes = notes.join_to_string()[:999]
-    wm.save()
+log = get_logger(__name__)
 
 
 @shared_task
@@ -211,3 +178,25 @@ def _parse_link_type(link: Tag) -> Optional[IncomingMentionType]:
     hcite = link.find_parent(class_="h-cite")
     if hcite:
         return find_mention_type_in_classlist(hcite)
+
+
+class _Notes:
+    notes = []
+
+    def info(self, note) -> "_Notes":
+        log.info(note)
+        self.notes.append(note)
+        return self
+
+    def warn(self, note) -> "_Notes":
+        log.warning(note)
+        self.notes.append(note)
+        return self
+
+    def join_to_string(self):
+        return "\n".join(self.notes)
+
+
+def _mark_as_failed(wm: Webmention, notes: _Notes) -> None:
+    wm.notes = notes.join_to_string()[:999]
+    wm.save()

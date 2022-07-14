@@ -1,18 +1,8 @@
-import logging
-
+from mentions.tasks.celeryproxy import get_logger, shared_task
 from mentions.tasks.outgoing.local import get_target_links_in_text
 from mentions.tasks.outgoing.remote import try_send_webmention
 
-try:
-    from celery import shared_task
-    from celery.utils.log import get_task_logger
-
-    log = get_task_logger(__name__)
-except (ImportError, ModuleNotFoundError):
-    from mentions.util import noop_shared_task
-
-    shared_task = noop_shared_task
-    log = logging.getLogger(__name__)
+log = get_logger(__name__)
 
 
 @shared_task
