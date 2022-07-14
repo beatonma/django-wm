@@ -41,10 +41,15 @@ class HCard(MentionsBaseModel):
         parsed_data = parser.to_dict()
         for item in parsed_data.get("items", []):
             try:
-                return _parse_hcard(item, save)
+                hcard = _parse_hcard(item, save)
+                if hcard:
+                    return hcard
+
             except NotEnoughData as e:
                 log.debug(e)
-                continue
+
+        else:
+            log.debug("No h-card data found")
 
     def save(self, *args, **kwargs):
         """Workaround so that empty homepages can be accepted without violating
@@ -64,31 +69,37 @@ def _parse_hcard(item: dict, save: bool) -> Optional[HCard]:
         log.debug("Reading h-card...")
         attrs = item.get("properties")
         if attrs:
-            _name = attrs.get("name", [""])[0]
-            _avatar = attrs.get("photo", [""])[0]
-            _homepage = attrs.get("url", [None])[0]
-            _json = json.dumps(item, sort_keys=True)
-
-            require_one_of = [_name, _avatar, _homepage]
-            has_required_fields = (
-                reduce(lambda acc, value: acc + 1 if value else acc, require_one_of, 0)
-                >= 1
-            )
-
-            if not has_required_fields:
-                raise NotEnoughData(
-                    "An HCard requires a value for at least one of 'name', 'avatar', 'homepage'"
-                )
-
-            card, _ = HCard.objects.get_or_create(homepage=_homepage)
-
-            card.name = _name
-            card.avatar = _avatar
-            card.json = _json
+            card = _create_hcard(item, attrs)
 
             if save:
                 card.save()
 
             return card
+
         else:
-            log.debug('_parse_hcard could not read "properties"')
+            raise NotEnoughData('_parse_hcard could not read "properties"')
+
+
+def _create_hcard(item: dict, attrs: dict) -> HCard:
+    _name = attrs.get("name", [""])[0]
+    _avatar = attrs.get("photo", [""])[0]
+    _homepage = attrs.get("url", [None])[0]
+    _json = json.dumps(item, sort_keys=True)
+
+    require_one_of = [_name, _avatar, _homepage]
+    has_required_fields = (
+        reduce(lambda acc, value: acc + 1 if value else acc, require_one_of, 0) >= 1
+    )
+
+    if not has_required_fields:
+        raise NotEnoughData(
+            "An HCard requires a value for at least one of 'name', 'avatar', 'homepage'"
+        )
+
+    card, _ = HCard.objects.get_or_create(homepage=_homepage)
+
+    card.name = _name
+    card.avatar = _avatar
+    card.json = _json
+
+    return card

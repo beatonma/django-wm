@@ -54,15 +54,15 @@ SOURCE_TEXT_NO_MENTION = f"""<div>
 
 SOURCE_TEXT_LIKE = f"""<a href="{TARGET_URL}" class="u-like-of another-class"></a><"""
 SOURCE_TEXT_REPLY_IN_HCITE = f"""<div class="h-entry">
-  <div class="h-cite u-in-reply-to">
-    Liked <a class="u-url" href="{TARGET_URL}">a post</a> by
-    <span class="p-author h-card">
-      <a class="u-url p-name" href="https://example.com">Author Name</a>
-    </span>:
-    <blockquote class="e-content">
-      <p>The post being liked</p>
-    </blockquote>
-  </div>
+    <div class="h-cite u-in-reply-to">
+        Liked <a class="u-url" href="{TARGET_URL}">a post</a> by
+        <span class="p-author h-card">
+             <a class="u-url p-name" href="https://example.com">Author Name</a>
+        </span>:
+        <blockquote class="e-content">
+            <p>The post being liked</p>
+        </blockquote>
+    </div>
 </div>"""
 
 
