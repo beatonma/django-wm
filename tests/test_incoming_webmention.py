@@ -233,12 +233,12 @@ class IncomingWebmentionsTests(WebmentionTestCase):
         soup = html_parser(SOURCE_TEXT_LIKE)
         link = soup.find("a", href=TARGET_URL)
 
-        link_type = remote.parse_link_type(link)
+        link_type = remote.parse_post_type(link)
         self.assertEqual(link_type, IncomingMentionType.Like)
 
     def test_parse_link_type_with_hcite_nesting(self):
         soup = html_parser(SOURCE_TEXT_REPLY_IN_HCITE)
         link = soup.find("a", href=TARGET_URL)
 
-        link_type = remote.parse_link_type(link)
+        link_type = remote.parse_post_type(link)
         self.assertEqual(link_type, IncomingMentionType.Reply)
