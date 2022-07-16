@@ -1,8 +1,12 @@
+from dataclasses import dataclass
+from typing import Optional
+
 import requests
 
 from mentions.exceptions import SourceDoesNotLink, SourceNotAccessible
-from mentions.models import HCard, Webmention
-from mentions.tasks.incoming.parsing.hcard import parse_hcard
+from mentions.models import HCard
+from mentions.models.mixins.quotable import IncomingMentionType
+from mentions.tasks.incoming.parsing.hcard import find_related_hcard, parse_hcard
 from mentions.tasks.incoming.parsing.post_type import parse_post_type
 from mentions.util import html_parser
 
@@ -40,18 +44,23 @@ def get_source_html(source_url: str) -> str:
     return response.text
 
 
-def update_metadata_from_source(
-    wm: Webmention,
+@dataclass
+class WebmentionMetadata:
+    post_type: Optional[IncomingMentionType]
+    hcard: Optional[HCard]
+
+
+def get_metadata_from_source(
+    # wm: Webmention,
     html: str,
     target_url: str,
-) -> Webmention:
-
+) -> WebmentionMetadata:
     """Update the webmention with metadata from its context in the source html.
 
     Adds HCard and webmention type, if available.
 
     Raises:
-        SourceDoesNotLink: If the `target_url` does not appear in the given text.
+        SourceDoesNotLink: If the `target_url` is not linked in the given html..
     """
 
     soup = html_parser(html)
@@ -61,6 +70,12 @@ def update_metadata_from_source(
         raise SourceDoesNotLink()
 
     post_type = parse_post_type(link)
-    wm.post_type = post_type.name.lower() if post_type else None
-    wm.hcard = parse_hcard(soup)
-    return wm
+
+    hcard = find_related_hcard(link)
+    if not hcard:
+        hcard = parse_hcard(soup, recursive=False)
+
+    return WebmentionMetadata(
+        post_type=post_type.name.lower() if post_type else None,
+        hcard=hcard,
+    )

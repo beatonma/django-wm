@@ -7,7 +7,7 @@ from mentions.exceptions import (
 from mentions.models import Webmention
 from mentions.tasks.celeryproxy import get_logger, shared_task
 from mentions.tasks.incoming.local import get_target_object
-from mentions.tasks.incoming.remote import get_source_html, update_metadata_from_source
+from mentions.tasks.incoming.remote import get_metadata_from_source, get_source_html
 
 log = get_logger(__name__)
 
@@ -35,7 +35,9 @@ def process_incoming_webmention(source_url: str, target_url: str, sent_by: str) 
         )
 
     try:
-        wm = update_metadata_from_source(wm, html=response_html, target_url=target_url)
+        metadata = get_metadata_from_source(html=response_html, target_url=target_url)
+        wm.post_type = metadata.post_type
+        wm.hcard = metadata.hcard
 
     except SourceDoesNotLink:
         return _save_mention(

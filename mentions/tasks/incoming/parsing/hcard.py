@@ -1,9 +1,9 @@
 import json
 from functools import reduce
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import mf2py
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Tag
 
 from mentions.exceptions import NotEnoughData
 from mentions.models import HCard
@@ -13,7 +13,10 @@ CLASS_H_ENTRY = "h-entry"
 CLASS_H_FEED = "h-feed"
 
 
-def parse_hcard(soup: BeautifulSoup) -> Optional[HCard]:
+def parse_hcard(
+    soup: Union[BeautifulSoup, Tag],
+    recursive: bool = False,
+) -> Optional[HCard]:
     """Create or update HCard(s) using data from a BeautifulSoup document.
 
     See https://github.com/microformats/mf2py"""
@@ -21,19 +24,32 @@ def parse_hcard(soup: BeautifulSoup) -> Optional[HCard]:
     parser = mf2py.Parser(doc=soup)
     parsed_data = parser.to_dict()
     items = parsed_data.get("items", [])
-    return find_hcard(items)
+    return _find_hcard(items, recursive=recursive)
 
 
-def find_hcard(data: List[dict]) -> Optional[HCard]:
-    """Try to find a representative `h-card` element.
+def find_related_hcard(link: Tag) -> Optional[HCard]:
+    """Try to find a post-specific h-card from a parent `h-entry` or `h-feed`."""
+    hentry = link.find_parent(class_=CLASS_H_ENTRY)
+    if hentry:
+        hcard = parse_hcard(hentry, recursive=True)
+        if hcard:
+            return hcard
 
-    `h-card` may be a standalone (top-level) element, or it may be embedded in
-    `h-entry` or `h-feed` containers.
+    hfeed = link.find_parent(class_=CLASS_H_FEED)
+    if hfeed:
+        hcard = parse_hcard(hfeed, recursive=True)
+        if hcard:
+            return hcard
 
-    We look for it at the top level first before diving deeper.
+
+def _find_hcard(data: List[dict], recursive: bool = False) -> Optional[HCard]:
+    """Find a useful `h-card` in parsed microformats data.
 
     Args:
         data: Parsed microformat data
+        recursive: If True, traverse h-feed and h-entry containers to try
+                   find embedded h-card.
+                   If False, h-card will only be found at the top level.
     """
 
     fallback = []  # List of items that may contain an embedded h-card
@@ -51,8 +67,11 @@ def find_hcard(data: List[dict]) -> Optional[HCard]:
                 # This h-card is missing required fields, keep looking for a better-formed one.
                 pass
 
-        elif CLASS_H_ENTRY in _type or CLASS_H_FEED in _type:
+        elif recursive and (CLASS_H_ENTRY in _type or CLASS_H_FEED in _type):
             fallback.append(item)
+
+    if not recursive:
+        return None
 
     return _find_embedded_hcard(fallback)
 
@@ -60,19 +79,18 @@ def find_hcard(data: List[dict]) -> Optional[HCard]:
 def _find_embedded_hcard(items: List[dict]) -> Optional[HCard]:
     """Traverse `h-entry` and `h-feed` containers to find an `h-card`"""
 
+    if not items:
+        return None
+
     for item in items:
-        print(json.dumps(item, indent=2))
         _type = item.get("type")
         props = item.get("properties")
 
         if "author" in props:
-            return find_hcard(props.get("author"))
+            return _find_hcard(props.get("author"))
 
-        elif CLASS_H_FEED in _type:
-            return find_hcard(item.get("children", []))
-
-        else:
-            print(f"Unhandled embedded content: {item}")
+        elif "children" in item:
+            return _find_hcard(item.get("children", []))
 
 
 def _create_hcard(data: dict) -> HCard:
