@@ -54,15 +54,15 @@ SOURCE_TEXT_NO_MENTION = f"""<div>
 
 SOURCE_TEXT_LIKE = f"""<a href="{TARGET_URL}" class="u-like-of another-class"></a><"""
 SOURCE_TEXT_REPLY_IN_HCITE = f"""<div class="h-entry">
-  <div class="h-cite u-in-reply-to">
-    Liked <a class="u-url" href="{TARGET_URL}">a post</a> by
-    <span class="p-author h-card">
-      <a class="u-url p-name" href="https://example.com">Author Name</a>
-    </span>:
-    <blockquote class="e-content">
-      <p>The post being liked</p>
-    </blockquote>
-  </div>
+    <div class="h-cite u-in-reply-to">
+        Liked <a class="u-url" href="{TARGET_URL}">a post</a> by
+        <span class="p-author h-card">
+             <a class="u-url p-name" href="https://example.com">Author Name</a>
+        </span>:
+        <blockquote class="e-content">
+            <p>The post being liked</p>
+        </blockquote>
+    </div>
 </div>"""
 
 
@@ -233,12 +233,12 @@ class IncomingWebmentionsTests(WebmentionTestCase):
         soup = html_parser(SOURCE_TEXT_LIKE)
         link = soup.find("a", href=TARGET_URL)
 
-        link_type = remote.parse_link_type(link)
+        link_type = remote.parse_post_type(link)
         self.assertEqual(link_type, IncomingMentionType.Like)
 
     def test_parse_link_type_with_hcite_nesting(self):
         soup = html_parser(SOURCE_TEXT_REPLY_IN_HCITE)
         link = soup.find("a", href=TARGET_URL)
 
-        link_type = remote.parse_link_type(link)
+        link_type = remote.parse_post_type(link)
         self.assertEqual(link_type, IncomingMentionType.Reply)

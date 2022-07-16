@@ -1,11 +1,13 @@
+from dataclasses import dataclass
 from typing import Optional
 
 import requests
-from bs4 import Tag
 
 from mentions.exceptions import SourceDoesNotLink, SourceNotAccessible
-from mentions.models import HCard, Webmention
+from mentions.models import HCard
 from mentions.models.mixins.quotable import IncomingMentionType
+from mentions.tasks.incoming.parsing.hcard import find_related_hcard, parse_hcard
+from mentions.tasks.incoming.parsing.post_type import parse_post_type
 from mentions.util import html_parser
 
 
@@ -42,18 +44,23 @@ def get_source_html(source_url: str) -> str:
     return response.text
 
 
-def update_metadata_from_source(
-    wm: Webmention,
+@dataclass
+class WebmentionMetadata:
+    post_type: Optional[IncomingMentionType]
+    hcard: Optional[HCard]
+
+
+def get_metadata_from_source(
+    # wm: Webmention,
     html: str,
     target_url: str,
-) -> Webmention:
-
+) -> WebmentionMetadata:
     """Update the webmention with metadata from its context in the source html.
 
     Adds HCard and webmention type, if available.
 
     Raises:
-        SourceDoesNotLink: If the `target_url` does not appear in the given text.
+        SourceDoesNotLink: If the `target_url` is not linked in the given html..
     """
 
     soup = html_parser(html)
@@ -62,30 +69,13 @@ def update_metadata_from_source(
     if link is None:
         raise SourceDoesNotLink()
 
-    post_type = parse_link_type(link)
-    wm.post_type = post_type.name.lower() if post_type else None
-    wm.hcard = HCard.from_soup(soup, save=True)
-    return wm
+    post_type = parse_post_type(link)
 
+    hcard = find_related_hcard(link)
+    if not hcard:
+        hcard = parse_hcard(soup, recursive=False)
 
-def parse_link_type(link: Tag) -> Optional[IncomingMentionType]:
-    """Return any available type information in the context of the link.
-
-    This may be available as a class on the link itself, or on a parent element
-    that is marked with h-cite."""
-
-    def find_mention_type_in_classlist(element: Tag) -> Optional[IncomingMentionType]:
-        if element.has_attr("class"):
-            classes = set(element["class"])
-
-            for _type in IncomingMentionType.__members__.values():
-                if _type.value in classes:
-                    return _type
-
-    link_type = find_mention_type_in_classlist(link)
-    if link_type is not None:
-        return link_type
-
-    hcite = link.find_parent(class_="h-cite")
-    if hcite:
-        return find_mention_type_in_classlist(hcite)
+    return WebmentionMetadata(
+        post_type=post_type.name.lower() if post_type else None,
+        hcard=hcard,
+    )
