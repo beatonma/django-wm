@@ -111,7 +111,7 @@ def _patch_get(**kwargs):
     return patch.object(
         requests,
         "get",
-        Mock(side_effect=lambda x: _mock_get_text(x, **kwargs)),
+        Mock(side_effect=lambda x, **kw: _mock_get_text(x, **kwargs, **kw)),
     )
 
 
