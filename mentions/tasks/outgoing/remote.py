@@ -3,13 +3,14 @@ import re
 from typing import Optional, Tuple
 from urllib.parse import urlsplit
 
-import requests
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
+from requests import Response
 
+from mentions import options
 from mentions.models import OutgoingWebmentionStatus
-from mentions.util import html_parser
+from mentions.util import html_parser, http_get, http_post
 
 STATUS_MESSAGE_TARGET_UNREACHABLE = "The target URL could not be retrieved."
 STATUS_MESSAGE_TARGET_ERROR_CODE = "The target URL returned an HTTP error code."
@@ -39,7 +40,7 @@ def try_send_webmention(source_urlpath: str, target_url: str) -> Optional[bool]:
     # Confirm that the target url is alive
     log.debug(f"Checking url='{target_url}' for webmention support...")
     try:
-        response = requests.get(target_url)
+        response = http_get(target_url)
     except Exception as e:
         log.warning(f"Unable to fetch url={target_url}: {e}")
         _save_status(outgoing_status, STATUS_MESSAGE_TARGET_UNREACHABLE, success=False)
@@ -91,9 +92,9 @@ def try_send_webmention(source_urlpath: str, target_url: str) -> Optional[bool]:
 def _send_webmention(source_url: str, endpoint: str, target: str) -> Tuple[bool, int]:
     payload = {
         "target": target,
-        "source": f"https://{settings.DOMAIN_NAME}{source_url}",
+        "source": f"{options.url_scheme()}://{settings.DOMAIN_NAME}{source_url}",
     }
-    response = requests.post(endpoint, data=payload)
+    response = http_post(endpoint, data=payload)
     status_code = response.status_code
     if status_code >= 300:
         log.warning(
@@ -109,7 +110,7 @@ def _send_webmention(source_url: str, endpoint: str, target: str) -> Tuple[bool,
         return True, status_code
 
 
-def _get_absolute_endpoint_from_response(response: requests.Response) -> Optional[str]:
+def _get_absolute_endpoint_from_response(response: Response) -> Optional[str]:
     endpoint = _get_endpoint_in_http_headers(
         response
     ) or _get_endpoint_in_html_response(response)
@@ -118,11 +119,11 @@ def _get_absolute_endpoint_from_response(response: requests.Response) -> Optiona
     return abs_url
 
 
-def _get_endpoint_in_html_response(response: requests.Response) -> Optional[str]:
+def _get_endpoint_in_html_response(response: Response) -> Optional[str]:
     return _get_endpoint_in_html(response.text)
 
 
-def _get_endpoint_in_http_headers(response: requests.Response) -> Optional[str]:
+def _get_endpoint_in_http_headers(response: Response) -> Optional[str]:
     """Search for webmention endpoint in HTTP headers."""
     try:
         header_link = response.headers.get("Link")
@@ -163,7 +164,7 @@ def _get_endpoint_in_html(html_text: str) -> Optional[str]:
         log.debug(f"Error reading <body> of link: {e}")
 
 
-def _relative_to_absolute_url(response: requests.Response, url: str) -> Optional[str]:
+def _relative_to_absolute_url(response: Response, url: str) -> Optional[str]:
     """
     If given url is relative, try to construct an absolute url using response domain.
     """

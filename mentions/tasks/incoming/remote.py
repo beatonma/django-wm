@@ -1,14 +1,12 @@
 from dataclasses import dataclass
 from typing import Optional
 
-import requests
-
 from mentions.exceptions import SourceDoesNotLink, SourceNotAccessible
 from mentions.models import HCard
 from mentions.models.mixins.quotable import IncomingMentionType
 from mentions.tasks.incoming.parsing.hcard import find_related_hcard, parse_hcard
 from mentions.tasks.incoming.parsing.post_type import parse_post_type
-from mentions.util import html_parser
+from mentions.util import html_parser, http_get
 
 
 def get_source_html(source_url: str) -> str:
@@ -26,7 +24,7 @@ def get_source_html(source_url: str) -> str:
     """
 
     try:
-        response = requests.get(source_url)
+        response = http_get(source_url)
     except Exception as e:
         raise SourceNotAccessible(f"Requests error: {e}")
 
@@ -51,16 +49,13 @@ class WebmentionMetadata:
 
 
 def get_metadata_from_source(
-    # wm: Webmention,
     html: str,
     target_url: str,
 ) -> WebmentionMetadata:
-    """Update the webmention with metadata from its context in the source html.
-
-    Adds HCard and webmention type, if available.
+    """Retrieve contextual data about the mention from the html source.
 
     Raises:
-        SourceDoesNotLink: If the `target_url` is not linked in the given html..
+        SourceDoesNotLink: If the `target_url` is not linked in the given html.
     """
 
     soup = html_parser(html)

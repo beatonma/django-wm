@@ -2,9 +2,14 @@ import logging
 from typing import Tuple
 from urllib.parse import urlsplit
 
+import requests
 from bs4 import BeautifulSoup
+from requests import Response
 
 log = logging.getLogger(__name__)
+
+
+HTTP_TIMEOUT_SECONDS = 10
 
 
 def split_url(target_url: str) -> Tuple[str, str, str]:
@@ -15,3 +20,11 @@ def split_url(target_url: str) -> Tuple[str, str, str]:
 
 def html_parser(content) -> BeautifulSoup:
     return BeautifulSoup(content, features="html5lib")
+
+
+def http_get(url: str) -> Response:
+    return requests.get(url, timeout=HTTP_TIMEOUT_SECONDS)
+
+
+def http_post(url: str, data: dict) -> Response:
+    return requests.post(url, data=data, timeout=HTTP_TIMEOUT_SECONDS)
