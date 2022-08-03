@@ -1,0 +1,74 @@
+version: "3"
+
+# Run two instances of `sample-project`
+#
+# Instance #1:
+# - Accessible at http://localhost:8001
+# - Uses `celery` and `RabbitMQ` to handle webmentions.
+#
+# Instance #2:
+# - Accessible at http://localhost:8002
+# - Uses `cron` to handle webmentions, scheduled to run every minute.
+#
+# Each instance can send mentions to the other one.
+
+
+services:
+  with-celery-db:
+    image: postgres
+    env_file:
+      - ./sample-project/docker/.env
+      - ./sample-project/docker/with-celery/.env
+    ports:
+      - "5432"
+
+  with-celery-rabbitmq:
+    image: rabbitmq:3-alpine
+    env_file:
+      - ./sample-project/docker/.env
+      - ./sample-project/docker/with-celery/.env
+    ports:
+      - "5672"
+
+  with-celery-web.org:
+    build:
+      dockerfile: ./sample-project/docker/with-celery/Dockerfile
+      context: .
+    depends_on:
+      - with-celery_db
+      - with-celery-rabbitmq
+    env_file:
+      - ./sample-project/docker/.env
+      - ./sample-project/docker/with-celery/.env
+    ports:
+      - "8001:80"
+    command: ["bash", "/usr/src/app/docker/wait-for-it.sh", "with-celery-db:5432", "--", "bash", "/usr/src/app/docker/with-celery/entrypoint.sh"]
+
+  no-celery-db:
+    image: postgres
+    env_file: ./sample-project/docker/no-celery/.env
+
+  no-celery-web.org:
+    build:
+      dockerfile: ./sample-project/docker/no-celery/Dockerfile
+      context: .
+    depends_on:
+      - no-celery-db
+    env_file:
+      - ./sample-project/docker/.env
+      - ./sample-project/docker/no-celery/.env
+    ports:
+      - "8002:80"
+    command: ["bash", "/usr/src/app/docker/wait-for-it.sh", "no-celery-db:5432", "--", "bash", "/usr/src/app/docker/no-celery/entrypoint.sh"]
+
+  no-celery-cron:
+    build:
+      dockerfile: ./sample-project/docker/no-celery/Dockerfile
+      context: .
+    depends_on:
+      - no-celery-db
+      - no-celery-web.org
+    env_file:
+      - ./sample-project/docker/.env
+      - ./sample-project/docker/no-celery/.env
+    command: crond -l 2 -f
