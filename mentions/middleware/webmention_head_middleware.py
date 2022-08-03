@@ -14,7 +14,7 @@ class WebmentionHeadMiddleware:
     def __call__(self, request):
         response = self.get_response(request)
         path = reverse(view_names.webmention_api_incoming)
-        response["Link"] = (
-            f"<{request.scheme}://{settings.DOMAIN_NAME}{path}>" ';rel="webmention"'
-        )
+        response[
+            "Link"
+        ] = f'<{request.scheme}://{settings.DOMAIN_NAME}{path}>; rel="webmention"'
         return response

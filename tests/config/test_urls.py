@@ -3,6 +3,7 @@ from django.urls import include, path
 from tests.util import constants, viewname
 from tests.views import (
     AllEndpointsMentionableTestView,
+    MiddlewareView,
     SimpleNoObjectTestView,
     TemplateTagTestView,
 )
@@ -27,6 +28,11 @@ urlpatterns = [
         "templatetagstest",
         TemplateTagTestView.as_view(),
         name="test-template-tags",
+    ),
+    path(
+        "middleware/",
+        MiddlewareView.as_view(),
+        name=viewname.middleware,
     ),
     path(f"{constants.namespace}/", include("mentions.urls")),
 ]
