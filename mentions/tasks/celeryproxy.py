@@ -24,7 +24,9 @@ def _noop_shared_task(func, *args, **kwargs):
     class Proxy:
         def delay(self, *args, **kwargs):
             raise NotImplementedError(
-                "Called delay() on shared_task but `celery` is not installed!"
+                "Called delay() on shared_task but `celery` is not installed! "
+                "To disable Celery in `django-wm`, make sure "
+                "settings.MENTION_USE_CELERY is False."
             )
 
         def __call__(self, *args, **kwargs):

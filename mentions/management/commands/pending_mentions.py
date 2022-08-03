@@ -1,3 +1,5 @@
+import logging
+
 from django.core.management import BaseCommand
 
 from mentions.tasks.scheduling import handle_pending_webmentions
@@ -5,6 +7,9 @@ from mentions.tasks.scheduling import handle_pending_webmentions
 PENDING_TYPE_ALL = "all"
 PENDING_TYPE_INCOMING = "incoming"
 PENDING_TYPE_OUTGOING = "outgoing"
+
+
+log = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -24,5 +29,7 @@ class Command(BaseCommand):
         if pending_type == PENDING_TYPE_ALL:
             incoming = True
             outgoing = True
+
+        log.info(f"Checking for pending webmentions [{pending_type}]...")
 
         handle_pending_webmentions(incoming=incoming, outgoing=outgoing)

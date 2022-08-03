@@ -237,7 +237,7 @@ class EmbeddedHCardParsingTests(WebmentionTestCase):
                 <p>Published by <a class="p-author h-card" href="http://example.com">Correct name</a>
                    on <time class="dt-published" datetime="2013-06-13 12:00:00">13<sup>th</sup> June 2013</time></p>
 
-                <p class="p-summary">In which I extoll the virtues of using microformats.</p>
+                <p class="p-summary">In which I extol the virtues of using microformats.</p>
 
                 <div class="e-content">
                     <p><a href="{MENTIONED_URL}">Links to our content</a></p>
@@ -257,7 +257,7 @@ class EmbeddedHCardParsingTests(WebmentionTestCase):
                 <article class="h-entry">
                     <h1 class="p-name">Microformats are amazing</h1>
 
-                    <p class="p-summary">In which I extoll the virtues of using microformats.</p>
+                    <p class="p-summary">In which I extol the virtues of using microformats.</p>
 
                     <div class="e-content">
                         <p><a href="{MENTIONED_URL}">Links to our content</a></p>
@@ -297,7 +297,7 @@ class EmbeddedHCardParsingTests(WebmentionTestCase):
                 <p>Published by <a class="p-author h-card" href="http://example.com">Unrelated author</a>
                    on <time class="dt-published" datetime="2013-06-13 12:00:00">13<sup>th</sup> June 2013</time></p>
 
-                <p class="p-summary">In which I extoll the virtues of using microformats.</p>
+                <p class="p-summary">In which I extol the virtues of using microformats.</p>
 
                 <div class="e-content">
                     <p>This post does NOT link to our content.</p>
@@ -308,7 +308,7 @@ class EmbeddedHCardParsingTests(WebmentionTestCase):
                 <p>Published by <a class="p-author h-card" href="http://example.com">Relevant author</a>
                    on <time class="dt-published" datetime="2013-06-13 12:00:00">13<sup>th</sup> June 2013</time></p>
 
-                <p class="p-summary">In which I extoll the virtues of using microformats.</p>
+                <p class="p-summary">In which I extol the virtues of using microformats.</p>
 
                 <div class="e-content">
                     <p>This post <a href="{MENTIONED_URL}">links to our content</a></p>
