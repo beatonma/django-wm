@@ -1,6 +1,5 @@
 from unittest.mock import patch
 
-from django.conf import settings
 from django.http import QueryDict
 
 from mentions.models import PendingIncomingWebmention, PendingOutgoingContent
@@ -9,22 +8,11 @@ from mentions.tasks.scheduling import (
     handle_outgoing_webmentions,
     handle_pending_webmentions,
 )
-from tests import WebmentionTestCase
+from tests import OptionsTestCase
 from tests.util import testfunc
 
 
-class _BaseTestCase(WebmentionTestCase):
-    def setUp(self) -> None:
-        # Remember default setting value so we can restore it in tearDown.
-        self.default_celery = settings.WEBMENTIONS_USE_CELERY
-
-    def tearDown(self) -> None:
-        super().tearDown()
-        # Restore celery setting to default
-        settings.WEBMENTIONS_USE_CELERY = self.default_celery
-
-
-class IncomingWebmentionDelegationTests(_BaseTestCase):
+class IncomingWebmentionDelegationTests(OptionsTestCase):
     """INCOMING: Check behaviour of scheduling.handle_incoming_webmention based on settings.WEBMENTIONS_USE_CELERY."""
 
     def setUp(self) -> None:
@@ -38,7 +26,7 @@ class IncomingWebmentionDelegationTests(_BaseTestCase):
 
     def test_incoming_with_celery_disabled(self):
         """handle_incoming_webmention creates PendingIncomingWebmention when celery is disabled."""
-        settings.WEBMENTIONS_USE_CELERY = False
+        self.enable_celery(False)
 
         handle_incoming_webmention(self.http_post, self.sent_by)
 
@@ -52,7 +40,7 @@ class IncomingWebmentionDelegationTests(_BaseTestCase):
 
     def test_incoming_with_celery_enabled(self):
         """handle_incoming_webmention delegates to celery when it is enabled."""
-        settings.WEBMENTIONS_USE_CELERY = True
+        self.enable_celery(True)
 
         with patch("mentions.tasks.process_incoming_webmention.delay") as mock_task:
             handle_incoming_webmention(self.http_post, self.sent_by)
@@ -62,7 +50,7 @@ class IncomingWebmentionDelegationTests(_BaseTestCase):
         self.assertEqual(0, pending.count())
 
 
-class OutgoingWebmentionDelegationTests(_BaseTestCase):
+class OutgoingWebmentionDelegationTests(OptionsTestCase):
     """OUTGOING: Check behaviour of scheduling.handle_outgoing_webmentions based on settings.WEBMENTIONS_USE_CELERY."""
 
     def setUp(self) -> None:
@@ -74,7 +62,7 @@ class OutgoingWebmentionDelegationTests(_BaseTestCase):
 
     def test_outgoing_with_celery_disabled(self):
         """handle_outgoing_webmentions creates PendingOutgoingContent when celery is disabled."""
-        settings.WEBMENTIONS_USE_CELERY = False
+        self.enable_celery(False)
 
         handle_outgoing_webmentions(self.absolute_url, self.all_text)
 
@@ -87,7 +75,7 @@ class OutgoingWebmentionDelegationTests(_BaseTestCase):
 
     def test_outgoing_with_celery_enabled(self):
         """handle_outgoing_webmentions delegates to celery when it is enabled."""
-        settings.WEBMENTIONS_USE_CELERY = True
+        self.enable_celery(True)
 
         with patch("mentions.tasks.process_outgoing_webmentions.delay") as mock_task:
             handle_outgoing_webmentions(self.absolute_url, self.all_text)
@@ -97,7 +85,7 @@ class OutgoingWebmentionDelegationTests(_BaseTestCase):
         self.assertEqual(0, all_pending.count())
 
 
-class HandlePendingMentionsTests(_BaseTestCase):
+class HandlePendingMentionsTests(OptionsTestCase):
     """PENDING: Check behaviour of scheduling.handle_pending_webmentions."""
 
     def setUp(self) -> None:
@@ -117,7 +105,7 @@ class HandlePendingMentionsTests(_BaseTestCase):
         )
 
     def test_handle_pending_incoming_mentions(self):
-        """PendingIncomingWebmentions are passed to process_incoming_webmention, then deleted."""
+        """PendingIncomingWebmentions are passed to process_incoming_webmention."""
         with patch(
             "mentions.tasks.scheduling.process_incoming_webmention"
         ) as incoming_task, patch(
@@ -127,11 +115,8 @@ class HandlePendingMentionsTests(_BaseTestCase):
             self.assertTrue(incoming_task.called)
             self.assertFalse(outgoing_task.called)
 
-        self.assertEqual(0, PendingIncomingWebmention.objects.all().count())
-        self.assertEqual(1, PendingOutgoingContent.objects.all().count())
-
     def test_handle_pending_outgoing_content(self):
-        """PendingOutgoingContent are passed to process_outgoing_webmentions, then deleted."""
+        """PendingOutgoingContent are passed to process_outgoing_webmentions."""
         with patch(
             "mentions.tasks.scheduling.process_outgoing_webmentions"
         ) as outgoing_task, patch(
@@ -140,6 +125,3 @@ class HandlePendingMentionsTests(_BaseTestCase):
             handle_pending_webmentions(incoming=False, outgoing=True)
             self.assertTrue(outgoing_task.called)
             self.assertFalse(incoming_task.called)
-
-        self.assertEqual(0, PendingOutgoingContent.objects.all().count())
-        self.assertEqual(1, PendingIncomingWebmention.objects.all().count())

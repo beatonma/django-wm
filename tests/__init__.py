@@ -1,4 +1,7 @@
+from django.conf import settings
 from django.test import TestCase
+
+from mentions import options
 
 
 class WebmentionTestCase(TestCase):
@@ -39,6 +42,30 @@ class WebmentionTestCase(TestCase):
         all_models = [*app_models, *test_models]
         for Model in all_models:
             Model.objects.all().delete()
+
+
+class OptionsTestCase(WebmentionTestCase):
+    """A TestCase that gracefully handles changes in django-wm options.
+
+    Any options that are changed during a test will be reset to the value
+    defined in global settings once the test is done."""
+
+    def setUp(self) -> None:
+        self.defaults = options.get_config()
+
+    def tearDown(self) -> None:
+        super().tearDown()
+        for key, value in self.defaults.items():
+            setattr(settings, key, value)
+
+    def enable_celery(self, enable: bool):
+        setattr(settings, options.SETTING_USE_CELERY, enable)
+
+    def set_max_retries(self, n: int):
+        setattr(settings, options.SETTING_MAX_RETRIES, n)
+
+    def set_retry_interval(self, seconds: int):
+        setattr(settings, options.SETTING_RETRY_INTERVAL, seconds)
 
 
 class MockResponse:
