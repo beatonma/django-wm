@@ -7,12 +7,18 @@ SETTING_USE_CELERY = f"{NAMESPACE}_USE_CELERY"
 SETTING_AUTO_APPROVE = f"{NAMESPACE}_AUTO_APPROVE"
 SETTING_URL_SCHEME = f"{NAMESPACE}_URL_SCHEME"
 SETTING_DOMAIN_NAME = "DOMAIN_NAME"
+SETTING_TIMEOUT = f"{NAMESPACE}_TIMEOUT"
+SETTING_MAX_RETRIES = f"{NAMESPACE}_MAX_RETRIES"
+SETTING_RETRY_INTERVAL = f"{NAMESPACE}_RETRY_INTERVAL"
 
 DEFAULTS = {
     SETTING_DOMAIN_NAME: None,
     SETTING_AUTO_APPROVE: False,
     SETTING_URL_SCHEME: "https",
     SETTING_USE_CELERY: True,
+    SETTING_TIMEOUT: 10,
+    SETTING_MAX_RETRIES: 5,
+    SETTING_RETRY_INTERVAL: 60 * 10,
 }
 
 
@@ -59,8 +65,39 @@ def url_scheme() -> str:
     return scheme
 
 
+def timeout() -> float:
+    """Return settings.WEBMENTIONS_TIMEOUT.
+
+    Timeout (in seconds) used for network requests when sending or verifying webmentions."""
+    return _get_attr(SETTING_TIMEOUT)
+
+
+def max_retries() -> int:
+    """Return settings.WEBMENTIONS_MAX_RETRIES.
+
+    We may retry processing of webmentions if the remote server is inaccessible.
+    This specifies the maximum number of retries before we give up."""
+    return _get_attr(SETTING_MAX_RETRIES)
+
+
+def retry_interval() -> int:
+    """Return settings.WEBMENTIONS_RETRY_INTERVAL.
+
+    We may retry processing of webmentions if the remote server is inaccessible.
+    This specifies the delay (in seconds) between attempts.
+
+    If using `celery`, this should be precise. Otherwise this will be treated
+    as a minimum interval (and will also depend on `cron` or whatever you are
+    using to schedule mention processing).
+    """
+    return _get_attr(SETTING_RETRY_INTERVAL)
+
+
 __all__ = [
-    "use_celery",
     "auto_approve",
+    "max_retries",
+    "retry_interval",
+    "timeout",
     "url_scheme",
+    "use_celery",
 ]

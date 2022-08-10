@@ -6,6 +6,7 @@ import uuid
 from typing import Tuple
 
 from django.conf import settings
+from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
 
@@ -27,7 +28,10 @@ def create_mentionable_object(content: str = ""):
     return MentionableTestModel.objects.create(pk=pk, slug=slug, content=content)
 
 
-def get_absolute_url_for_object(obj):
+def get_absolute_url_for_object(obj: models.Model = None):
+    if obj is None:
+        obj = create_mentionable_object(content=random_str())
+
     return _absolute_url(obj.get_absolute_url())
 
 

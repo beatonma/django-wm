@@ -6,10 +6,12 @@ import requests
 from bs4 import BeautifulSoup
 from requests import Response
 
+from mentions import options
+
 log = logging.getLogger(__name__)
 
 
-HTTP_TIMEOUT_SECONDS = 10
+HTTP_TIMEOUT_SECONDS = options.timeout()
 
 
 def split_url(target_url: str) -> Tuple[str, str, str]:
