@@ -97,7 +97,7 @@ class OutgoingWebmentionsTests(WebmentionTestCase):
         """_send_webmention should return True with status code when webmention is accepted by server."""
 
         success, status_code = remote._send_webmention(
-            source_url=self.source_url,
+            source_urlpath=self.source_url,
             endpoint=f"https://{TARGET_DOMAIN}/webmention/",
             target=f"https://{TARGET_DOMAIN}/",
         )
@@ -110,7 +110,7 @@ class OutgoingWebmentionsTests(WebmentionTestCase):
         """_send_webmention should return False with status code when webmention is not accepted by server."""
 
         success, status_code = remote._send_webmention(
-            source_url=self.source_url,
+            source_urlpath=self.source_url,
             endpoint=f"https://{TARGET_DOMAIN}/webmention/",
             target=f"https://{TARGET_DOMAIN}/",
         )

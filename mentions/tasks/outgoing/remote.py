@@ -89,10 +89,14 @@ def try_send_webmention(source_urlpath: str, target_url: str) -> Optional[bool]:
         log.info(f"No webmention endpoint found for url '{target_url}'")
 
 
-def _send_webmention(source_url: str, endpoint: str, target: str) -> Tuple[bool, int]:
+def _send_webmention(
+    source_urlpath: str,
+    endpoint: str,
+    target: str,
+) -> Tuple[bool, int]:
     payload = {
         "target": target,
-        "source": f"{options.url_scheme()}://{settings.DOMAIN_NAME}{source_url}",
+        "source": f"{options.url_scheme()}://{settings.DOMAIN_NAME}{source_urlpath}",
     }
     response = http_post(endpoint, data=payload)
     status_code = response.status_code
