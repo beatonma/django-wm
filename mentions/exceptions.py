@@ -4,26 +4,44 @@ class WebmentionsException(Exception):
     pass
 
 
-class TargetWrongDomain(WebmentionsException):
+class IncomingWebmentionException(WebmentionsException):
+    """Base class for an error that occurs while handling a received webmention."""
+
+    pass
+
+
+class OutgoingWebmentionException(WebmentionsException):
+    """Base class for an error that occurs while trying to send a webmention."""
+
+    pass
+
+
+class TargetWrongDomain(IncomingWebmentionException):
     """Target URL does not point to any domain in settings.ALLOWED_HOSTS."""
 
     pass
 
 
-class TargetDoesNotExist(WebmentionsException):
+class TargetDoesNotExist(IncomingWebmentionException):
     """Target URL does not point to an object on our server."""
 
     pass
 
 
-class SourceNotAccessible(WebmentionsException):
+class SourceNotAccessible(IncomingWebmentionException):
     """Source URL does not exist, or returns an error code."""
 
     pass
 
 
-class SourceDoesNotLink(WebmentionsException):
+class SourceDoesNotLink(IncomingWebmentionException):
     """Source URL exists but does not contain link to our content."""
+
+    pass
+
+
+class TargetNotAccessible(OutgoingWebmentionException):
+    """Target URL does not exist, or returns an error code."""
 
     pass
 

@@ -1,9 +1,11 @@
 from django.db import models
+from django.db.models import UniqueConstraint
 
 from mentions.models import MentionsBaseModel
+from mentions.models.mixins.retryable import RetryableMixin
 
 
-class PendingIncomingWebmention(MentionsBaseModel):
+class PendingIncomingWebmention(RetryableMixin, MentionsBaseModel):
     """Temporary store of data about an incoming webmention.
 
     Only used if settings.WEBMENTIONS_USE_CELERY is False.

@@ -6,14 +6,17 @@ from urllib.parse import urlsplit
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
-from requests import Response
+from requests import RequestException, Response
 
 from mentions import options
+from mentions.exceptions import TargetNotAccessible
 from mentions.models import OutgoingWebmentionStatus
 from mentions.util import html_parser, http_get, http_post
 
-STATUS_MESSAGE_TARGET_UNREACHABLE = "The target URL could not be retrieved."
-STATUS_MESSAGE_TARGET_ERROR_CODE = "The target URL returned an HTTP error code."
+STATUS_MESSAGE_TARGET_UNREACHABLE = "The target URL could not be retrieved: {error}."
+STATUS_MESSAGE_TARGET_ERROR_CODE = (
+    "The target URL returned an HTTP error code: {status_code}."
+)
 STATUS_MESSAGE_TARGET_ENDPOINT_ERROR = (
     "The target endpoint URL returned an HTTP error code"
 )
@@ -27,9 +30,7 @@ def try_send_webmention(source_urlpath: str, target_url: str) -> Optional[bool]:
 
     Returns:
         True if a webmention was submitted successfully.
-
         False if a webmention endpoint was resolved but submission failed.
-
         None if a webmention endpoint could not be resolved (i.e. the website does not appear to support webmentions).
     """
     outgoing_status, _ = OutgoingWebmentionStatus.objects.get_or_create(
@@ -37,56 +38,74 @@ def try_send_webmention(source_urlpath: str, target_url: str) -> Optional[bool]:
         target_url=target_url,
     )
 
-    # Confirm that the target url is alive
-    log.debug(f"Checking url='{target_url}' for webmention support...")
     try:
-        response = http_get(target_url)
-    except Exception as e:
-        log.warning(f"Unable to fetch url={target_url}: {e}")
-        _save_status(outgoing_status, STATUS_MESSAGE_TARGET_UNREACHABLE, success=False)
-        return None
-
-    if response.status_code >= 300:
-        log.warning(
-            f"Mentioned link '{target_url}' returned status={response.status_code}"
-        )
-        _save_status(
-            outgoing_status,
-            STATUS_MESSAGE_TARGET_ERROR_CODE,
-            success=False,
-            response_code=response.status_code,
-        )
-        return None
+        response = _get_target(outgoing_status, target_url)
+    except TargetNotAccessible:
+        return
 
     endpoint = _get_absolute_endpoint_from_response(response)
     if endpoint:
         log.debug(f"Found webmention endpoint: '{endpoint}'")
-        success, status_code = _send_webmention(source_urlpath, endpoint, target_url)
-        if success:
-            log.info(f"Webmention submission successful for '{target_url}'")
-            _save_status(
-                outgoing_status,
-                STATUS_MESSAGE_OK,
-                target_endpoint=endpoint,
-                success=success,
-                response_code=status_code,
-            )
-            return True
+        return _try_send_webmention(
+            outgoing_status,
+            source_urlpath=source_urlpath,
+            endpoint=endpoint,
+            target_url=target_url,
+        )
 
-        else:
-            log.warning(
-                f"Webmention submission failed for '{target_url}' [endpoint={endpoint}]"
-            )
-            _save_status(
-                outgoing_status,
-                STATUS_MESSAGE_TARGET_ENDPOINT_ERROR,
-                target_endpoint=endpoint,
-                success=success,
-                response_code=status_code,
-            )
-            return False
     else:
         log.info(f"No webmention endpoint found for url '{target_url}'")
+
+
+def _get_target(
+    status: OutgoingWebmentionStatus,
+    target_url: str,
+) -> Optional[Response]:
+    """Confirm the target is accessible."""
+    log.debug(f"Checking url='{target_url}' for webmention support...")
+    try:
+        response = http_get(target_url)
+        if response.status_code < 300:
+            return response
+
+        error_message = STATUS_MESSAGE_TARGET_ERROR_CODE.format(
+            status_code=response.status_code
+        )
+
+    except RequestException as e:
+        error_message = STATUS_MESSAGE_TARGET_UNREACHABLE.format(error=e)
+
+    _save_for_retry(
+        status,
+        error_message,
+    )
+    raise TargetNotAccessible()
+
+
+def _try_send_webmention(
+    status: OutgoingWebmentionStatus,
+    source_urlpath: str,
+    endpoint: str,
+    target_url: str,
+):
+    success, status_code = _send_webmention(source_urlpath, endpoint, target_url)
+
+    status.target_webmention_endpoint = endpoint
+    status.response_code = status_code
+
+    if success:
+        log.info(f"Webmention submission successful for '{target_url}'")
+        status.status_message = STATUS_MESSAGE_OK
+        status.successful = True
+        status.mark_processing_successful(save=True)
+        return True
+
+    else:
+        log.warning(
+            f"Webmention submission failed for '{target_url}' [endpoint={endpoint}]"
+        )
+        _save_for_retry(status, STATUS_MESSAGE_TARGET_ENDPOINT_ERROR)
+        return False
 
 
 def _send_webmention(
@@ -185,20 +204,8 @@ def _relative_to_absolute_url(response: Response, url: str) -> Optional[str]:
         return f"{scheme}://{domain}/" f'{url if not url.startswith("/") else url[1:]}'
 
 
-def _save_status(
-    outgoing_status: OutgoingWebmentionStatus,
-    message: str,
-    success: bool,
-    target_endpoint: Optional[str] = None,
-    response_code: Optional[int] = None,
-):
-    outgoing_status.status_message = message
-    outgoing_status.successful = success
-
-    if target_endpoint:
-        outgoing_status.target_webmention_endpoint = target_endpoint
-
-    if response_code:
-        outgoing_status.response_code = response_code
-
-    outgoing_status.save()
+def _save_for_retry(status: OutgoingWebmentionStatus, message: str) -> None:
+    """In case of network errors, mark the status for reprocessing later."""
+    log.warning(message)
+    status.status_message = message
+    status.mark_processing_failed(save=True)

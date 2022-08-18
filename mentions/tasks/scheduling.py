@@ -3,8 +3,10 @@ import logging
 from django.http import QueryDict
 
 from mentions import options
+from mentions.models import OutgoingWebmentionStatus
 from mentions.models.pending import PendingIncomingWebmention, PendingOutgoingContent
 from mentions.tasks import process_incoming_webmention, process_outgoing_webmentions
+from mentions.tasks.outgoing import try_send_webmention
 
 log = logging.getLogger(__name__)
 
@@ -22,7 +24,9 @@ def handle_incoming_webmention(http_post: QueryDict, sent_by: str) -> None:
 
     if use_celery:
         process_incoming_webmention.delay(
-            source_url=source, target_url=target, sent_by=sent_by
+            source_url=source,
+            target_url=target,
+            sent_by=sent_by,
         )
 
     else:
@@ -40,7 +44,7 @@ def handle_outgoing_webmentions(absolute_url: str, text: str) -> None:
     use_celery = options.use_celery()
 
     if use_celery:
-        process_outgoing_webmentions.delay(absolute_url, text)
+        process_outgoing_webmentions.delay(source_urlpath=absolute_url, text=text)
 
     else:
         PendingOutgoingContent.objects.create(
@@ -55,13 +59,34 @@ def handle_pending_webmentions(incoming: bool = True, outgoing: bool = True):
     Typically run via `manage.py pending_mentions`"""
 
     if incoming:
-        for wm in PendingIncomingWebmention.objects.all():
-            log.info(f"Processing webmention from {wm.source_url})")
-            process_incoming_webmention(wm.source_url, wm.target_url, wm.sent_by)
-            wm.delete()
+        _handle_pending_incoming()
 
     if outgoing:
-        for wm in PendingOutgoingContent.objects.all():
-            log.info(f"Processing outgoing webmentions for content {wm.absolute_url}")
-            process_outgoing_webmentions(wm.absolute_url, wm.text)
-            wm.delete()
+        _handle_pending_outgoing()
+
+
+def _handle_pending_incoming():
+    for incoming_wm in PendingIncomingWebmention.objects.filter(is_awaiting_retry=True):
+        if incoming_wm.can_retry():
+            process_incoming_webmention(
+                incoming_wm.source_url,
+                incoming_wm.target_url,
+                incoming_wm.sent_by,
+            )
+
+            incoming_wm.refresh_from_db()
+            if incoming_wm.is_retry_successful:
+                # Webmention created successfully so this is no longer needed.
+                incoming_wm.delete()
+
+
+def _handle_pending_outgoing():
+    for outgoing_retry in OutgoingWebmentionStatus.objects.filter(
+        is_awaiting_retry=True,
+    ):
+        if outgoing_retry.can_retry():
+            try_send_webmention(outgoing_retry.source_url, outgoing_retry.target_url)
+
+    for pending_out in PendingOutgoingContent.objects.all():
+        process_outgoing_webmentions(pending_out.absolute_url, pending_out.text)
+        pending_out.delete()

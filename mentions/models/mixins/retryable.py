@@ -17,7 +17,7 @@ class RetryableMixin(models.Model):
     retry_attempt_count = models.PositiveSmallIntegerField(
         default=0,
         editable=False,
-        help_text="How many times we have attempted and failed to process this object.",
+        help_text="How many times we have attempted to process this object.",
     )
     last_retry_attempt = models.DateTimeField(
         null=True,

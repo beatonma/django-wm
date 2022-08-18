@@ -3,7 +3,7 @@ import logging
 from django.db import models
 
 from mentions import options
-from mentions.models import MentionsBaseModel
+from mentions.models import MentionsBaseModel, RetryableMixin
 from mentions.models.mixins.quotable import QuotableMixin
 
 log = logging.getLogger(__name__)
@@ -53,7 +53,7 @@ class Webmention(QuotableMixin, MentionsBaseModel):
         )
 
 
-class OutgoingWebmentionStatus(MentionsBaseModel):
+class OutgoingWebmentionStatus(RetryableMixin, MentionsBaseModel):
     """Status tracker for webmentions that you (attempt to) send from your server.
 
     Used primarily for logging of outgoing mentions.
@@ -80,10 +80,8 @@ class OutgoingWebmentionStatus(MentionsBaseModel):
 
     def __str__(self):
         return (
-            f"{self.source_url} -> {self.target_url} "
-            f"(endpoint={self.target_webmention_endpoint}): "
-            f"[{self.successful}] {self.status_message} "
-            f"[{self.response_code}]"
+            f"[{'OK' if self.successful else 'Failed'}:{self.response_code}] "
+            f"{self.source_url} -> {self.target_url}"
         )
 
     class Meta:
