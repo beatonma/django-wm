@@ -32,7 +32,7 @@ def try_send_webmention(source_urlpath: str, target_url: str) -> Optional[bool]:
 
         None if a webmention endpoint could not be resolved (i.e. the website does not appear to support webmentions).
     """
-    outgoing_status = OutgoingWebmentionStatus.objects.create(
+    outgoing_status, _ = OutgoingWebmentionStatus.objects.get_or_create(
         source_url=source_urlpath,
         target_url=target_url,
     )

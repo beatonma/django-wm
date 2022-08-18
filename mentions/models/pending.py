@@ -22,6 +22,12 @@ class PendingIncomingWebmention(MentionsBaseModel):
 
     class Meta:
         ordering = ["-created_at"]
+        constraints = [
+            UniqueConstraint(
+                fields=("source_url", "target_url"),
+                name="unique_source_url_per_target_url",
+            ),
+        ]
 
 
 class PendingOutgoingContent(MentionsBaseModel):
@@ -30,7 +36,8 @@ class PendingOutgoingContent(MentionsBaseModel):
     Use `manage.py pending_mentions` to process."""
 
     absolute_url = models.URLField(
-        help_text="URL on our server where the content can be found."
+        help_text="URL on our server where the content can be found.",
+        unique=True,
     )
     text = models.TextField(
         help_text="Text that may contain mentionable links. (retrieved via MentionableMixin.all_text())"

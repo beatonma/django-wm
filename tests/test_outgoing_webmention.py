@@ -136,7 +136,7 @@ class OutgoingWebmentionsTests(WebmentionTestCase):
         )
 
         self.assertEqual(2, successful_submissions)
-        self.assertEqual(3, OutgoingWebmentionStatus.objects.count())
+        self.assertEqual(2, OutgoingWebmentionStatus.objects.count())
 
     # No network requests should be made if links not found in text
     @patch.object(requests, "get", None)
