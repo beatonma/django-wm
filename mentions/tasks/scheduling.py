@@ -30,8 +30,12 @@ def handle_incoming_webmention(http_post: QueryDict, sent_by: str) -> None:
         )
 
     else:
-        PendingIncomingWebmention.objects.create(
-            source_url=source, target_url=target, sent_by=sent_by
+        PendingIncomingWebmention.objects.get_or_create(
+            source_url=source,
+            target_url=target,
+            defaults={
+                "sent_by": sent_by,
+            },
         )
 
 
@@ -47,9 +51,11 @@ def handle_outgoing_webmentions(absolute_url: str, text: str) -> None:
         process_outgoing_webmentions.delay(source_urlpath=absolute_url, text=text)
 
     else:
-        PendingOutgoingContent.objects.create(
+        PendingOutgoingContent.objects.get_or_create(
             absolute_url=absolute_url,
-            text=text,
+            defaults={
+                "text": text,
+            },
         )
 
 
@@ -89,4 +95,5 @@ def _handle_pending_outgoing():
 
     for pending_out in PendingOutgoingContent.objects.all():
         process_outgoing_webmentions(pending_out.absolute_url, pending_out.text)
+        # OutgoingWebmentionStatus created instead to track status of individual links.
         pending_out.delete()
