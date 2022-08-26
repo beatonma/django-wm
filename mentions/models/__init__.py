@@ -11,4 +11,5 @@ class MentionsBaseModel(models.Model):
 from .hcard import *
 from .manual_mention import *
 from .pending import *
+from .proxy import *
 from .webmention import *

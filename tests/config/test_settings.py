@@ -16,12 +16,15 @@ SECRET_KEY = "some-test-key"
 INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.contenttypes",
+    "django.contrib.sessions",
     # Apps for django-wm
     "mentions",
     "tests",
 ]
 
 MIDDLEWARE = [
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
     # Middleware for django-wm
     "mentions.middleware.WebmentionHeadMiddleware",
 ]

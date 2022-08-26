@@ -67,6 +67,9 @@ class OptionsTestCase(WebmentionTestCase):
     def set_retry_interval(self, seconds: int):
         setattr(settings, options.SETTING_RETRY_INTERVAL, seconds)
 
+    def set_dashboard_public(self, public: bool):
+        setattr(settings, options.SETTING_DASHBOARD_PUBLIC, public)
+
 
 class MockResponse:
     """Mock of requests.Response."""

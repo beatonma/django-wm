@@ -3,6 +3,7 @@ import logging
 from django.db import models
 
 from mentions import options
+from mentions import permissions as perms
 from mentions.models import MentionsBaseModel, RetryableMixin
 from mentions.models.mixins.quotable import QuotableMixin
 
@@ -42,7 +43,7 @@ class Webmention(QuotableMixin, MentionsBaseModel):
     class Meta:
         ordering = ["-created_at"]
         permissions = [
-            ("approve_webmention", "Can approve received Webmentions for publishing.")
+            perms.can_approve_webmention.as_tuple(),
         ]
 
     def __str__(self):

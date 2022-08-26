@@ -10,6 +10,7 @@ SETTING_DOMAIN_NAME = "DOMAIN_NAME"
 SETTING_TIMEOUT = f"{NAMESPACE}_TIMEOUT"
 SETTING_MAX_RETRIES = f"{NAMESPACE}_MAX_RETRIES"
 SETTING_RETRY_INTERVAL = f"{NAMESPACE}_RETRY_INTERVAL"
+SETTING_DASHBOARD_PUBLIC = f"{NAMESPACE}_DASHBOARD_PUBLIC"
 
 DEFAULTS = {
     SETTING_DOMAIN_NAME: None,
@@ -19,6 +20,7 @@ DEFAULTS = {
     SETTING_TIMEOUT: 10,
     SETTING_MAX_RETRIES: 5,
     SETTING_RETRY_INTERVAL: 60 * 10,
+    SETTING_DASHBOARD_PUBLIC: False,
 }
 
 
@@ -51,20 +53,6 @@ def auto_approve() -> bool:
     return _get_attr(SETTING_AUTO_APPROVE)
 
 
-def url_scheme() -> str:
-    """Return settings.WEBMENTIONS_URL_SCHEME.
-
-    This defaults to `https` which is hopefully what your server is using.
-    It's handy to be able to choose when debugging stuff though."""
-    scheme = _get_attr(SETTING_URL_SCHEME)
-    if not settings.DEBUG and scheme == "https":
-        log.warning(
-            f"settings.{SETTING_URL_SCHEME} should not be `http` when in production!"
-        )
-
-    return scheme
-
-
 def timeout() -> float:
     """Return settings.WEBMENTIONS_TIMEOUT.
 
@@ -93,11 +81,37 @@ def retry_interval() -> int:
     return _get_attr(SETTING_RETRY_INTERVAL)
 
 
+def url_scheme() -> str:
+    """Return settings.WEBMENTIONS_URL_SCHEME.
+
+    This defaults to `https` which is hopefully what your server is using.
+    It's handy to be able to choose when debugging stuff though."""
+    scheme = _get_attr(SETTING_URL_SCHEME)
+    if not settings.DEBUG and scheme == "https":
+        log.warning(
+            f"settings.{SETTING_URL_SCHEME} should not be `http` when in production!"
+        )
+
+    return scheme
+
+
+def dashboard_public() -> bool:
+    """Return settings.WEBMENTIONS_DASHBOARD_PUBLIC.
+
+    Intended for"""
+    is_dashboard_public = _get_attr(SETTING_DASHBOARD_PUBLIC)
+    if not settings.DEBUG and is_dashboard_public:
+        log.warning(
+            f"settings.{SETTING_DASHBOARD_PUBLIC} should not be `True` when in production!"
+        )
+
+    return is_dashboard_public
+
+
 __all__ = [
     "auto_approve",
     "max_retries",
     "retry_interval",
     "timeout",
-    "url_scheme",
     "use_celery",
 ]
