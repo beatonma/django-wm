@@ -42,9 +42,6 @@ class Webmention(QuotableMixin, MentionsBaseModel):
 
     class Meta:
         ordering = ["-created_at"]
-        permissions = [
-            perms.can_approve_webmention.as_tuple(),
-        ]
 
     def __str__(self):
         return (

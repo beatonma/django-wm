@@ -1,10 +1,11 @@
 from dataclasses import dataclass
 from typing import Tuple
 
+from django.contrib.auth.models import Permission
+
 from mentions.apps import MentionsConfig
 
 __all__ = [
-    "can_approve_webmention",
     "can_view_dashboard",
 ]
 
@@ -23,11 +24,10 @@ class MentionsPermission:
     def fqn(self) -> str:
         return f"{MentionsConfig.name}.{self.codename}"
 
+    def get_from_db(self):
+        return Permission.objects.get(codename=self.codename)
 
-can_approve_webmention = MentionsPermission(
-    "approve_webmention",
-    "Can approve received Webmentions for publishing.",
-)
+
 can_view_dashboard = MentionsPermission(
     "view_webmention_dashboard",
     "Can view the webmention dashboard/status page.",

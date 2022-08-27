@@ -6,12 +6,12 @@ from mentions.views import view_names
 from tests import OptionsTestCase
 
 
-class DashboardTests(OptionsTestCase):
+class DashboardPermissionTests(OptionsTestCase):
     """Tests for mentions dashboard page."""
 
     def setUp(self) -> None:
         super().setUp()
-        perm = Permission.objects.get(codename=perms.can_view_dashboard.codename)
+        perm = perms.can_view_dashboard.get_from_db()
         user = User.objects.create_user("allowed")
         user.user_permissions.add(perm)
 

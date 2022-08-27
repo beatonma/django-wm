@@ -1,3 +1,5 @@
+import logging
+
 from django.contrib import admin
 
 from mentions.models import (
@@ -10,10 +12,12 @@ from mentions.models import (
 )
 
 
+@admin.action(permissions=["change"])
 def approve_webmention(modeladmin, request, queryset):
     queryset.update(approved=True)
 
 
+@admin.action(permissions=["change"])
 def disapprove_webmention(modeladmin, request, queryset):
     queryset.update(approved=False)
 
