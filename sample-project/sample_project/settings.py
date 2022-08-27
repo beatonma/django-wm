@@ -26,6 +26,10 @@ except ImportError:
 
 WEBMENTIONS_URL_SCHEME = "http"
 WEBMENTIONS_AUTO_APPROVE = True
+WEBMENTIONS_TIMEOUT = 3
+WEBMENTIONS_DASHBOARD_PUBLIC = True
+WEBMENTIONS_RETRY_INTERVAL = 2 * 60
+WEBMENTIONS_MAX_RETRIES = 5
 
 
 STATIC_URL = "/static/"
@@ -44,11 +48,12 @@ if db:
         }
     }
 else:
-    print(f"Environment variable POSTGRES_DB is not set! {os.environ}")
+    _db_name = "devdb.sqlite3"
+    print(f"Environment variable POSTGRES_DB is not set! Using {_db_name} instead.")
     DATABASES = {
         "default": {
             "ENGINE": "django.db.backends.sqlite3",
-            "NAME": "devdb.sqlite3",
+            "NAME": _db_name,
         }
     }
 
