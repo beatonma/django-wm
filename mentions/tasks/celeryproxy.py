@@ -1,5 +1,7 @@
 import logging
 
+from mentions import options
+
 log = logging.getLogger(__name__)
 
 
@@ -30,7 +32,8 @@ def _noop_shared_task(func, *args, **kwargs):
             )
 
         def __call__(self, *args, **kwargs):
-            log.warning("Celery is not installed!")
+            if options.use_celery():
+                log.warning("Celery is not installed!")
             return func(*args, **kwargs)
 
     return (lambda *a, **kw: Proxy())(*args, **kwargs)

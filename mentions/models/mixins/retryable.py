@@ -61,9 +61,6 @@ class RetryableMixin(models.Model):
     def can_retry(self, now=timezone.now) -> bool:
         """Return True if awaiting_retry and enough time has passed since last_retry_attempt."""
 
-        if callable(now):
-            now = now()
-
         if self.is_retry_successful:
             return False
 
@@ -72,6 +69,9 @@ class RetryableMixin(models.Model):
 
         if self.last_retry_attempt is None:
             return True
+
+        if callable(now):
+            now = now()
 
         seconds_since_last = (now - self.last_retry_attempt).total_seconds()
         return self.is_awaiting_retry and seconds_since_last >= options.retry_interval()
