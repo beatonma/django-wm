@@ -42,9 +42,14 @@ class IncomingWebmentionDelegationTests(OptionsTestCase):
         """handle_incoming_webmention delegates to celery when it is enabled."""
         self.enable_celery(True)
 
-        with patch("mentions.tasks.process_incoming_webmention.delay") as mock_task:
+        with patch(
+            "mentions.tasks.process_incoming_webmention.delay"
+        ) as mock_task, patch(
+            "mentions.tasks.scheduling._reschedule_handle_pending_webmentions"
+        ) as mock_task_two:
             handle_incoming_webmention(self.http_post, self.sent_by)
             self.assertTrue(mock_task.called)
+            self.assertTrue(mock_task_two.called)
 
         pending = PendingIncomingWebmention.objects.all()
         self.assertEqual(0, pending.count())
@@ -77,9 +82,14 @@ class OutgoingWebmentionDelegationTests(OptionsTestCase):
         """handle_outgoing_webmentions delegates to celery when it is enabled."""
         self.enable_celery(True)
 
-        with patch("mentions.tasks.process_outgoing_webmentions.delay") as mock_task:
+        with patch(
+            "mentions.tasks.process_outgoing_webmentions.delay"
+        ) as mock_task, patch(
+            "mentions.tasks.scheduling._reschedule_handle_pending_webmentions"
+        ) as mock_task_two:
             handle_outgoing_webmentions(self.absolute_url, self.all_text)
             self.assertTrue(mock_task.called)
+            self.assertTrue(mock_task_two.called)
 
         all_pending = PendingOutgoingContent.objects.all()
         self.assertEqual(0, all_pending.count())
@@ -110,7 +120,9 @@ class HandlePendingMentionsTests(OptionsTestCase):
             "mentions.tasks.scheduling.process_incoming_webmention"
         ) as incoming_task, patch(
             "mentions.tasks.scheduling.process_outgoing_webmentions"
-        ) as outgoing_task:
+        ) as outgoing_task, patch(
+            "mentions.tasks.scheduling._reschedule_handle_pending_webmentions"
+        ):
             handle_pending_webmentions(incoming=True, outgoing=False)
             self.assertTrue(incoming_task.called)
             self.assertFalse(outgoing_task.called)
@@ -121,7 +133,9 @@ class HandlePendingMentionsTests(OptionsTestCase):
             "mentions.tasks.scheduling.process_outgoing_webmentions"
         ) as outgoing_task, patch(
             "mentions.tasks.scheduling.process_incoming_webmention"
-        ) as incoming_task:
+        ) as incoming_task, patch(
+            "mentions.tasks.scheduling._reschedule_handle_pending_webmentions"
+        ):
             handle_pending_webmentions(incoming=False, outgoing=True)
             self.assertTrue(outgoing_task.called)
             self.assertFalse(incoming_task.called)

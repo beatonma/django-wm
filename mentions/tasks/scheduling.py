@@ -1,4 +1,5 @@
 import logging
+from itertools import chain
 
 from django.http import QueryDict
 
@@ -6,9 +7,17 @@ from mentions import options
 from mentions.models import OutgoingWebmentionStatus
 from mentions.models.pending import PendingIncomingWebmention, PendingOutgoingContent
 from mentions.tasks import process_incoming_webmention, process_outgoing_webmentions
+from mentions.tasks.celeryproxy import shared_task
 from mentions.tasks.outgoing import try_send_webmention
 
 log = logging.getLogger(__name__)
+
+
+__all__ = [
+    "handle_pending_webmentions",
+    "handle_incoming_webmention",
+    "handle_outgoing_webmentions",
+]
 
 
 def handle_incoming_webmention(http_post: QueryDict, sent_by: str) -> None:
@@ -28,6 +37,7 @@ def handle_incoming_webmention(http_post: QueryDict, sent_by: str) -> None:
             target_url=target,
             sent_by=sent_by,
         )
+        _reschedule_handle_pending_webmentions()
 
     else:
         PendingIncomingWebmention.objects.get_or_create(
@@ -49,6 +59,7 @@ def handle_outgoing_webmentions(absolute_url: str, text: str) -> None:
 
     if use_celery:
         process_outgoing_webmentions.delay(source_urlpath=absolute_url, text=text)
+        _reschedule_handle_pending_webmentions()
 
     else:
         PendingOutgoingContent.objects.get_or_create(
@@ -59,8 +70,9 @@ def handle_outgoing_webmentions(absolute_url: str, text: str) -> None:
         )
 
 
+@shared_task
 def handle_pending_webmentions(incoming: bool = True, outgoing: bool = True):
-    """Synchronously process any PendingIncomingWebmention or PendingOutgoingContent instances.
+    """Process any webmentions that are pending processing, including retries.
 
     Typically run via `manage.py pending_mentions`"""
 
@@ -69,6 +81,9 @@ def handle_pending_webmentions(incoming: bool = True, outgoing: bool = True):
 
     if outgoing:
         _handle_pending_outgoing()
+
+    if options.use_celery():
+        _reschedule_handle_pending_webmentions()
 
 
 def _handle_pending_incoming():
@@ -97,3 +112,38 @@ def _handle_pending_outgoing():
         process_outgoing_webmentions(pending_out.absolute_url, pending_out.text)
         # OutgoingWebmentionStatus created instead to track status of individual links.
         pending_out.delete()
+
+
+def _reschedule_handle_pending_webmentions():
+    # Schedule another run if there are still items awaiting retry.
+    should_reschedule = (
+        PendingIncomingWebmention.objects.filter(is_awaiting_retry=True).exists()
+        or OutgoingWebmentionStatus.objects.filter(is_awaiting_retry=True).exists()
+    )
+
+    if not should_reschedule:
+        return
+
+    import celery
+
+    # Check if this task is already scheduled.
+    task = handle_pending_webmentions
+    task_name = ".".join([task.__module__, task.__name__])
+
+    app = celery.current_app
+    scheduled = app.control.inspect().scheduled()
+    scheduled_task_etas = [
+        item["eta"]
+        for item in chain.from_iterable(scheduled.values())
+        if item["request"]["name"] == task_name
+    ]
+
+    if scheduled_task_etas:
+        log.info(f"Skipping: task {task_name} eta {scheduled_task_etas}")
+        return
+
+    # Schedule fresh task
+    task.apply_async(
+        countdown=options.retry_interval(),
+        expires=options.retry_interval() * 2,
+    )
