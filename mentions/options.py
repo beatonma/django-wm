@@ -74,9 +74,14 @@ def retry_interval() -> int:
     We may retry processing of webmentions if the remote server is inaccessible.
     This specifies the delay (in seconds) between attempts.
 
-    If using `celery`, this should be precise. Otherwise this will be treated
+    If using `celery`, this should be precise. Otherwise, this will be treated
     as a minimum interval (and will also depend on `cron` or whatever you are
     using to schedule mention processing).
+
+    Warning: If using RabbitMQ, it may need to be reconfigured if you want to
+    specify an interval of more than 15 minutes. See
+    https://docs.celeryq.dev/en/stable/userguide/calling.html#eta-and-countdown
+    for more information.
     """
     return _get_attr(SETTING_RETRY_INTERVAL)
 
