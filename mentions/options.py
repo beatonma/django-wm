@@ -6,11 +6,14 @@ NAMESPACE = "WEBMENTIONS"
 SETTING_USE_CELERY = f"{NAMESPACE}_USE_CELERY"
 SETTING_AUTO_APPROVE = f"{NAMESPACE}_AUTO_APPROVE"
 SETTING_URL_SCHEME = f"{NAMESPACE}_URL_SCHEME"
-SETTING_DOMAIN_NAME = "DOMAIN_NAME"
 SETTING_TIMEOUT = f"{NAMESPACE}_TIMEOUT"
 SETTING_MAX_RETRIES = f"{NAMESPACE}_MAX_RETRIES"
 SETTING_RETRY_INTERVAL = f"{NAMESPACE}_RETRY_INTERVAL"
 SETTING_DASHBOARD_PUBLIC = f"{NAMESPACE}_DASHBOARD_PUBLIC"
+
+"""settings.DOMAIN_NAME is sometimes used by other libraries for the same purpose,
+no need to lock it to our namespace."""
+SETTING_DOMAIN_NAME = "DOMAIN_NAME"
 
 DEFAULTS = {
     SETTING_DOMAIN_NAME: None,
@@ -33,6 +36,11 @@ def _get_attr(key: str):
 
 def get_config() -> dict:
     return {key: _get_attr(key) for key in DEFAULTS.keys()}
+
+
+def domain_name() -> str:
+    """Return settings.DOMAIN_NAME."""
+    return _get_attr(SETTING_DOMAIN_NAME)
 
 
 def use_celery() -> bool:
