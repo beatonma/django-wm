@@ -25,7 +25,6 @@ class MentionableMixin(models.Model):
     # a default implementation of :func:`resolve_from_url_kwargs`
     slug = models.SlugField(unique=True)
 
-    @property
     def mentions(self) -> List[QuotableMixin]:
         ctype = ContentType.objects.get_for_model(self.__class__)
         webmentions = Webmention.objects.filter(
@@ -41,7 +40,7 @@ class MentionableMixin(models.Model):
         return list(webmentions) + list(simple_mentions)
 
     def mentions_json(self):
-        return serialize_mentions(self.mentions)
+        return serialize_mentions(self.mentions())
 
     def get_absolute_url(self):
         raise ImplementationRequired(

@@ -101,7 +101,7 @@ def get_mentions_for_url_path(
 
     try:
         obj = get_model_for_url_path(target_path, match)
-        return obj.mentions
+        return obj.mentions()
     except (BadConfig, TargetDoesNotExist):
         pass
 
