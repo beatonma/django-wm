@@ -4,6 +4,11 @@ from django.db.models import UniqueConstraint
 from mentions.models import MentionsBaseModel
 from mentions.models.mixins.retryable import RetryableMixin
 
+__all__ = [
+    "PendingIncomingWebmention",
+    "PendingOutgoingContent",
+]
+
 
 class PendingIncomingWebmention(RetryableMixin, MentionsBaseModel):
     """Temporary store of data about an incoming webmention.

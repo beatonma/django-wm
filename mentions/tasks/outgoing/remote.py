@@ -13,6 +13,11 @@ from mentions.exceptions import TargetNotAccessible
 from mentions.models import OutgoingWebmentionStatus
 from mentions.util import html_parser, http_get, http_post
 
+__all__ = [
+    "try_send_webmention",
+]
+
+
 STATUS_MESSAGE_TARGET_UNREACHABLE = "The target URL could not be retrieved: {error}."
 STATUS_MESSAGE_TARGET_ERROR_CODE = (
     "The target URL returned an HTTP error code: {status_code}."

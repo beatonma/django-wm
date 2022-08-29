@@ -3,6 +3,10 @@ from django.urls import reverse
 
 from mentions.views import view_names
 
+__all__ = [
+    "WebmentionHeadMiddleware",
+]
+
 
 class WebmentionHeadMiddleware:
     """Automatically add webmention endpoint to HTTP headers of any HttpResponse

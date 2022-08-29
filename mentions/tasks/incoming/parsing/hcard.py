@@ -8,6 +8,11 @@ from bs4 import BeautifulSoup, Tag
 from mentions.exceptions import NotEnoughData
 from mentions.models import HCard
 
+__all__ = [
+    "parse_hcard",
+    "find_related_hcard",
+]
+
 CLASS_H_CARD = "h-card"
 CLASS_H_ENTRY = "h-entry"
 CLASS_H_FEED = "h-feed"

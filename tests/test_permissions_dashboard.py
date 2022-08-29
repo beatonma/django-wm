@@ -1,4 +1,4 @@
-from django.contrib.auth.models import Permission, User
+from django.contrib.auth.models import User
 from django.urls import reverse
 
 from mentions import permissions as perms

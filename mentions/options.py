@@ -2,6 +2,19 @@ import logging
 
 from django.conf import settings
 
+__all__ = [
+    "auto_approve",
+    "dashboard_public",
+    "domain_name",
+    "get_config",
+    "max_retries",
+    "retry_interval",
+    "timeout",
+    "url_scheme",
+    "use_celery",
+]
+
+
 NAMESPACE = "WEBMENTIONS"
 SETTING_USE_CELERY = f"{NAMESPACE}_USE_CELERY"
 SETTING_AUTO_APPROVE = f"{NAMESPACE}_AUTO_APPROVE"
@@ -119,12 +132,3 @@ def dashboard_public() -> bool:
         )
 
     return is_dashboard_public
-
-
-__all__ = [
-    "auto_approve",
-    "max_retries",
-    "retry_interval",
-    "timeout",
-    "use_celery",
-]

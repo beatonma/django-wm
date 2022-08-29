@@ -6,6 +6,10 @@ from mentions.exceptions import BadConfig, TargetWrongDomain
 from mentions.resolution import get_model_for_url_path
 from mentions.util import split_url
 
+__all__ = [
+    "get_target_object",
+]
+
 
 def get_target_object(target_url: str) -> Optional["MentionableMixin"]:
     """Confirm that the page exists on our server and return object.

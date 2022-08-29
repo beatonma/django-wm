@@ -1,16 +1,18 @@
-import logging
 from typing import List, Type
 
 from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
 from mentions.exceptions import ImplementationRequired
-from mentions.models import QuotableMixin, SimpleMention
+from mentions.models.manual_mention import SimpleMention
+from mentions.models.mixins.quotable import QuotableMixin
 from mentions.models.webmention import Webmention
 from mentions.serialize import serialize_mentions
 from mentions.tasks.scheduling import handle_outgoing_webmentions
 
-log = logging.getLogger(__name__)
+__all__ = [
+    "MentionableMixin",
+]
 
 
 class MentionableMixin(models.Model):

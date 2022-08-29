@@ -1,13 +1,14 @@
-import logging
-
 from django.db import models
 
 from mentions import options
-from mentions import permissions as perms
-from mentions.models import MentionsBaseModel, RetryableMixin
+from mentions.models import MentionsBaseModel
 from mentions.models.mixins.quotable import QuotableMixin
+from mentions.models.mixins.retryable import RetryableMixin
 
-log = logging.getLogger(__name__)
+__all__ = [
+    "Webmention",
+    "OutgoingWebmentionStatus",
+]
 
 
 def _approve_default():

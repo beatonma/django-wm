@@ -7,8 +7,12 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import View
 
-from mentions.forms.manual_submit_webmention import ManualSubmitWebmentionForm
-from mentions.tasks.scheduling import handle_incoming_webmention
+from mentions.forms import ManualSubmitWebmentionForm
+from mentions.tasks import handle_incoming_webmention
+
+__all__ = [
+    "WebmentionView",
+]
 
 log = logging.getLogger(__name__)
 

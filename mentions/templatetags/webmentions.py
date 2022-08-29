@@ -4,7 +4,10 @@ from django.utils.html import format_html
 
 from ..views import view_names
 
-__all__ = ["webmentions_dashboard", "webmentions_endpoint"]
+__all__ = [
+    "webmentions_dashboard",
+    "webmentions_endpoint",
+]
 
 register = template.Library()
 

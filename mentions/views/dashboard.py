@@ -13,6 +13,10 @@ from mentions.models import (
     Webmention,
 )
 
+__all__ = [
+    "WebmentionDashboardView",
+]
+
 
 class WebmentionDashboardView(View):
     def get(self, request):

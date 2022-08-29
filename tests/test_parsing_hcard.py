@@ -5,7 +5,7 @@ import logging
 from typing import Optional
 
 from mentions.models import HCard
-from mentions.tasks.incoming import get_metadata_from_source
+from mentions.tasks.incoming.remote import get_metadata_from_source
 from tests import WebmentionTestCase
 
 log = logging.getLogger(__name__)

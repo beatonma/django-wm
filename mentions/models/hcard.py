@@ -1,10 +1,10 @@
-import logging
-
 from django.db import models
 
 from mentions.models import MentionsBaseModel
 
-log = logging.getLogger(__name__)
+__all__ = [
+    "HCard",
+]
 
 
 class HCard(MentionsBaseModel):

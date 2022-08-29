@@ -1,9 +1,11 @@
 from django.urls import path, re_path
 
-from mentions.views import view_names
-from mentions.views.dashboard import WebmentionDashboardView
-from mentions.views.retrieve_mentions import GetMentionsView
-from mentions.views.submit_mentions import WebmentionView
+from mentions.views import (
+    GetMentionsView,
+    WebmentionDashboardView,
+    WebmentionView,
+    view_names,
+)
 
 """
 /webmention/

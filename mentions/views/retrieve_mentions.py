@@ -8,6 +8,10 @@ from mentions.resolution import get_mentions_for_url_path
 from mentions.serialize import serialize_mentions
 from mentions.util import split_url
 
+__all__ = [
+    "GetMentionsView",
+]
+
 log = logging.getLogger(__name__)
 
 

@@ -2,6 +2,10 @@ from django.db import models
 
 from mentions import permissions as perms
 
+__all__ = [
+    "DashboardPermissionProxy",
+]
+
 
 class DashboardPermissionProxy(models.Model):
     """Unmanaged model registers permission required to view mentions dashboard."""

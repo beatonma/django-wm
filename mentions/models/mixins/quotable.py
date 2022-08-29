@@ -1,4 +1,3 @@
-import logging
 from enum import Enum
 from typing import List, Tuple
 
@@ -7,7 +6,10 @@ from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils import timezone
 
-log = logging.getLogger()
+__all__ = [
+    "IncomingMentionType",
+    "QuotableMixin",
+]
 
 
 class IncomingMentionType(Enum):

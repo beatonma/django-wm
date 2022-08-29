@@ -4,6 +4,10 @@ from bs4 import Tag
 
 from mentions.models.mixins.quotable import IncomingMentionType
 
+__all__ = [
+    "parse_post_type",
+]
+
 
 def parse_post_type(link: Tag) -> Optional[IncomingMentionType]:
     """Return any available type information in the context of the link.

@@ -2,6 +2,11 @@ import logging
 
 from mentions import options
 
+__all__ = [
+    "get_logger",
+    "shared_task",
+]
+
 log = logging.getLogger(__name__)
 
 

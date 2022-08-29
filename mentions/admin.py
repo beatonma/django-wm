@@ -1,5 +1,3 @@
-import logging
-
 from django.contrib import admin
 
 from mentions.models import (

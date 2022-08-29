@@ -10,10 +10,19 @@ from django.http import HttpRequest
 from django.urls import Resolver404, ResolverMatch
 
 from mentions.exceptions import BadConfig, TargetDoesNotExist
-from mentions.models import QuotableMixin, SimpleMention, Webmention
+from mentions.models import SimpleMention, Webmention
+from mentions.models.mixins.quotable import QuotableMixin
 from mentions.util import split_url
 
 log = logging.getLogger(__name__)
+
+
+__all__ = [
+    "get_mentions_for_absolute_url",
+    "get_mentions_for_url_path",
+    "get_mentions_for_view",
+    "get_model_for_url_path",
+]
 
 
 def _find_urlpattern(target_path: str) -> ResolverMatch:

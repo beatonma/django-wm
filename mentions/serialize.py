@@ -1,6 +1,12 @@
 from typing import Dict, Iterable, List, Optional
 
-from mentions.models import HCard, QuotableMixin, SimpleMention, Webmention
+from mentions.models import HCard, SimpleMention, Webmention
+from mentions.models.mixins.quotable import QuotableMixin
+
+__all__ = [
+    "serialize_hcard",
+    "serialize_mentions",
+]
 
 
 def serialize_mentions(mentions: Iterable[QuotableMixin]) -> List[Dict]:

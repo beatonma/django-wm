@@ -1,11 +1,11 @@
-import logging
-
 from django.db import models
 from django.utils import timezone
 
 from mentions import options
 
-log = logging.getLogger(__name__)
+__all__ = [
+    "RetryableMixin",
+]
 
 
 class RetryableMixin(models.Model):

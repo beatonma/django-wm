@@ -1,4 +1,3 @@
-import logging
 from typing import Tuple
 from urllib.parse import urlsplit
 
@@ -8,7 +7,12 @@ from requests import Response
 
 from mentions import options
 
-log = logging.getLogger(__name__)
+__all__ = [
+    "split_url",
+    "html_parser",
+    "http_get",
+    "http_post",
+]
 
 
 HTTP_TIMEOUT_SECONDS = options.timeout()

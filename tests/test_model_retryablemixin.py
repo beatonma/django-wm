@@ -1,6 +1,7 @@
 from django.utils import timezone
 
-from mentions.models import PendingIncomingWebmention, RetryableMixin
+from mentions.models import PendingIncomingWebmention
+from mentions.models.mixins.retryable import RetryableMixin
 from tests import OptionsTestCase
 from tests.util import testfunc
 

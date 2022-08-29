@@ -2,6 +2,10 @@ from typing import Set
 
 from mentions.util import html_parser
 
+__all__ = [
+    "get_target_links_in_text",
+]
+
 
 def get_target_links_in_text(text: str) -> Set[str]:
     """Get any links from the text that should be treated as webmention targets."""
