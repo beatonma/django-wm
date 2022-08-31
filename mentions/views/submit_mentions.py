@@ -1,13 +1,11 @@
 import logging
 
-from django.core.exceptions import ValidationError
-from django.core.validators import URLValidator
 from django.http import HttpResponseBadRequest
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.base import View
 
-from mentions.forms import ManualSubmitWebmentionForm
+from mentions.forms import SubmitWebmentionForm
 from mentions.tasks import handle_incoming_webmention
 
 __all__ = [
@@ -26,30 +24,22 @@ class WebmentionView(View):
         return super().dispatch(request, *args, **kwargs)
 
     def get(self, request):
-        form = ManualSubmitWebmentionForm()
+        form = SubmitWebmentionForm()
         return render(request, "webmention-submit-manual.html", {"form": form})
 
     def post(self, request):
         log.info("Receiving webmention...")
-        http_post = request.POST
+        form = SubmitWebmentionForm(request.POST)
 
-        try:
-            client_ip = _get_client_ip(request)
-            source = http_post["source"]
-            target = http_post["target"]
-
-        except Exception as e:
-            log.warning(f"Unable to read webmention params '{http_post}': {e}")
+        if not form.is_valid():
             return HttpResponseBadRequest()
 
-        validator = URLValidator(schemes=["http", "https"])
+        data = form.cleaned_data
+        source = data["source"]
+        target = data["target"]
+        client_ip = _get_client_ip(request)
 
-        if _validate(validator, [source, target]):
-            log.info(f"Validation passed for source: '{source}', target: '{target}'")
-        else:
-            return HttpResponseBadRequest()
-
-        handle_incoming_webmention(http_post, client_ip)
+        handle_incoming_webmention(source=source, target=target, sent_by=client_ip)
         return render(request, "webmention-accepted.html", status=202)
 
 
@@ -60,13 +50,3 @@ def _get_client_ip(request):
     else:
         ip = request.META.get("REMOTE_ADDR")
     return ip
-
-
-def _validate(validator, urls):
-    for url in urls:
-        try:
-            validator(url)
-        except ValidationError as e:
-            log.warning(f"URL '{url}' did not pass validation: {e}")
-            return False
-    return True

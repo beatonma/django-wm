@@ -38,6 +38,13 @@ class MiddlewareApiTests(ApiTestCase):
         self.assertExistsInModule("WebmentionHeadMiddleware")
 
 
+class FormApiTests(ApiTestCase):
+    module_name = "mentions.forms"
+
+    def test_expected_forms_are_accessible(self):
+        self.assertExistsInModule("SubmitWebmentionForm")
+
+
 class MixinApiTests(ApiTestCase):
     module_name = "mentions.models.mixins"
 

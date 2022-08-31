@@ -1,8 +1,6 @@
 import logging
 from itertools import chain
 
-from django.http import QueryDict
-
 from mentions import options
 from mentions.models import (
     OutgoingWebmentionStatus,
@@ -23,14 +21,12 @@ __all__ = [
 ]
 
 
-def handle_incoming_webmention(http_post: QueryDict, sent_by: str) -> None:
+def handle_incoming_webmention(source: str, target: str, sent_by: str) -> None:
     """Delegate processing to `celery` if available, otherwise store for later.
 
     If settings.WEBMENTIONS_USE_CELERY is False, create a PendingIncomingWebmention.
     This needs to be processed at some point by running `manage.py pending_mentions`.
     """
-    source = http_post["source"]
-    target = http_post["target"]
 
     use_celery = options.use_celery()
 

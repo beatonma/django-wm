@@ -1,7 +1,5 @@
 from unittest.mock import patch
 
-from django.http import QueryDict
-
 from mentions.models import PendingIncomingWebmention, PendingOutgoingContent
 from mentions.tasks.scheduling import (
     handle_incoming_webmention,
@@ -21,14 +19,13 @@ class IncomingWebmentionDelegationTests(OptionsTestCase):
         obj = testfunc.create_mentionable_object()
         self.source = testfunc.random_url()
         self.target = testfunc.get_absolute_url_for_object(obj)
-        self.http_post = QueryDict(f"source={self.source}&target={self.target}")
         self.sent_by = "localhost"
 
     def test_incoming_with_celery_disabled(self):
         """handle_incoming_webmention creates PendingIncomingWebmention when celery is disabled."""
         self.enable_celery(False)
 
-        handle_incoming_webmention(self.http_post, self.sent_by)
+        handle_incoming_webmention(self.source, self.target, self.sent_by)
 
         all_pending = PendingIncomingWebmention.objects.all()
         self.assertEqual(1, all_pending.count())
@@ -47,7 +44,7 @@ class IncomingWebmentionDelegationTests(OptionsTestCase):
         ) as mock_task, patch(
             "mentions.tasks.scheduling._reschedule_handle_pending_webmentions"
         ) as mock_task_two:
-            handle_incoming_webmention(self.http_post, self.sent_by)
+            handle_incoming_webmention(self.source, self.target, self.sent_by)
             self.assertTrue(mock_task.called)
             self.assertTrue(mock_task_two.called)
 
