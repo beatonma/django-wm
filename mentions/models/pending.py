@@ -1,8 +1,8 @@
 from django.db import models
 from django.db.models import UniqueConstraint
 
-from mentions.models import MentionsBaseModel
-from mentions.models.mixins.retryable import RetryableMixin
+from mentions.models.base import MentionsBaseModel
+from mentions.models.mixins import RetryableMixin
 
 __all__ = [
     "PendingIncomingWebmention",

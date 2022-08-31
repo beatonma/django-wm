@@ -1,6 +1,6 @@
-from .base import MentionsBaseModel
 from .hcard import HCard
-from .manual_mention import SimpleMention
+from .outgoing_status import OutgoingWebmentionStatus
 from .pending import PendingIncomingWebmention, PendingOutgoingContent
 from .proxy import DashboardPermissionProxy
-from .webmention import OutgoingWebmentionStatus, Webmention
+from .simple_mention import SimpleMention
+from .webmention import Webmention

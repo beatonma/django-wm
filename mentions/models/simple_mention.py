@@ -2,8 +2,8 @@
 Mentions for sources that do not support webmentions.
 Needs to be input manually.
 """
-from mentions.models import MentionsBaseModel
-from mentions.models.mixins.quotable import QuotableMixin
+from mentions.models.base import MentionsBaseModel
+from mentions.models.mixins import QuotableMixin
 
 __all__ = [
     "SimpleMention",

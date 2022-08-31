@@ -1,7 +1,7 @@
 from typing import Dict, Iterable, List, Optional
 
 from mentions.models import HCard, SimpleMention, Webmention
-from mentions.models.mixins.quotable import QuotableMixin
+from mentions.models.mixins import QuotableMixin
 
 __all__ = [
     "serialize_hcard",
@@ -10,14 +10,6 @@ __all__ = [
 
 
 def serialize_mentions(mentions: Iterable[QuotableMixin]) -> List[Dict]:
-    def _typeof(mention) -> str:
-        if isinstance(mention, Webmention):
-            return mention.post_type or "webmention"
-        elif isinstance(mention, SimpleMention):
-            return "simple"
-        else:
-            raise ValueError(f"Unhandled mention type: {mention}")
-
     return [
         {
             "hcard": serialize_hcard(mention.hcard),
@@ -39,3 +31,13 @@ def serialize_hcard(hcard: Optional[HCard]) -> Optional[Dict]:
         "avatar": hcard.avatar,
         "homepage": hcard.homepage,
     }
+
+
+def _typeof(mention) -> str:
+    if isinstance(mention, Webmention):
+        return mention.post_type or "webmention"
+
+    if isinstance(mention, SimpleMention):
+        return "simple"
+
+    raise ValueError(f"Unhandled mention type: {mention}")

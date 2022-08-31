@@ -1,6 +1,6 @@
 from django.db import models
 
-from mentions.models import MentionsBaseModel
+from mentions.models.base import MentionsBaseModel
 
 __all__ = [
     "HCard",

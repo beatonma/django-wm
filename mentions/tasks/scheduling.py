@@ -4,11 +4,14 @@ from itertools import chain
 from django.http import QueryDict
 
 from mentions import options
-from mentions.models import OutgoingWebmentionStatus
-from mentions.models.pending import PendingIncomingWebmention, PendingOutgoingContent
-from mentions.tasks import process_incoming_webmention, process_outgoing_webmentions
+from mentions.models import (
+    OutgoingWebmentionStatus,
+    PendingIncomingWebmention,
+    PendingOutgoingContent,
+)
 from mentions.tasks.celeryproxy import shared_task
-from mentions.tasks.outgoing import try_send_webmention
+from mentions.tasks.incoming import process_incoming_webmention
+from mentions.tasks.outgoing import process_outgoing_webmentions, try_send_webmention
 
 log = logging.getLogger(__name__)
 

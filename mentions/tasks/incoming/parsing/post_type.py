@@ -2,7 +2,7 @@ from typing import Optional
 
 from bs4 import Tag
 
-from mentions.models.mixins.quotable import IncomingMentionType
+from mentions.models.mixins import IncomingMentionType
 
 __all__ = [
     "parse_post_type",

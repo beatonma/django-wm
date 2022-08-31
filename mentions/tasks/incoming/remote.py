@@ -3,7 +3,7 @@ from typing import Optional
 
 from mentions.exceptions import SourceDoesNotLink, SourceNotAccessible
 from mentions.models import HCard
-from mentions.models.mixins.quotable import IncomingMentionType
+from mentions.models.mixins import IncomingMentionType
 from mentions.tasks.incoming.parsing import (
     find_related_hcard,
     parse_hcard,

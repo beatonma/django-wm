@@ -1,14 +1,9 @@
 from typing import List, Type
 
-from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
 from mentions.exceptions import ImplementationRequired
-from mentions.models.manual_mention import SimpleMention
 from mentions.models.mixins.quotable import QuotableMixin
-from mentions.models.webmention import Webmention
-from mentions.serialize import serialize_mentions
-from mentions.tasks.scheduling import handle_outgoing_webmentions
 
 __all__ = [
     "MentionableMixin",
@@ -27,21 +22,14 @@ class MentionableMixin(models.Model):
     # a default implementation of :func:`resolve_from_url_kwargs`
     slug = models.SlugField(unique=True)
 
-    def mentions(self) -> List[QuotableMixin]:
-        ctype = ContentType.objects.get_for_model(self.__class__)
-        webmentions = Webmention.objects.filter(
-            content_type=ctype,
-            object_id=self.id,
-            approved=True,
-            validated=True,
-        )
-        simple_mentions = SimpleMention.objects.filter(
-            content_type=ctype,
-            object_id=self.id,
-        )
-        return list(webmentions) + list(simple_mentions)
+    def mentions(self) -> List["QuotableMixin"]:
+        from mentions.resolution import get_mentions_for_object
+
+        return get_mentions_for_object(self)
 
     def mentions_json(self):
+        from mentions.serialize import serialize_mentions
+
         return serialize_mentions(self.mentions())
 
     def get_absolute_url(self):
@@ -91,4 +79,6 @@ class MentionableMixin(models.Model):
         super().save(*args, **kwargs)
 
         if self.allow_outgoing_webmentions:
+            from mentions.tasks import handle_outgoing_webmentions
+
             handle_outgoing_webmentions(self.get_absolute_url(), self.all_text())

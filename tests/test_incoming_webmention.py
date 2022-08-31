@@ -8,7 +8,7 @@ import requests
 
 from mentions.exceptions import SourceNotAccessible, TargetWrongDomain
 from mentions.models import Webmention
-from mentions.models.mixins.quotable import IncomingMentionType
+from mentions.models.mixins import IncomingMentionType
 from mentions.tasks import incoming
 from mentions.tasks.incoming import local, remote
 from mentions.util import html_parser

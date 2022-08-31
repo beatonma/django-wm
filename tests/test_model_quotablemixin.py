@@ -1,4 +1,4 @@
-from mentions.models.mixins.quotable import IncomingMentionType
+from mentions.models.mixins import IncomingMentionType
 from tests import WebmentionTestCase
 
 

@@ -11,7 +11,7 @@ from django.urls import reverse
 from django.utils.text import slugify
 
 from mentions.models import Webmention
-from mentions.models.mixins.quotable import IncomingMentionType
+from mentions.models.mixins import IncomingMentionType
 from mentions.views import view_names
 from tests.models import MentionableTestModel
 from tests.util import viewname

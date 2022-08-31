@@ -4,6 +4,7 @@ from typing import Iterable, List, Type
 
 from django.apps import apps
 from django.conf import settings
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.http import HttpRequest
@@ -11,7 +12,7 @@ from django.urls import Resolver404, ResolverMatch
 
 from mentions.exceptions import BadConfig, TargetDoesNotExist
 from mentions.models import SimpleMention, Webmention
-from mentions.models.mixins.quotable import QuotableMixin
+from mentions.models.mixins import MentionableMixin, QuotableMixin
 from mentions.util import split_url
 
 log = logging.getLogger(__name__)
@@ -19,6 +20,7 @@ log = logging.getLogger(__name__)
 
 __all__ = [
     "get_mentions_for_absolute_url",
+    "get_mentions_for_object",
     "get_mentions_for_url_path",
     "get_mentions_for_view",
     "get_model_for_url_path",
@@ -146,3 +148,18 @@ def get_mentions_for_view(request: HttpRequest) -> Iterable[QuotableMixin]:
     """Call from your View implementation so you can include mentions in your template."""
 
     return get_mentions_for_absolute_url(request.build_absolute_uri())
+
+
+def get_mentions_for_object(obj: MentionableMixin) -> List["QuotableMixin"]:
+    ctype = ContentType.objects.get_for_model(obj.__class__)
+    webmentions = Webmention.objects.filter(
+        content_type=ctype,
+        object_id=obj.id,
+        approved=True,
+        validated=True,
+    )
+    simple_mentions = SimpleMention.objects.filter(
+        content_type=ctype,
+        object_id=obj.id,
+    )
+    return list(webmentions) + list(simple_mentions)

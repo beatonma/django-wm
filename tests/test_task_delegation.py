@@ -43,7 +43,7 @@ class IncomingWebmentionDelegationTests(OptionsTestCase):
         self.enable_celery(True)
 
         with patch(
-            "mentions.tasks.process_incoming_webmention.delay"
+            "mentions.tasks.incoming.process_incoming_webmention.delay"
         ) as mock_task, patch(
             "mentions.tasks.scheduling._reschedule_handle_pending_webmentions"
         ) as mock_task_two:
@@ -83,7 +83,7 @@ class OutgoingWebmentionDelegationTests(OptionsTestCase):
         self.enable_celery(True)
 
         with patch(
-            "mentions.tasks.process_outgoing_webmentions.delay"
+            "mentions.tasks.outgoing.process_outgoing_webmentions.delay"
         ) as mock_task, patch(
             "mentions.tasks.scheduling._reschedule_handle_pending_webmentions"
         ) as mock_task_two:

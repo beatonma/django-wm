@@ -1,6 +1,6 @@
 from django import template
 
-from .webmentions import webmentions_endpoint
+from mentions.templatetags.webmentions import webmentions_endpoint
 
 __all__ = [
     "webmentions_endpoint",

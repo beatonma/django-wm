@@ -8,8 +8,7 @@ import requests
 from django.conf import settings
 
 from mentions.models import OutgoingWebmentionStatus
-from mentions.tasks import process_outgoing_webmentions
-from mentions.tasks.outgoing import remote
+from mentions.tasks.outgoing import process_outgoing_webmentions, remote
 from tests import MockResponse, WebmentionTestCase
 from tests.util import testfunc
 
