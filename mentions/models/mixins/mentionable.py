@@ -14,7 +14,6 @@ class MentionableMixin(models.Model):
     class Meta:
         abstract = True
 
-    allow_incoming_webmentions = models.BooleanField(default=True)
     allow_outgoing_webmentions = models.BooleanField(default=False)
 
     # `slug` field is no longer required as of version 2.3.0.
