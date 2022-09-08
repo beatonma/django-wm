@@ -2,6 +2,9 @@ from unittest.mock import patch
 
 from mentions.models import PendingIncomingWebmention, PendingOutgoingContent
 from mentions.tasks.scheduling import (
+    _maybe_reschedule_handle_pending_webmentions,
+    _task_handle_incoming,
+    _task_handle_outgoing,
     handle_incoming_webmention,
     handle_outgoing_webmentions,
     handle_pending_webmentions,
@@ -40,16 +43,25 @@ class IncomingWebmentionDelegationTests(OptionsTestCase):
         self.enable_celery(True)
 
         with patch(
-            "mentions.tasks.incoming.process_incoming_webmention.delay"
-        ) as mock_task, patch(
-            "mentions.tasks.scheduling._reschedule_handle_pending_webmentions"
-        ) as mock_task_two:
+            "mentions.tasks.scheduling._task_handle_incoming.delay"
+        ) as handle_task:
             handle_incoming_webmention(self.source, self.target, self.sent_by)
-            self.assertTrue(mock_task.called)
-            self.assertTrue(mock_task_two.called)
+            self.assertTrue(handle_task.called)
 
         pending = PendingIncomingWebmention.objects.all()
         self.assertEqual(0, pending.count())
+
+    def test_task_calls_process_and_reschedule(self):
+        self.enable_celery(True)
+
+        with patch(
+            "mentions.tasks.scheduling.process_incoming_webmention"
+        ) as process, patch(
+            "mentions.tasks.scheduling._maybe_reschedule_handle_pending_webmentions"
+        ) as reschedule:
+            _task_handle_incoming(self.source, self.target, self.sent_by)
+            self.assertTrue(process.called)
+            self.assertTrue(reschedule.called)
 
 
 class OutgoingWebmentionDelegationTests(OptionsTestCase):
@@ -80,16 +92,25 @@ class OutgoingWebmentionDelegationTests(OptionsTestCase):
         self.enable_celery(True)
 
         with patch(
-            "mentions.tasks.outgoing.process_outgoing_webmentions.delay"
-        ) as mock_task, patch(
-            "mentions.tasks.scheduling._reschedule_handle_pending_webmentions"
-        ) as mock_task_two:
+            "mentions.tasks.scheduling._task_handle_outgoing.delay"
+        ) as handle_task:
             handle_outgoing_webmentions(self.absolute_url, self.all_text)
-            self.assertTrue(mock_task.called)
-            self.assertTrue(mock_task_two.called)
+            self.assertTrue(handle_task.called)
 
         all_pending = PendingOutgoingContent.objects.all()
         self.assertEqual(0, all_pending.count())
+
+    def test_task_calls_process_and_reschedule(self):
+        self.enable_celery(True)
+
+        with patch(
+            "mentions.tasks.scheduling.process_outgoing_webmentions"
+        ) as process, patch(
+            "mentions.tasks.scheduling._maybe_reschedule_handle_pending_webmentions"
+        ) as reschedule:
+            _task_handle_outgoing(self.absolute_url, self.all_text)
+            self.assertTrue(process.called)
+            self.assertTrue(reschedule.called)
 
 
 class HandlePendingMentionsTests(OptionsTestCase):
@@ -136,3 +157,19 @@ class HandlePendingMentionsTests(OptionsTestCase):
             handle_pending_webmentions(incoming=False, outgoing=True)
             self.assertTrue(outgoing_task.called)
             self.assertFalse(incoming_task.called)
+
+    def test_celery_rescheduled_if_pending(self):
+        with patch(
+            "mentions.tasks.scheduling._reschedule_handle_pending_webmentions"
+        ) as reschedule:
+            _maybe_reschedule_handle_pending_webmentions()
+            self.assertTrue(reschedule.called)
+
+    def test_celery_not_rescheduled_if_nothing_pending_retry(self):
+        with patch(
+            "mentions.tasks.scheduling._reschedule_handle_pending_webmentions"
+        ) as reschedule:
+            PendingIncomingWebmention.objects.all().update(is_awaiting_retry=False)
+
+            _maybe_reschedule_handle_pending_webmentions()
+            self.assertFalse(reschedule.called)

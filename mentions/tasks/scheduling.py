@@ -31,12 +31,7 @@ def handle_incoming_webmention(source: str, target: str, sent_by: str) -> None:
     use_celery = options.use_celery()
 
     if use_celery:
-        process_incoming_webmention.delay(
-            source_url=source,
-            target_url=target,
-            sent_by=sent_by,
-        )
-        _reschedule_handle_pending_webmentions()
+        _task_handle_incoming.delay(source, target, sent_by)
 
     else:
         PendingIncomingWebmention.objects.get_or_create(
@@ -48,6 +43,16 @@ def handle_incoming_webmention(source: str, target: str, sent_by: str) -> None:
         )
 
 
+@shared_task
+def _task_handle_incoming(source: str, target: str, sent_by: str):
+    process_incoming_webmention(
+        source_url=source,
+        target_url=target,
+        sent_by=sent_by,
+    )
+    _maybe_reschedule_handle_pending_webmentions()
+
+
 def handle_outgoing_webmentions(absolute_url: str, text: str) -> None:
     """Delegate processing to `celery` if available, otherwise store for later.
 
@@ -57,8 +62,7 @@ def handle_outgoing_webmentions(absolute_url: str, text: str) -> None:
     use_celery = options.use_celery()
 
     if use_celery:
-        process_outgoing_webmentions.delay(source_urlpath=absolute_url, text=text)
-        _reschedule_handle_pending_webmentions()
+        _task_handle_outgoing.delay(absolute_url, text)
 
     else:
         PendingOutgoingContent.objects.get_or_create(
@@ -67,6 +71,12 @@ def handle_outgoing_webmentions(absolute_url: str, text: str) -> None:
                 "text": text,
             },
         )
+
+
+@shared_task
+def _task_handle_outgoing(absolute_url: str, text: str) -> None:
+    process_outgoing_webmentions(source_urlpath=absolute_url, text=text)
+    _maybe_reschedule_handle_pending_webmentions()
 
 
 @shared_task
@@ -82,7 +92,7 @@ def handle_pending_webmentions(incoming: bool = True, outgoing: bool = True):
         _handle_pending_outgoing()
 
     if options.use_celery():
-        _reschedule_handle_pending_webmentions()
+        _maybe_reschedule_handle_pending_webmentions()
 
 
 def _handle_pending_incoming():
@@ -113,8 +123,8 @@ def _handle_pending_outgoing():
         pending_out.delete()
 
 
-def _reschedule_handle_pending_webmentions():
-    # Schedule another run if there are still items awaiting retry.
+def _maybe_reschedule_handle_pending_webmentions():
+    """Check if there are objects awaiting retry; if so, schedule `handle_pending_webmentions` to run again later."""
     should_reschedule = (
         PendingIncomingWebmention.objects.filter(is_awaiting_retry=True).exists()
         or OutgoingWebmentionStatus.objects.filter(is_awaiting_retry=True).exists()
@@ -123,6 +133,13 @@ def _reschedule_handle_pending_webmentions():
     if not should_reschedule:
         return
 
+    _reschedule_handle_pending_webmentions()
+
+
+def _reschedule_handle_pending_webmentions():
+    """Using celery, schedule `handle_pending_webmentions` to run again later.
+
+    Only one such task should be scheduled at a time - halt if it is already scheduled."""
     import celery
 
     # Check if this task is already scheduled.
@@ -138,11 +155,13 @@ def _reschedule_handle_pending_webmentions():
     ]
 
     if scheduled_task_etas:
-        log.info(f"Skipping: task {task_name} eta {scheduled_task_etas}")
+        log.info(f"Task '{task_name}' already scheduled: eta {scheduled_task_etas}")
         return
 
     # Schedule fresh task
+    interval = options.retry_interval()
     task.apply_async(
-        countdown=options.retry_interval(),
-        expires=options.retry_interval() * 2,
+        countdown=interval,
+        expires=interval * 2,
     )
+    log.info(f"Scheduled task '{task_name}' in {interval} seconds.")
