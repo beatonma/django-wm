@@ -1,6 +1,9 @@
-FROM python:3
+FROM python:3-alpine
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONBUFFERED=1
+
+RUN apk add --no-cache \
+    bash
 
 WORKDIR /var/www/static/
 WORKDIR /src/
@@ -11,4 +14,6 @@ WORKDIR /usr/src/app
 COPY ./sample-project .
 RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements.txt
 
-CMD sh /usr/src/app/docker/no-celery/entrypoint.sh
+RUN crontab /usr/src/app/docker/with-celery/cron-schedule
+
+CMD bash /usr/src/app/docker/with-celery/entrypoint.sh

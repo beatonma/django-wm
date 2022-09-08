@@ -44,6 +44,20 @@ services:
       - "8001:80"
     command: ["bash", "/usr/src/app/docker/wait-for-it.sh", "with-celery-db:5432", "--", "bash", "/usr/src/app/docker/with-celery/entrypoint.sh"]
 
+
+  with-celery-cron:
+    build:
+      dockerfile: ./sample-project/docker/with-celery/Dockerfile
+      context: .
+    depends_on:
+      - with-celery-db
+      - with-celery-web.org
+    env_file:
+      - ./sample-project/docker/.env
+      - ./sample-project/docker/with-celery/.env
+    command: crond -l 2 -f
+
+
   no-celery-db:
     image: postgres
     env_file: ./sample-project/docker/no-celery/.env

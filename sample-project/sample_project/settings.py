@@ -14,8 +14,13 @@ ALLOWED_HOSTS = [
 CSRF_TRUSTED_ORIGINS = [
     f"http://{DOMAIN_NAME}",
 ]
-DEFAULT_MENTION_TARGET = os.environ.get("DEFAULT_MENTION_TARGET") or ""
+DEFAULT_MENTION_TARGET_DOMAIN = os.environ.get("DEFAULT_MENTION_TARGET_DOMAIN") or ""
+DEFAULT_MENTION_TARGET = f"http://{DEFAULT_MENTION_TARGET_DOMAIN}{os.environ.get('DEFAULT_MENTION_TARGET') or ''}"
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL")
+AUTOMENTION_URLS = [
+    f"http://{DEFAULT_MENTION_TARGET_DOMAIN}{x}"
+    for x in (os.environ.get("AUTOMENTION_URLS") or "").split(",")
+]
 
 try:
     import celery

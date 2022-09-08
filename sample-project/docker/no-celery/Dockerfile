@@ -8,11 +8,11 @@ RUN apk add --no-cache \
 WORKDIR /var/www/static/
 WORKDIR /src/
 COPY . /src/
-RUN pip install -e .
+RUN --mount=type=cache,target=/root/.cache/pip pip install -e .
 
 WORKDIR /usr/src/app
 COPY ./sample-project .
-RUN pip install -r requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip pip install -r requirements.txt
 
 RUN crontab /usr/src/app/docker/no-celery/cron-schedule
 
