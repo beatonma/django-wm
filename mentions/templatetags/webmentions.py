@@ -31,7 +31,7 @@ def webmentions_endpoint():
     {% load webmentions %}
     ...
     <head>
-        {% webmention_endpoint %}
+        {% webmentions_endpoint %}
     </head>
     ...
     """
