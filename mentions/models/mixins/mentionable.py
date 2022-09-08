@@ -75,10 +75,14 @@ class MentionableMixin(models.Model):
         """
         return cls.objects.get(slug=url_kwargs.get("slug"))
 
+    def should_process_webmentions(self) -> bool:
+        """Return True if this instance should process webmentions when saved."""
+        return self.allow_outgoing_webmentions
+
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
 
-        if self.allow_outgoing_webmentions:
+        if self.should_process_webmentions():
             from mentions.tasks import handle_outgoing_webmentions
 
             handle_outgoing_webmentions(self.get_absolute_url(), self.all_text())
