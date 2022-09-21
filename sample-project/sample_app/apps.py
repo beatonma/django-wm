@@ -15,11 +15,9 @@ class SampleAppConfig(AppConfig):
         from sample_app.models import Article
 
         Article.objects.get_or_create(
-            # pk=1,
             title=f"First article on {settings.DOMAIN_NAME}",
             defaults={
                 "content": "Something to talk about",
                 "author": "A. Mouse",
-                "allow_incoming_webmentions": True,
             },
         )

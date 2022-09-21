@@ -45,7 +45,6 @@ def create_article(author: str, target_url: str, mention_type: str) -> Article:
         author=author,
         title=f"About {target_url}",
         content=f"""<p>This text mentions <a href="{target_url}" class="{_type}">this page</a></p>""",
-        allow_incoming_webmentions=True,
         allow_outgoing_webmentions=True,
     )
 

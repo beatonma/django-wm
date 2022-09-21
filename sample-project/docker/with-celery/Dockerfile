@@ -8,7 +8,8 @@ RUN apk add --no-cache \
 WORKDIR /var/www/static/
 WORKDIR /src/
 COPY . /src/
-RUN --mount=type=cache,target=/root/.cache/pip pip install -e .[celery]
+RUN --mount=type=cache,target=/root/.cache/pip pip install -e .[celery,test]
+RUN python runtests.py
 
 WORKDIR /usr/src/app
 COPY ./sample-project .

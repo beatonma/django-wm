@@ -35,7 +35,7 @@ services:
       dockerfile: ./sample-project/docker/with-celery/Dockerfile
       context: .
     depends_on:
-      - with-celery_db
+      - with-celery-db
       - with-celery-rabbitmq
     env_file:
       - ./sample-project/docker/.env

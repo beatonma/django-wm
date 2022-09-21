@@ -7,10 +7,6 @@ echo "- Superuser ready"
 python manage.py collectstatic --noinput
 echo "- Static files collected"
 
-echo "- Checking pip dependencies..."
-python -m pip check
-python -m pip freeze
-
 echo "Starting celery worker..."
 celery -A sample_project worker -E &
 echo "- Celery started"
