@@ -1,8 +1,3 @@
-# Upgrading
-
-**Version `2.0` has potentially BREAKING CHANGES for any users upgrading from `1.x.x`!** If you used any `1.x.x` version of `django-wm` please follow [these instructions](upgrading_to_2.0.md) to upgrade to `2.0.1` without data loss. Please complete the upgrade to `2.0.1` before upgrading further to any later versions.
-
-
 # Installation
 
 PyPI: [django-wm](https://pypi.org/project/django-wm/)
@@ -105,12 +100,28 @@ For reference, source code for an example project is available [here](https://gi
 
 # Optional Settings
 
-Add these keys to your project `settings.py` to alter default behaviour.
-
 ```python
+# settings.py
+
 """
-If True, received webmentions are automatically approved and may be publicly visible.
-If False, received webmentions require manual approval before they can be made public.
+If `True`, received webmentions are automatically approved and may be publicly visible.
+If `False`, received webmentions require manual approval before they can be made public.
 """
-WEBMENTIONS_AUTO_APPROVE = True  # False by default
+WEBMENTIONS_AUTO_APPROVE: bool = False
+
+"""Specifies the time (in seconds) to wait for network calls to resolve."""
+WEBMENTIONS_TIMEOUT: float = 10
+
+"""Specifies the minimum time (in seconds) to wait before retrying to process a webmention."""
+WEBMENTIONS_RETRY_INTERVAL: int = 600
+
+"""Specifies how many times we can attempt to process a mention before giving up."""
+WEBMENTIONS_MAX_RETRIES: int = 5
+
+"""
+Specifies whether the the `dashboard/` view can be viewed by anyone.
+If `False` (default), the `dashboard/` view is only available to users with
+`mentions.view_webmention_dashboard` permission.
+"""
+WEBMENTIONS_DASHBOARD_PUBLIC: bool = False
 ```
