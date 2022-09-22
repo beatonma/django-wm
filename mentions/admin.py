@@ -70,6 +70,7 @@ class WebmentionAdmin(QuotableAdmin):
                     "sent_by",
                     "hcard",
                     "quote",
+                    "post_type",
                 ),
             },
         ),
