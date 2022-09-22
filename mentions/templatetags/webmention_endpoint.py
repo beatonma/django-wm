@@ -11,5 +11,5 @@ register = template.Library()
 
 @register.simple_tag
 def webmention_endpoint():
-    """Implementation moved but kept available here to avoid breaking change (for now)."""
+    """Deprecated: kept available here to avoid breaking change (for now)."""
     return webmentions_endpoint()

@@ -9,7 +9,7 @@ class TemplateTagTests(WebmentionTestCase):
     """TEMPLATE: Test template tags."""
 
     def test_webmention_endpoint_templatetag(self):
-        """{% webmention_endpoint %} renders correctly."""
+        """{% webmentions_endpoint %} renders correctly."""
         expected_endpoint = testfunc.endpoint_submit_webmention()
         response = self.client.get(reverse("test-template-tags"))
 

@@ -43,7 +43,7 @@ class SimpleNoObjectTestView(View):
 
 
 class TemplateTagTestView(TemplateView):
-    """Render page to test `{% webmention_endpoint %}` tag."""
+    """Render page to test `{% webmentions_endpoint %}` tag."""
 
     template_name = "templatetags_example.html"
 
