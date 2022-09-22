@@ -24,7 +24,7 @@ def after_retry_interval() -> timezone.datetime:
 
 
 class RetryNoCeleryTests(OptionsTestCase):
-    """___ Retry tasks"""
+    """Retry tasks"""
 
     def setUp(self) -> None:
         super().setUp()
