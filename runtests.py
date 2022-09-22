@@ -1,3 +1,4 @@
+#!env/bin/python
 import logging
 import os
 import sys
@@ -8,11 +9,11 @@ from django.test.utils import get_runner
 
 log = logging.getLogger(__name__)
 
-SETTINGS = "tests.config.test_settings"
+SETTINGS_PATH = "tests.config.test_settings"
 
 
 if __name__ == "__main__":
-    os.environ["DJANGO_SETTINGS_MODULE"] = SETTINGS
+    os.environ["DJANGO_SETTINGS_MODULE"] = SETTINGS_PATH
 
     django.setup()
 
