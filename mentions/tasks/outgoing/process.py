@@ -32,7 +32,7 @@ def process_outgoing_webmentions(source_urlpath: str, text: str) -> int:
          Number of outgoing webmentions that were submitted successfully.
     """
 
-    log.info(f"Checking for outgoing webmention links...")
+    log.info(f"Checking for mentionable links in text from '{source_urlpath}'...")
     mentions_attempted = 0
     mentions_sent = 0
     links_in_text = get_target_links_in_text(text)
@@ -61,15 +61,15 @@ def process_outgoing_webmentions(source_urlpath: str, text: str) -> int:
         if result is True:
             mentions_sent += 1
 
-    if mentions_sent == mentions_attempted:
-        log.info(f"Successfully sent {mentions_sent} webmentions")
+    if mentions_attempted == 0:
+        log.debug(f"No mentionable links found in text.")
 
-    elif mentions_attempted:
-        log.warning(
-            f"Webmention submission errors: {mentions_sent}/{mentions_attempted} submissions were successful"
-        )
+    elif mentions_sent == mentions_attempted:
+        log.info(f"Successfully sent {mentions_sent} webmentions.")
 
     else:
-        log.info(f"No links with webmentionable endpoints were found.")
+        log.warning(
+            f"Webmention submission errors: {mentions_sent}/{mentions_attempted} submissions were successful."
+        )
 
     return mentions_sent
