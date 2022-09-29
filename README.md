@@ -5,12 +5,19 @@
 `django-wm` lets you add [Webmention](https://indieweb.org/Webmention) functionality to your Django project with minimal setup.
 
 
+### Upgrading
+Please check the [changelog](CHANGELOG.md) before upgrading, especially between major versions.
+
+After upgrading remember to run the `makemigrations` and `migrate` management commands so that any changes in model/mixin definitions can be applied.
+
+
 ### Getting started
 [Setup instructions](docs/getting_started.md).
 
 [Code for an example project](https://github.com/beatonma/django-wm-example).
 
 All done? You can use the [testing tool](https://beatonma.org/webmentions_tester/) to make sure it works.
+
 
 ### Features
 - Endpoints:
