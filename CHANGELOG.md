@@ -1,8 +1,8 @@
 # Changelog
 
-# 3.0.0 (2022-09-22)
+## 3.0.0 (2022-09-29)
 
-## Upgrade warning
+### Upgrade warning
 
 If upgrading from an older version please be aware of these changes:
 - Unused `MentionableMixin.allow_incoming_webmentions` field has been removed.
@@ -10,8 +10,7 @@ If upgrading from an older version please be aware of these changes:
   - These models have new constraints so it is necessary to recreate them.
   - If this is problematic for you please don't upgrade yet. Contact me or create an issue and I will make a tool to persist these between versions.
 
-
-## Changes
+### Changes
 
 Thanks to @philgyford for reporting most of the issues referenced here.
 
@@ -86,7 +85,7 @@ Thanks to @philgyford for reporting most of the issues referenced here.
   - New tag `{% webmentions_dashboard %}` creates a <a>link</a> to your `webmentions/dashboard/` view.
 
 
-# 2.3.0 (2022-03-28)
+## 2.3.0 (2022-03-28)
 
 Resolves [#28](https://github.com/beatonma/django-wm/issues/28)
 
@@ -146,7 +145,7 @@ New MentionableMixin classmethod: `resolve_from_url_kwargs(**url_kwargs)`
 parameters to a model instance.
 
 
-# 2.2.0 (2022-03-26)
+## 2.2.0 (2022-03-26)
 
 Merges [#24](https://github.com/beatonma/django-wm/pull/24): `QuotableMixin.published` can now be overriden - thanks [@garrettc](https://github.com/garrettc).
 Fixes [#26](https://github.com/beatonma/django-wm/issues/26): `requests` 2.20 or greater (until version 3) are now allowed. Likewise for `beautifulsoup4` 4.6 and `mf2py` 1.1.
@@ -154,12 +153,12 @@ Fixes [#26](https://github.com/beatonma/django-wm/issues/26): `requests` 2.20 or
 Added `get_mentions_for_view(HttpRequest) -> Iterable[QuotableMixin]` convenience method. This may be used to retrieve mentions for rendering directly in a Django template, as an alternative to using the `webmention/get` endpoint from a frontend script.
 
 
-# 2.1.1 (2022-02-07)
+## 2.1.1 (2022-02-07)
 
 Fix: Test view defined in main urlpatterns.
 
 
-# 2.1.0 (2022-02-05)
+## 2.1.0 (2022-02-05)
 
 - Added setting `WEBMENTIONS_USE_CELERY` (boolean, default `True`)  
   **If `False`**:
@@ -176,7 +175,7 @@ Fix: Test view defined in main urlpatterns.
 - Updated instructions for installation with or without celery.
 
 
-# 2.0.0 (2022-02-02)
+## 2.0.0 (2022-02-02)
 
 ### Breaking Changes
 
