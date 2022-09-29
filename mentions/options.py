@@ -113,7 +113,7 @@ def url_scheme() -> str:
     This defaults to `https` which is hopefully what your server is using.
     It's handy to be able to choose when debugging stuff though."""
     scheme = _get_attr(SETTING_URL_SCHEME)
-    if not settings.DEBUG and scheme == "https":
+    if not settings.DEBUG and scheme != "https":
         log.warning(
             f"settings.{SETTING_URL_SCHEME} should not be `http` when in production!"
         )
