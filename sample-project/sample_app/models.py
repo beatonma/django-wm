@@ -4,8 +4,7 @@ import logging
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
-
-from mentions.models.mixins import IncomingMentionType, MentionableMixin
+from sample_app.compat import MentionableMixin
 
 log = logging.getLogger(__name__)
 
@@ -14,6 +13,10 @@ class Article(MentionableMixin, models.Model):
     author = models.CharField(max_length=64)
     title = models.CharField(max_length=64)
     content = models.TextField()
+    allow_incoming_webmentions = models.BooleanField(
+        default=True,
+        help_text="Just for testing upgrade from 2.3.0 -> 3.0.0",
+    )
 
     def save(self, *args, **kwargs):
         if not self.pk:
@@ -39,7 +42,12 @@ class Article(MentionableMixin, models.Model):
 
 
 def create_article(author: str, target_url: str, mention_type: str) -> Article:
-    _type = IncomingMentionType[mention_type].value if mention_type else ""
+    try:
+        from mentions.models.mixins import IncomingMentionType
+
+        _type = IncomingMentionType[mention_type].value if mention_type else ""
+    except ImportError:
+        _type = ""
 
     article = Article.objects.create(
         author=author,

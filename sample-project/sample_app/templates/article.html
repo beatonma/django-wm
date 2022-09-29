@@ -1,4 +1,5 @@
 {% load webmentions %}
+{% load sampleapp %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -29,7 +30,7 @@
     <section>
       <article class="h-entry">
         <h2 class="p-name">{{ article.title }}</h2>
-        <p>Published by <a class="p-author h-card" href="http://{{ DOMAIN_NAME }}">{{ article.author }}</a>.</p>
+        <p>Published by {% maybe_link_hcard  article.author %}.</p>
 
         <div class="e-content">
           {{ article.content|safe }}

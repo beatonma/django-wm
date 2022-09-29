@@ -23,6 +23,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("allow_outgoing_webmentions", models.BooleanField(default=False)),
+                ("allow_incoming_webmentions", models.BooleanField(default=True)),
                 ("slug", models.SlugField(unique=True)),
                 ("author", models.CharField(max_length=64)),
                 ("title", models.CharField(max_length=64)),
