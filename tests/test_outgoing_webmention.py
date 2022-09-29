@@ -8,8 +8,9 @@ import requests
 from django.conf import settings
 
 from mentions.models import OutgoingWebmentionStatus
+from mentions.tasks import handle_pending_webmentions
 from mentions.tasks.outgoing import process_outgoing_webmentions, remote
-from tests import MockResponse, WebmentionTestCase
+from tests import MockResponse, OptionsTestCase
 from tests.util import testfunc
 
 log = logging.getLogger(__name__)
@@ -86,7 +87,7 @@ def _patch_post(ok: bool):
     )
 
 
-class OutgoingWebmentionsTests(WebmentionTestCase):
+class OutgoingWebmentionsTests(OptionsTestCase):
     """OUTOOING: tests for task `process_outgoing_webmentions`."""
 
     source_url = f"https://{settings.DOMAIN_NAME}/some-url-path/"
@@ -162,3 +163,27 @@ class OutgoingWebmentionsTests(WebmentionTestCase):
 
         self.assertEqual(0, successful_webmention_submissions)
         self.assertEqual(1, OutgoingWebmentionStatus.objects.count())
+
+    @_patch_get(ok=True)
+    @_patch_post(ok=False)
+    def test_process_outgoing_webmentions__recycles_status(self):
+        self.enable_celery(False)
+        self.set_retry_interval(0)
+
+        # Process links from text to target url.
+        process_outgoing_webmentions(self.source_url, OUTGOING_WEBMENTION_HTML)
+        status: OutgoingWebmentionStatus = OutgoingWebmentionStatus.objects.first()
+        self.assertEqual(status.retry_attempt_count, 1)
+
+        # After failure, retrying process increments retry_attempt_count.
+        handle_pending_webmentions()
+        status.refresh_from_db()
+        self.assertEqual(status.retry_attempt_count, 2)
+
+        # Reprocessing raw text reuses same status instance, resetting its retry tracking.
+        process_outgoing_webmentions(self.source_url, OUTGOING_WEBMENTION_HTML)
+
+        self.assertEqual(OutgoingWebmentionStatus.objects.count(), 1)
+        self.assertEqual(
+            OutgoingWebmentionStatus.objects.first().retry_attempt_count, 1
+        )

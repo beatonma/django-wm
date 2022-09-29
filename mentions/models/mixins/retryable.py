@@ -75,3 +75,15 @@ class RetryableMixin(models.Model):
 
         seconds_since_last = (now - self.last_retry_attempt).total_seconds()
         return self.is_awaiting_retry and seconds_since_last >= options.retry_interval()
+
+    def reset_retries(self):
+        self.retry_attempt_count = 0
+        self.is_awaiting_retry = True
+        self.is_retry_successful = False
+        self.save(
+            update_fields=[
+                "retry_attempt_count",
+                "is_awaiting_retry",
+                "is_retry_successful",
+            ]
+        )

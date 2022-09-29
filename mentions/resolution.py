@@ -1,6 +1,6 @@
 import logging
 from importlib import import_module
-from typing import Iterable, List, Type
+from typing import Iterable, List, Optional, Type
 
 from django.apps import apps
 from django.conf import settings
@@ -11,7 +11,8 @@ from django.http import HttpRequest
 from django.urls import Resolver404, ResolverMatch
 
 from mentions.exceptions import BadConfig, TargetDoesNotExist
-from mentions.models import SimpleMention, Webmention
+from mentions.models import HCard, OutgoingWebmentionStatus, SimpleMention, Webmention
+from mentions.models.base import MentionsBaseModel
 from mentions.models.mixins import MentionableMixin, QuotableMixin
 from mentions.util import split_url
 
@@ -56,8 +57,9 @@ def _find_urlpattern(target_path: str) -> ResolverMatch:
 
 
 def get_model_for_url_path(
-    target_path: str, match: ResolverMatch = None
-) -> Type["MentionableMixin"]:
+    target_path: str,
+    match: ResolverMatch = None,
+) -> Type[MentionableMixin]:
     """
     Find a match in urlpatterns and return the corresponding model instance.
 
@@ -150,7 +152,7 @@ def get_mentions_for_view(request: HttpRequest) -> Iterable[QuotableMixin]:
     return get_mentions_for_absolute_url(request.build_absolute_uri())
 
 
-def get_mentions_for_object(obj: MentionableMixin) -> List["QuotableMixin"]:
+def get_mentions_for_object(obj: MentionableMixin) -> List[QuotableMixin]:
     ctype = ContentType.objects.get_for_model(obj.__class__)
     webmentions = Webmention.objects.filter(
         content_type=ctype,
@@ -163,3 +165,106 @@ def get_mentions_for_object(obj: MentionableMixin) -> List["QuotableMixin"]:
         object_id=obj.id,
     )
     return list(webmentions) + list(simple_mentions)
+
+
+def get_or_create_outgoing_webmention(
+    source_urlpath: str,
+    target_url: str,
+    reset_retries: bool = False,
+) -> OutgoingWebmentionStatus:
+    """Safely get or create a OutgoingWebmentionStatus instance for given URLs.
+
+    Since version 3.0.0 the URLs are effectively treated as 'unique together',
+    but there may exist 'duplicate' instances from a previous installation."""
+
+    kwargs = {
+        "source_url": source_urlpath,
+        "target_url": target_url,
+    }
+    try:
+        status = OutgoingWebmentionStatus.objects.get_or_create(**kwargs)[0]
+    except OutgoingWebmentionStatus.MultipleObjectsReturned:
+        status = OutgoingWebmentionStatus.objects.filter(**kwargs).first()
+
+    if reset_retries:
+        status.reset_retries()
+
+    return status
+
+
+def update_or_create_hcard(
+    homepage: Optional[str],
+    name: Optional[str],
+    avatar: Optional[str],
+    data: str,
+) -> HCard:
+    """Any individual field may be used to create/retrieve an HCard.
+
+    Ideally, homepage and name are used together.
+
+    Otherwise, the order of precedence is [homepage, name, avatar].
+    """
+
+    if homepage and name:
+        return _update_first_or_create(
+            HCard,
+            homepage=homepage,
+            name=name,
+            defaults={
+                "avatar": avatar,
+                "json": data,
+            },
+        )
+
+    if homepage:
+        return _update_first_or_create(
+            HCard,
+            homepage=homepage,
+            name=None,
+            defaults={
+                "avatar": avatar,
+                "json": data,
+            },
+        )
+
+    if name:
+        return _update_first_or_create(
+            HCard,
+            homepage=None,
+            name=name,
+            defaults={
+                "avatar": avatar,
+                "json": data,
+            },
+        )
+
+    if avatar:
+        return _update_first_or_create(
+            HCard,
+            homepage=None,
+            name=None,
+            avatar=avatar,
+            defaults={
+                "json": data,
+            },
+        )
+
+
+def _update_first_or_create(
+    model_cls: Type[MentionsBaseModel],
+    defaults: dict,
+    **query,
+):
+    try:
+        return model_cls.objects.update_or_create(
+            **query,
+            defaults=defaults,
+        )[0]
+
+    except model_cls.MultipleObjectsReturned:
+        instance = model_cls.objects.filter(**query).first()
+        for key, value in defaults.items():
+            setattr(instance, key, value)
+
+        instance.save()
+        return instance

@@ -320,30 +320,6 @@ class EmbeddedHCardParsingTests(WebmentionTestCase):
         hcard = _hcard_from_soup(html)
         self.assertEqual(hcard.name, "Relevant author")
 
-    def test_avoid_duplcate_hcards(self):
-        target = HCard.objects.create(
-            homepage="https://beatonma.org",
-            name="Michael Beaton",
-        )
-
-        name_only = _hcard_from_soup(
-            f"""
-            <div class="h-card">Michael Beaton</div>
-            {MENTION_ANCHOR}
-            """
-        )
-        self.assertEqual(target, name_only)
-
-        homepage_only = _hcard_from_soup(
-            f"""
-            {MENTION_ANCHOR}
-            <a class="h-card u-url" href="https://beatonma.org"></a>
-            """
-        )
-        self.assertEqual(target, homepage_only)
-
-        self.assertEqual(1, HCard.objects.all().count())
-
     def test_top_level_hcard_when_none_in_hentry(self):
         """Prefers most closely-related h-card."""
         html = f"""

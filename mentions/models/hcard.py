@@ -16,10 +16,12 @@ class HCard(MentionsBaseModel):
     name = models.CharField(
         max_length=50,
         blank=True,
+        null=True,
         help_text="Name of the person/organisation",
     )
     avatar = models.URLField(
         blank=True,
+        null=True,
         help_text="Link to their profile image",
     )
     homepage = models.URLField(

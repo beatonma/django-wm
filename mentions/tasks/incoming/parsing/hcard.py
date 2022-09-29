@@ -13,6 +13,8 @@ __all__ = [
     "find_related_hcard",
 ]
 
+from mentions.resolution import update_or_create_hcard
+
 CLASS_H_CARD = "h-card"
 CLASS_H_ENTRY = "h-entry"
 CLASS_H_FEED = "h-feed"
@@ -107,26 +109,12 @@ def _create_hcard(data: dict) -> HCard:
 
     _require_any_of([name, homepage])
 
-    if homepage:
-        card, _ = HCard.objects.update_or_create(
-            homepage=homepage,
-            defaults=dict(
-                name=name,
-                avatar=avatar,
-                json=_json,
-            ),
-        )
-
-    else:
-        card, _ = HCard.objects.update_or_create(
-            name=name,
-            defaults=dict(
-                avatar=avatar,
-                json=_json,
-            ),
-        )
-
-    return card
+    return update_or_create_hcard(
+        homepage=homepage,
+        name=name,
+        avatar=avatar,
+        data=_json,
+    )
 
 
 def _require_any_of(fields: List[str]):

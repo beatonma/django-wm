@@ -1,3 +1,4 @@
+from mentions.resolution import get_or_create_outgoing_webmention
 from mentions.tasks.celeryproxy import get_logger, shared_task
 from mentions.tasks.outgoing.local import get_target_links_in_text
 from mentions.tasks.outgoing.remote import try_send_webmention
@@ -41,7 +42,16 @@ def process_outgoing_webmentions(source_urlpath: str, text: str) -> int:
         return 0
 
     for link_url in links_in_text:
-        result = try_send_webmention(source_urlpath, link_url)
+        outgoing_webmention = get_or_create_outgoing_webmention(
+            source_urlpath,
+            link_url,
+            reset_retries=True,
+        )
+        result = try_send_webmention(
+            source_urlpath,
+            link_url,
+            outgoing_status=outgoing_webmention,
+        )
 
         if result is None:
             # No webmention endpoint found

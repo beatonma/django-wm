@@ -11,6 +11,7 @@ from requests import RequestException, Response
 from mentions import options
 from mentions.exceptions import TargetNotAccessible
 from mentions.models import OutgoingWebmentionStatus
+from mentions.resolution import get_or_create_outgoing_webmention
 from mentions.util import html_parser, http_get, http_post
 
 __all__ = [
@@ -30,7 +31,11 @@ STATUS_MESSAGE_OK = "The target server accepted the webmention."
 log = logging.getLogger(__name__)
 
 
-def try_send_webmention(source_urlpath: str, target_url: str) -> Optional[bool]:
+def try_send_webmention(
+    source_urlpath: str,
+    target_url: str,
+    outgoing_status: Optional[OutgoingWebmentionStatus] = None,
+) -> Optional[bool]:
     """Try to send a webmention for target_url.
 
     Returns:
@@ -38,10 +43,8 @@ def try_send_webmention(source_urlpath: str, target_url: str) -> Optional[bool]:
         False if a webmention endpoint was resolved but submission failed.
         None if a webmention endpoint could not be resolved (i.e. the website does not appear to support webmentions).
     """
-    outgoing_status, _ = OutgoingWebmentionStatus.objects.get_or_create(
-        source_url=source_urlpath,
-        target_url=target_url,
-    )
+    if outgoing_status is None:
+        outgoing_status = get_or_create_outgoing_webmention(source_urlpath, target_url)
 
     try:
         response = _get_target(outgoing_status, target_url)
