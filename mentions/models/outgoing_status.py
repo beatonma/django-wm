@@ -41,4 +41,4 @@ class OutgoingWebmentionStatus(RetryableMixin, MentionsBaseModel):
 
     class Meta:
         ordering = ["-created_at"]
-        verbose_name_plural = "Outgoing Webmention Statuses"
+        verbose_name_plural = "Outgoing Webmentions"
