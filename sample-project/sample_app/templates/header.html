@@ -1,0 +1,8 @@
+{% load webmentions %}
+<header>
+  <nav>
+    <a href="{% url 'admin:index' %}">Admin</a> |
+    {% webmentions_dashboard "Dashboard" %}
+  </nav>
+  <h1>{{ DOMAIN_NAME }}</h1>
+</header>

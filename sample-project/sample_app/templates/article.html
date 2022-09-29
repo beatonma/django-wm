@@ -1,0 +1,65 @@
+{% load webmentions %}
+{% load sampleapp %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% webmentions_endpoint %}
+  <title>{{ DOMAIN_NAME }}</title>
+
+  <style>
+    {% include "style.css" %}
+
+    .mention {
+        border: 2px solid grey;
+        border-radius: 1ch;
+        padding: 1ch 2ch;
+        width: fit-content;
+    }
+
+    .mention .meta {
+        font-variant: all-small-caps;
+    }
+  </style>
+</head>
+<body>
+  {% include "header.html" %}
+
+  <main>
+    <section>
+      <article class="h-entry">
+        <h2 class="p-name">{{ article.title }}</h2>
+        <p>Published by {% maybe_link_hcard  article.author %}.</p>
+
+        <div class="e-content">
+          {{ article.content|safe }}
+        </div>
+      </article>
+    </section>
+
+    <section id="mentions">
+      <aside>
+        <h2>Mentions:</h2>
+        {% for mention in article.mentions %}
+          <div class="mention {{ mention.post_type|default:"mention" }}">
+            <div class="meta">
+              <span class="type">{{ mention.post_type|default:"mention" }}</span><span> by </span>
+              {% if mention.hcard %}
+                <span class="h-card">
+                  <a class="p-name u-url" href="{{ mention.hcard.homepage }}">{{ mention.hcard.name }}</a>
+                </span>
+              {% else %}
+                <span>somebody?</span>
+              {% endif %}
+            </div>
+            <a href="{{ mention.source_url }}">{{ mention.source_url }}</a>
+          </div>
+        {% empty %}
+          No mentions yet :(
+        {% endfor %}
+      </aside>
+    </section>
+  </main>
+</body>
+</html>

@@ -6,7 +6,7 @@ from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 
-from mentions.models.mixins.mentionable import MentionableMixin
+from mentions.models.mixins import MentionableMixin
 from tests.util import viewname
 
 log = logging.getLogger(__name__)

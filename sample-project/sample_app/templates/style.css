@@ -1,0 +1,13 @@
+body {
+    font-family: sans-serif;
+}
+
+a, a:visited {
+  color: #2d8037;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+section {
+    margin-bottom: 3rem;
+}

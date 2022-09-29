@@ -1,6 +1,4 @@
-"""
-Chunks of markup.
-"""
+"""Chunks of markup."""
 
 import logging
 
@@ -57,4 +55,14 @@ def html_all_endpoints(content):
     return build_html(
         head=_html_head_link(testfunc.endpoint_submit_webmention()),
         body=f"""<div>{content}{_html_body_link(testfunc.endpoint_submit_webmention())}This is arbitrary...</div>""",
+    )
+
+
+def html_with_mentions(*urls: str) -> str:
+    html_link = """<a href="{url}">This is a mentionable link</a>"""
+    links = [html_link.format(url=u) for u in urls]
+
+    return build_html(
+        head=_html_head_link(testfunc.endpoint_submit_webmention()),
+        body="".join(links),
     )

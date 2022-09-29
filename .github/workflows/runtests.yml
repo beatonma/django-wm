@@ -1,32 +1,47 @@
 name: Tests
 on: [push, pull_request]
 jobs:
-  runtests:
+  runtests_withcelery:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ['3.7', '3.8', '3.9', '3.10']
+        python-version: ['3.7', '3.10']
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.ppython-version }}
-      uses: actions/setup-python@v2
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
       with:
         python-version: ${{ matrix.python-version }}
 
-    # Run tests with all dependencies.
     - name: Install dependencies
       run: |
-        python -m pip install --upgrade pip
         pip install -r requirements.txt
+        pip install celery
+
     - name: Run tests
       run: |
         python runtests.py
 
-    # Uninstall celery and run tests again.
-    - name: Uninstall celery
+  runtests_nocelery:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.7', '3.10']
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
       run: |
-        pip uninstall celery -y
-    - name: Run tests without celery
+        pip install -r requirements.txt
+
+    - name: Run tests
       run: |
         python runtests.py

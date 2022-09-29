@@ -1,12 +1,12 @@
-import logging
-
 from django.db import models
 
 from mentions import options
-from mentions.models import MentionsBaseModel
-from mentions.models.mixins.quotable import QuotableMixin
+from mentions.models.base import MentionsBaseModel
+from mentions.models.mixins import QuotableMixin
 
-log = logging.getLogger(__name__)
+__all__ = [
+    "Webmention",
+]
 
 
 def _approve_default():
@@ -30,16 +30,17 @@ class Webmention(QuotableMixin, MentionsBaseModel):
         "confirmed to exist, and source really does link to target",
     )
 
-    notes = models.CharField(max_length=1024, blank=True)
+    notes = models.CharField(
+        max_length=1024,
+        blank=True,
+        help_text="A description of any errors encountered when building this Webmention.",
+    )
 
     def approve(self):
         self.approved = True
 
     class Meta:
         ordering = ["-created_at"]
-        permissions = [
-            ("approve_webmention", "Can approve received Webmentions for publishing.")
-        ]
 
     def __str__(self):
         return (
@@ -47,41 +48,3 @@ class Webmention(QuotableMixin, MentionsBaseModel):
             f"[validated={self.validated}, approved={self.approved},"
             f"content_type={self.content_type}, id={self.object_id}]"
         )
-
-
-class OutgoingWebmentionStatus(MentionsBaseModel):
-    """Status tracker for webmentions that you (attempt to) send from your server.
-
-    Used primarily for logging of outgoing mentions.
-    """
-
-    source_url = models.URLField(
-        help_text="The URL on your server where this mention originates",
-    )
-    target_url = models.URLField(
-        help_text="The URL that you mentioned.",
-    )
-    target_webmention_endpoint = models.URLField(
-        null=True,
-        blank=True,
-        help_text="The endpoint URL to which we sent the webmention",
-    )
-    status_message = models.CharField(
-        max_length=1024,
-        help_text="Success, or an explanation of what went wrong.",
-    )
-    response_code = models.PositiveIntegerField(default=0)
-
-    successful = models.BooleanField(default=False)
-
-    def __str__(self):
-        return (
-            f"{self.source_url} -> {self.target_url} "
-            f"(endpoint={self.target_webmention_endpoint}): "
-            f"[{self.successful}] {self.status_message} "
-            f"[{self.response_code}]"
-        )
-
-    class Meta:
-        ordering = ["-created_at"]
-        verbose_name_plural = "Outgoing Webmention Statuses"

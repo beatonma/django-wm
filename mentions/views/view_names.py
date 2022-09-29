@@ -7,3 +7,6 @@ webmention_api_incoming = "incoming_webmention_api_view"
 
 """API endpoint for retrieving existing webmentions for some target URL or object."""
 webmention_api_get_for_object = "get_webmentions_for_object_api_view"
+
+
+webmention_dashboard = "webmention-dashboard"

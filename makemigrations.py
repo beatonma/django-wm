@@ -10,6 +10,7 @@ MIGRATION_SETTINGS = {
     "DEBUG": False,
     "SECRET_KEY": "django-wm-fake-key",
     "INSTALLED_APPS": [
+        "django.contrib.auth",
         "django.contrib.contenttypes",
         "mentions",
     ],

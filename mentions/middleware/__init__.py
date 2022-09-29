@@ -1,1 +1,1 @@
-from .webmention_head_middleware import *
+from .webmention_head_middleware import WebmentionHeadMiddleware

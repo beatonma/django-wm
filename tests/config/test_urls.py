@@ -1,8 +1,10 @@
+from django.contrib import admin
 from django.urls import include, path
 
 from tests.util import constants, viewname
 from tests.views import (
     AllEndpointsMentionableTestView,
+    MiddlewareView,
     SimpleNoObjectTestView,
     TemplateTagTestView,
 )
@@ -10,7 +12,7 @@ from tests.views import (
 urlpatterns = [
     # A page associated with a MentionableMixin model with correct configuration - webmentions linked by model instance.
     path(
-        fr"with_correct_config/<slug:slug>",
+        rf"with_correct_config/<slug:slug>",
         AllEndpointsMentionableTestView.as_view(),
         kwargs={
             "model_name": constants.model_name,
@@ -28,5 +30,11 @@ urlpatterns = [
         TemplateTagTestView.as_view(),
         name="test-template-tags",
     ),
+    path(
+        "middleware/",
+        MiddlewareView.as_view(),
+        name=viewname.middleware,
+    ),
     path(f"{constants.namespace}/", include("mentions.urls")),
+    path("test-admin/", admin.site.urls),
 ]

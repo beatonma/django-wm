@@ -1,0 +1,9 @@
+env/
+htmlcov/
+docs/
+dist/
+build/
+.git/
+*.egg-info
+.github/
+.pytest_cache/

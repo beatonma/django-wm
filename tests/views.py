@@ -1,6 +1,4 @@
-"""
-Views that are only used for running tests.
-"""
+"""Views that are only used for running tests."""
 
 import logging
 
@@ -11,6 +9,13 @@ from tests.models import MentionableTestBlogPost, MentionableTestModel
 from tests.util import snippets, testfunc
 
 log = logging.getLogger(__name__)
+
+
+class MiddlewareView(View):
+    """Empty view, just for testing WebmentionHeadMiddleware."""
+
+    def get(self, request):
+        return HttpResponse(status=200)
 
 
 class AllEndpointsMentionableTestView(View):
@@ -38,7 +43,7 @@ class SimpleNoObjectTestView(View):
 
 
 class TemplateTagTestView(TemplateView):
-    """Render page to test `{% webmention_endpoint %}` tag."""
+    """Render page to test `{% webmentions_endpoint %}` tag."""
 
     template_name = "templatetags_example.html"
 

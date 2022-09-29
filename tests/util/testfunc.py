@@ -3,12 +3,15 @@ Utility functions used in multiple test files.
 """
 import random
 import uuid
-from typing import Tuple
+from typing import Optional, Tuple
 
 from django.conf import settings
+from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
 
+from mentions.models import Webmention
+from mentions.models.mixins import IncomingMentionType
 from mentions.views import view_names
 from tests.models import MentionableTestModel
 from tests.util import viewname
@@ -27,7 +30,30 @@ def create_mentionable_object(content: str = ""):
     return MentionableTestModel.objects.create(pk=pk, slug=slug, content=content)
 
 
-def get_absolute_url_for_object(obj):
+def create_webmention(
+    source_url: Optional[str] = None,
+    target_url: Optional[str] = None,
+    post_type: Optional[IncomingMentionType] = None,
+    sent_by: Optional[str] = None,
+    approved: bool = True,
+    validated: bool = True,
+    quote: Optional[str] = None,
+) -> Webmention:
+    return Webmention.objects.create(
+        source_url=source_url or random_url(),
+        target_url=target_url or random_url(),
+        post_type=post_type.name.lower() if post_type else None,
+        sent_by=sent_by or random_url(),
+        approved=approved,
+        validated=validated,
+        quote=quote,
+    )
+
+
+def get_absolute_url_for_object(obj: models.Model = None):
+    if obj is None:
+        obj = create_mentionable_object(content=random_str())
+
     return _absolute_url(obj.get_absolute_url())
 
 

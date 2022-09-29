@@ -10,10 +10,12 @@ from mentions.models import (
 )
 
 
+@admin.action(permissions=["change"])
 def approve_webmention(modeladmin, request, queryset):
     queryset.update(approved=True)
 
 
+@admin.action(permissions=["change"])
 def disapprove_webmention(modeladmin, request, queryset):
     queryset.update(approved=False)
 
@@ -68,6 +70,7 @@ class WebmentionAdmin(QuotableAdmin):
                     "sent_by",
                     "hcard",
                     "quote",
+                    "post_type",
                 ),
             },
         ),

@@ -1,11 +1,33 @@
-import logging
+from enum import Enum
+from typing import List, Tuple
 
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.utils import timezone
 from django.db import models
+from django.utils import timezone
 
-log = logging.getLogger()
+__all__ = [
+    "IncomingMentionType",
+    "QuotableMixin",
+]
+
+
+class IncomingMentionType(Enum):
+    """Properties that describe the context of the incoming webmention.
+
+    See: https://microformats.org/wiki/h-entry"""
+
+    Bookmark = "u-bookmark-of"
+    Like = "u-like-of"
+    Listen = "u-listen-of"
+    Reply = "u-in-reply-to"
+    Repost = "u-repost-of"
+    Translation = "u-translation-of"
+    Watch = "u-watch-of"
+
+    @classmethod
+    def choices(cls) -> List[Tuple[str, str]]:
+        return [(x.lower(), x) for x in cls.__members__.keys()]
 
 
 class QuotableMixin(models.Model):
@@ -24,9 +46,22 @@ class QuotableMixin(models.Model):
         help_text="A short excerpt from the quoted piece",
     )
 
+    post_type = models.CharField(
+        max_length=64,
+        null=True,
+        blank=True,
+        help_text="Type (e.g. like, reply, etc.) of mention, if specified",
+        choices=IncomingMentionType.choices(),
+    )
+
     published = models.DateTimeField(default=timezone.now)
 
-    hcard = models.ForeignKey("HCard", blank=True, null=True, on_delete=models.CASCADE)
+    hcard = models.ForeignKey(
+        "HCard",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+    )
 
     # The mention target may be an instance of any class that
     # uses the MentionableMixin so we need to use a GenericForeignKey

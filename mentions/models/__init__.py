@@ -1,14 +1,6 @@
-from django.db import models
-
-
-class MentionsBaseModel(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True, null=True)
-
-    class Meta:
-        abstract = True
-
-
-from .hcard import *
-from .manual_mention import *
-from .pending import *
-from .webmention import *
+from .hcard import HCard
+from .outgoing_status import OutgoingWebmentionStatus
+from .pending import PendingIncomingWebmention, PendingOutgoingContent
+from .proxy import DashboardPermissionProxy
+from .simple_mention import SimpleMention
+from .webmention import Webmention

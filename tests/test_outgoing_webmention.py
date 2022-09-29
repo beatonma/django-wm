@@ -8,8 +8,9 @@ import requests
 from django.conf import settings
 
 from mentions.models import OutgoingWebmentionStatus
-from mentions.tasks import outgoing_webmentions, process_outgoing_webmentions
-from tests import MockResponse, WebmentionTestCase
+from mentions.tasks import handle_pending_webmentions
+from mentions.tasks.outgoing import process_outgoing_webmentions, remote
+from tests import MockResponse, OptionsTestCase
 from tests.util import testfunc
 
 log = logging.getLogger(__name__)
@@ -86,7 +87,7 @@ def _patch_post(ok: bool):
     )
 
 
-class OutgoingWebmentionsTests(WebmentionTestCase):
+class OutgoingWebmentionsTests(OptionsTestCase):
     """OUTOOING: tests for task `process_outgoing_webmentions`."""
 
     source_url = f"https://{settings.DOMAIN_NAME}/some-url-path/"
@@ -95,8 +96,8 @@ class OutgoingWebmentionsTests(WebmentionTestCase):
     def test_send_webmention(self):
         """_send_webmention should return True with status code when webmention is accepted by server."""
 
-        success, status_code = outgoing_webmentions._send_webmention(
-            source_url=self.source_url,
+        success, status_code = remote._send_webmention(
+            source_urlpath=self.source_url,
             endpoint=f"https://{TARGET_DOMAIN}/webmention/",
             target=f"https://{TARGET_DOMAIN}/",
         )
@@ -108,8 +109,8 @@ class OutgoingWebmentionsTests(WebmentionTestCase):
     def test_send_webmention__with_endpoint_error(self):
         """_send_webmention should return False with status code when webmention is not accepted by server."""
 
-        success, status_code = outgoing_webmentions._send_webmention(
-            source_url=self.source_url,
+        success, status_code = remote._send_webmention(
+            source_urlpath=self.source_url,
             endpoint=f"https://{TARGET_DOMAIN}/webmention/",
             target=f"https://{TARGET_DOMAIN}/",
         )
@@ -135,7 +136,7 @@ class OutgoingWebmentionsTests(WebmentionTestCase):
         )
 
         self.assertEqual(2, successful_submissions)
-        self.assertEqual(3, OutgoingWebmentionStatus.objects.count())
+        self.assertEqual(2, OutgoingWebmentionStatus.objects.count())
 
     # No network requests should be made if links not found in text
     @patch.object(requests, "get", None)
@@ -162,3 +163,27 @@ class OutgoingWebmentionsTests(WebmentionTestCase):
 
         self.assertEqual(0, successful_webmention_submissions)
         self.assertEqual(1, OutgoingWebmentionStatus.objects.count())
+
+    @_patch_get(ok=True)
+    @_patch_post(ok=False)
+    def test_process_outgoing_webmentions__recycles_status(self):
+        self.enable_celery(False)
+        self.set_retry_interval(0)
+
+        # Process links from text to target url.
+        process_outgoing_webmentions(self.source_url, OUTGOING_WEBMENTION_HTML)
+        status: OutgoingWebmentionStatus = OutgoingWebmentionStatus.objects.first()
+        self.assertEqual(status.retry_attempt_count, 1)
+
+        # After failure, retrying process increments retry_attempt_count.
+        handle_pending_webmentions()
+        status.refresh_from_db()
+        self.assertEqual(status.retry_attempt_count, 2)
+
+        # Reprocessing raw text reuses same status instance, resetting its retry tracking.
+        process_outgoing_webmentions(self.source_url, OUTGOING_WEBMENTION_HTML)
+
+        self.assertEqual(OutgoingWebmentionStatus.objects.count(), 1)
+        self.assertEqual(
+            OutgoingWebmentionStatus.objects.first().retry_attempt_count, 1
+        )

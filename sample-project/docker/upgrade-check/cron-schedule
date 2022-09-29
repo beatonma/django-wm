@@ -1,0 +1,2 @@
+# Maybe send a webmention every minute
+* * * * * python /usr/src/app/manage.py automention
