@@ -70,6 +70,13 @@ class OptionsTestCase(WebmentionTestCase):
     def set_dashboard_public(self, public: bool):
         setattr(settings, options.SETTING_DASHBOARD_PUBLIC, public)
 
+    def set_incoming_target_model_required(self, requires_model: bool):
+        setattr(
+            settings,
+            options.SETTING_INCOMING_TARGET_MODEL_REQUIRED,
+            requires_model,
+        )
+
 
 class MockResponse:
     """Mock of requests.Response."""

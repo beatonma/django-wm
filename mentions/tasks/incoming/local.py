@@ -19,7 +19,7 @@ def get_target_object(target_url: str) -> Optional["MentionableMixin"]:
 
     Raises:
         TargetWrongDomain: If the target_url points to a domain not listed in settings.ALLOWED_HOSTS
-        # BadConfig: Raised from get_model_for_url_path
+        BadConfig: Raised from get_model_for_url_path
     """
     scheme, domain, path = split_url(target_url)
 

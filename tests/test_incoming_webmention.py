@@ -2,6 +2,7 @@
 Tests for handling webmentions are sent to us from elsewhere.
 """
 import logging
+from typing import Optional
 from unittest.mock import Mock, patch
 
 import requests
@@ -12,7 +13,7 @@ from mentions.models.mixins import IncomingMentionType
 from mentions.tasks import incoming
 from mentions.tasks.incoming import local, remote
 from mentions.util import html_parser
-from tests import MockResponse, WebmentionTestCase
+from tests import MockResponse, OptionsTestCase, WebmentionTestCase
 from tests.util import snippets, testfunc
 
 log = logging.getLogger(__name__)
@@ -24,7 +25,7 @@ SOURCE_URL_UNSUPPORTED_CONTENT_TYPE = testfunc.random_url()
 SOURCE_URL_NO_MENTIONS = testfunc.random_url()
 
 TARGET_URL = testfunc.get_simple_url(absolute=True)
-SOURCE_TEXT = f"""<div>
+SOURCE_TEXT_DEFAULT = f"""<div>
 <a href="{TARGET_URL}" class="u-repost-of">link to target url</a>
 <div class="h-card">
     <a class="u-url" href="https://janebloggs.org">Jane</a>
@@ -66,52 +67,42 @@ SOURCE_TEXT_REPLY_IN_HCITE = f"""<div class="h-entry">
 </div>"""
 
 
-def _response(url, status_code, text, headers=None):
-    if headers is None:
-        headers = {"content-type": "text/html"}
+def _mock_get_text(url, text=None) -> MockResponse:
+    """Return a MockResponse for the given url and optional custom text."""
 
-    return MockResponse(
-        url,
-        text=text,
-        status_code=status_code,
-        headers=headers,
-    )
+    def _response(status_code, headers=None):
+        if headers is None:
+            headers = {"content-type": "text/html"}
 
-
-def _mock_get_text(url, text=None, **kwargs):
-    if text is None:
-        text = snippets.build_html(body=SOURCE_TEXT)
+        return MockResponse(
+            url,
+            text=text,
+            status_code=status_code,
+            headers=headers,
+        )
 
     return {
         SOURCE_URL_OK: _response(
-            url,
-            text=text,
             status_code=200,
         ),
         SOURCE_URL_NOT_FOUND: _response(
-            url,
-            text=text,
             status_code=404,
         ),
         SOURCE_URL_UNSUPPORTED_CONTENT_TYPE: _response(
-            url,
-            text=text,
             status_code=200,
             headers={"content-type": "image/jpeg"},
         ),
         SOURCE_URL_NO_MENTIONS: _response(
-            url,
-            text=text,
             status_code=200,
         ),
-    }.get(url)
+    }[url]
 
 
-def _patch_get(**kwargs):
+def _patch_get(text: Optional[str] = SOURCE_TEXT_DEFAULT):
     return patch.object(
         requests,
         "get",
-        Mock(side_effect=lambda x, **kw: _mock_get_text(x, **kwargs, **kw)),
+        Mock(side_effect=lambda x, **kw: _mock_get_text(x, text=text)),
     )
 
 
@@ -137,7 +128,7 @@ class IncomingWebmentionsTests(WebmentionTestCase):
     def test_get_incoming_source(self):
         """Incoming source text is retrieved correctly."""
         text = remote.get_source_html(SOURCE_URL_OK)
-        self.assertTrue(SOURCE_TEXT in text)
+        self.assertTrue(SOURCE_TEXT_DEFAULT in text)
 
     @_patch_get()
     def test_get_incoming_source_inaccessible_url(self):
@@ -151,14 +142,14 @@ class IncomingWebmentionsTests(WebmentionTestCase):
         with self.assertRaises(SourceNotAccessible):
             remote.get_source_html(SOURCE_URL_UNSUPPORTED_CONTENT_TYPE)
 
+    @_patch_get()
     def test_process_incoming_webmention(self):
         """process_incoming_webmention targeting a URL creates a validated Webmention object when successful."""
-        with _patch_get():
-            incoming.process_incoming_webmention(
-                source_url=SOURCE_URL_OK,
-                target_url=TARGET_URL,
-                sent_by=testfunc.random_url(),
-            )
+        incoming.process_incoming_webmention(
+            source_url=SOURCE_URL_OK,
+            target_url=TARGET_URL,
+            sent_by=testfunc.random_url(),
+        )
 
         webmentions = Webmention.objects.all()
         self.assertEqual(1, webmentions.count())
@@ -172,13 +163,13 @@ class IncomingWebmentionsTests(WebmentionTestCase):
         self.assertIsNotNone(hcard)
         self.assertEqual(hcard.name, "Jane")
 
+    @_patch_get(text=SOURCE_TEXT_WITH_REPOST)
     def test_process_incoming_webmention_with_post_type(self):
-        with _patch_get(text=SOURCE_TEXT_WITH_REPOST):
-            incoming.process_incoming_webmention(
-                source_url=SOURCE_URL_OK,
-                target_url=TARGET_URL,
-                sent_by=testfunc.random_url(),
-            )
+        incoming.process_incoming_webmention(
+            source_url=SOURCE_URL_OK,
+            target_url=TARGET_URL,
+            sent_by=testfunc.random_url(),
+        )
 
         mention: Webmention = Webmention.objects.first()
         self.assertEqual(mention.source_url, SOURCE_URL_OK)
@@ -213,15 +204,14 @@ class IncomingWebmentionsTests(WebmentionTestCase):
         self.assertIsNotNone(hcard)
         self.assertEqual(hcard.name, "Jane")
 
+    @_patch_get(text=snippets.build_html(body=SOURCE_TEXT_NO_MENTION))
     def test_process_incoming_webmention_no_mentions_in_source(self):
         """process_incoming_webmention creates unvalidated Webmention object when target link not found in source text."""
-
-        with _patch_get(text=snippets.build_html(body=SOURCE_TEXT_NO_MENTION)):
-            incoming.process_incoming_webmention(
-                source_url=SOURCE_URL_NO_MENTIONS,
-                target_url=TARGET_URL,
-                sent_by=testfunc.random_url(),
-            )
+        incoming.process_incoming_webmention(
+            source_url=SOURCE_URL_NO_MENTIONS,
+            target_url=TARGET_URL,
+            sent_by=testfunc.random_url(),
+        )
 
         webmentions = Webmention.objects.all()
         self.assertEqual(1, webmentions.count())
@@ -242,3 +232,63 @@ class IncomingWebmentionsTests(WebmentionTestCase):
 
         link_type = remote.parse_post_type(link)
         self.assertEqual(link_type, IncomingMentionType.Reply)
+
+
+class IncomingWebmentionOptionTests(OptionsTestCase):
+    """INCOMING: Test effects of settings.WEBMENTIONS_TARGET_REQUIRES_OBJECT."""
+
+    def assert_webmention_count(
+        self,
+        expected_count: int,
+        text: str = SOURCE_TEXT_DEFAULT,
+        target_url: str = TARGET_URL,
+    ):
+        with _patch_get(text):
+            incoming.process_incoming_webmention(
+                source_url=SOURCE_URL_OK,
+                target_url=target_url,
+                sent_by=testfunc.random_url(),
+            )
+
+        self.assertEqual(expected_count, Webmention.objects.count())
+
+    def test_process_incoming_webmention_with_object_not_required(self):
+        """When mention does not target a model instance, setting False accepts the mention."""
+        self.set_incoming_target_model_required(False)
+
+        self.assert_webmention_count(1)
+        self.assertIsNone(Webmention.objects.first().target_object)
+
+    def test_process_incoming_webmention_with_object_required(self):
+        """When mention does not target a model instance, setting True ignores the mention."""
+        self.set_incoming_target_model_required(True)
+
+        self.assert_webmention_count(0)
+
+    def test_target_object_with_object_required(self):
+        """When mention targets a model instance, setting has no effect."""
+        self.set_incoming_target_model_required(True)
+
+        target_obj = testfunc.create_mentionable_object()
+        target_url = testfunc.get_absolute_url_for_object(target_obj)
+
+        self.assert_webmention_count(
+            1,
+            text=SOURCE_TEXT_FOR_OBJECT.format(url=target_url),
+            target_url=target_url,
+        )
+        self.assertIsNotNone(Webmention.objects.first().target_object)
+
+    def test_target_object_with_object_not_required(self):
+        """When mention targets a model instance, setting has no effect."""
+        self.set_incoming_target_model_required(False)
+
+        target_obj = testfunc.create_mentionable_object()
+        target_url = testfunc.get_absolute_url_for_object(target_obj)
+
+        self.assert_webmention_count(
+            1,
+            text=SOURCE_TEXT_FOR_OBJECT.format(url=target_url),
+            target_url=target_url,
+        )
+        self.assertIsNotNone(Webmention.objects.first().target_object)

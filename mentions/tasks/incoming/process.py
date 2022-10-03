@@ -1,3 +1,4 @@
+from mentions import options
 from mentions.exceptions import (
     SourceDoesNotLink,
     SourceNotAccessible,
@@ -30,6 +31,13 @@ def process_incoming_webmention(source_url: str, target_url: str, sent_by: str) 
         notes.warning(
             f"Unable to find matching page on our server for url '{target_url}'"
         )
+
+    if wm.target_object is None and options.target_requires_model():
+        log.warning(
+            f"Ignoring received webmention [{source_url} -> {target_url}]: "
+            "target does not resolve to a mentionable model instance."
+        )
+        return
 
     try:
         response_html = get_source_html(source_url)
