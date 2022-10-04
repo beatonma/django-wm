@@ -5,7 +5,7 @@ from typing import Optional
 from django.conf import settings
 from django.core.management import BaseCommand
 from sample_app.models import Article
-from sample_app.tasks import create_initial_article
+from sample_app.tasks import create_initial_articles
 
 from mentions.models import HCard, OutgoingWebmentionStatus, Webmention
 
@@ -22,7 +22,7 @@ class Command(BaseCommand):
     gracefully after upgrading the django-wm library."""
 
     def handle(self, *args, **options):
-        create_initial_article()
+        create_initial_articles()
         _create_hcards()
         _create_webmentions()
 

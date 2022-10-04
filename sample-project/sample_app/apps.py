@@ -18,6 +18,13 @@ class SampleAppConfig(AppConfig):
             # Don't create default article when running tests or migrations.
             return
 
-        from sample_app.tasks import create_initial_article
+        from sample_app.tasks import create_initial_articles
 
-        create_initial_article()
+        create_initial_articles()
+
+        from mentions.models import OutgoingWebmentionStatus
+
+        OutgoingWebmentionStatus.objects.get_or_create(
+            target_url="#s3",
+            source_url="/article/2/",
+        )

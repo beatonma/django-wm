@@ -8,12 +8,24 @@ from sample_app.models import Article, create_article
 log = logging.getLogger(__name__)
 
 
-def create_initial_article():
+def create_initial_articles():
     Article.objects.get_or_create(
         title=f"First article on {settings.DOMAIN_NAME}",
         defaults={
             "content": "Something to talk about",
             "author": "A. Mouse",
+        },
+    )
+
+    Article.objects.get_or_create(
+        title=f"Article with self-referencing #IDs",
+        defaults={
+            "allow_outgoing_webmentions": True,
+            "author": "A. Mouse",
+            "content": """
+            <p id="s2"><a href="#s2" >§</a> Some text</p>
+            <p id="s3"><a href="#s3" >§</a> Some more text</p>
+            """,
         },
     )
 

@@ -25,6 +25,7 @@ __all__ = [
     "get_mentions_for_url_path",
     "get_mentions_for_view",
     "get_model_for_url_path",
+    "get_or_create_outgoing_webmention",
 ]
 
 

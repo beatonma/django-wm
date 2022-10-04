@@ -9,7 +9,11 @@ from mentions.models import (
 )
 from mentions.tasks.celeryproxy import shared_task
 from mentions.tasks.incoming import process_incoming_webmention
-from mentions.tasks.outgoing import process_outgoing_webmentions, try_send_webmention
+from mentions.tasks.outgoing import (
+    is_valid_target,
+    process_outgoing_webmentions,
+    try_send_webmention,
+)
 
 log = logging.getLogger(__name__)
 
@@ -114,6 +118,11 @@ def _handle_pending_outgoing():
     for outgoing_retry in OutgoingWebmentionStatus.objects.filter(
         is_awaiting_retry=True,
     ):
+        if not is_valid_target(outgoing_retry.target_url):
+            log.warning(f"Target URL is invalid: {outgoing_retry.target_url}")
+            outgoing_retry.delete()
+            continue
+
         if outgoing_retry.can_retry():
             try_send_webmention(outgoing_retry.source_url, outgoing_retry.target_url)
 
