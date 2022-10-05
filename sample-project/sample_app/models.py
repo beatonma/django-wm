@@ -1,9 +1,8 @@
-import datetime
 import logging
+from typing import Optional
 
 from django.db import models
 from django.urls import reverse
-from django.utils.text import slugify
 from sample_app.compat import MentionableMixin
 
 log = logging.getLogger(__name__)
@@ -30,7 +29,12 @@ class Article(MentionableMixin, models.Model):
         return f"{self.author}: {self.title}"
 
 
-def create_article(author: str, target_url: str, mention_type: str) -> Article:
+def create_article(
+    author: str,
+    target_url: str,
+    mention_type: str,
+    content: Optional[str] = None,
+) -> Article:
     try:
         from mentions.models.mixins import IncomingMentionType
 
@@ -38,10 +42,15 @@ def create_article(author: str, target_url: str, mention_type: str) -> Article:
     except ImportError:
         _type = ""
 
+    content = (
+        content
+        or f"""<p>This text mentions <a href="{target_url}" class="{_type}">this page</a></p>"""
+    )
+
     article = Article.objects.create(
         author=author,
         title=f"About {target_url}",
-        content=f"""<p>This text mentions <a href="{target_url}" class="{_type}">this page</a></p>""",
+        content=content,
         allow_outgoing_webmentions=True,
     )
 

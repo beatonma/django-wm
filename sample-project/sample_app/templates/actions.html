@@ -9,30 +9,34 @@
   <style>
     {% include "style.css" %}
 
-    input[type=text] {
-      width: 32ch;
+    input[type=text], input[type=url], textarea {
+      width: 100%;
     }
-    input, label, select, button {
+    input, label, select, button, textarea {
       padding: 1ch;
       border-radius: 1ch;
     }
-    input, button, select {
+    input, button, select, textarea {
       font-size: 18px;
     }
     form {
-        width: fit-content;
+      width: 48ch;
     }
     button {
-        display: flex;
-        margin-left: auto;
-        margin-right: 0;
-        font-weight: bold;
-        cursor: pointer;
+      display: flex;
+      margin-left: auto;
+      margin-right: 0;
+      font-weight: bold;
+      cursor: pointer;
     }
     label {
-        display: inline-block;
-        width: 6ch;
-        text-align: end;
+      display: inline-block;
+      width: 6ch;
+      text-align: end;
+    }
+    p {
+      display: flex;
+      align-items: center;
     }
   </style>
 
@@ -59,32 +63,9 @@
   <main>
     <section>
       <h2>Create an article with a webmention:</h2>
-
       <form id="create_article_form">
         {% csrf_token %}
-        <p>
-          <label for="target">Target</label>
-          <input type="text" id="target" name="target" value="{{ DEFAULT_MENTION_TARGET }}" required placeholder="http://whatever.org/article/"/>
-        </p>
-
-        <p>
-          <label for="author">Author</label>
-          <input type="text" id="author" name="author" value="{{ DEFAULT_MENTION_AUTHOR }}" required placeholder="Any name" />
-        </p>
-
-        <p>
-          <label for="type">Type</label>
-          <select id="type" name="type">
-            <option value="">-</option>
-            <option value="Bookmark">Bookmark</option>
-            <option value="Like">Like</option>
-            <option value="Listen">Listen</option>
-            <option value="Reply">Reply</option>
-            <option value="Repost">Repost</option>
-            <option value="Translation">Translation</option>
-            <option value="Watch">Watch</option>
-          </select>
-        </p>
+        {{ action_form.as_p }}
 
         <button type="button" onclick="submitForm()">Send</button>
       </form>
@@ -94,7 +75,7 @@
       <h2>Articles:</h2>
       <ul>
         {% for a in articles %}
-          <li><a href="{{ a.get_absolute_url }}">{{ a.title }}</a></li>
+          <li><a href="{{ a.get_absolute_url }}">[{{ a.pk }}] {{ a.title }}</a></li>
         {% endfor %}
       </ul>
     </section>
