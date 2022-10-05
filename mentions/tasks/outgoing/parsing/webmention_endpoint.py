@@ -31,9 +31,7 @@ def get_endpoint_in_http_headers(headers: CaseInsensitiveDict) -> Optional[str]:
         if match is None:
             return
 
-        print(f"MATCH: {match}")
         endpoint = match.group("url")
-        print(f"ENDPOINT: {endpoint}")
         log.debug(f"Webmention endpoint found in HTTP header: '{endpoint}'")
         return endpoint
 
