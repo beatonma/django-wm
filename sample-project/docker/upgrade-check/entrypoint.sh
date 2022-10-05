@@ -1,5 +1,5 @@
 echo "Installing previous django-wm..."
-pip install django-wm[celery]==2.3.0
+pip install django-wm[celery]
 echo "[OK] previous django-wm installed."
 
 echo "Setting up old server..."
