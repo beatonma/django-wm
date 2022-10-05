@@ -120,25 +120,25 @@ class EndpointDiscoveryTests(WebmentionTestCase):
         urls = {
             f"https://{testfunc.random_domain()}",
             f"http://{testfunc.random_domain()}/some-path",
-            f"{testfunc.random_domain()}/some-path/something_else_04/",
+            f"https://{testfunc.random_domain()}/some-path/something_else_04/",
             f"https://subdomain.{testfunc.random_domain()}/blah-blah/",
             *{testfunc.random_url() for _ in range(0, 5)},
         }
 
         outgoing_content = "".join(
             [
-                f'This is some content that mentions <a href="{url}">this page</a>'
+                f'This is some content that mentions <a href="{url}">this page</a>.'
                 for url in urls
             ]
         )
 
-        outgoing_links = local.get_target_links_in_text(outgoing_content)
-        self.assertSetEqual(outgoing_links, urls)
+        outgoing_links = local.get_target_links_in_html(outgoing_content, "/")
+        self.assertSetEqual(urls, outgoing_links)
 
     def test_get_target_links_in_text__should_remove_duplicates(self):
         """Outgoing links do not contain duplicates."""
-        outgoing_links = local.get_target_links_in_text(
-            OUTGOING_WEBMENTION_HTML_DUPLICATE_LINKS
+        outgoing_links = local.get_target_links_in_html(
+            OUTGOING_WEBMENTION_HTML_DUPLICATE_LINKS, "/"
         )
 
         self.assertSetEqual(
@@ -148,8 +148,8 @@ class EndpointDiscoveryTests(WebmentionTestCase):
     def test_get_target_links_in_text__ignores_self_anchors(self):
         """_get_target_links_in_text should remove any links that target the source page."""
 
-        outgoing_links = local.get_target_links_in_text(
-            OUTGOING_WEBMENTION_HTML_SELF_LINKS
+        outgoing_links = local.get_target_links_in_html(
+            OUTGOING_WEBMENTION_HTML_SELF_LINKS, "/"
         )
 
         self.assertSetEqual({"https://beatonma.org/"}, outgoing_links)

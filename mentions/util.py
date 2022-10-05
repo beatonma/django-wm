@@ -3,15 +3,17 @@ from urllib.parse import urlsplit
 
 import requests
 from bs4 import BeautifulSoup
+from django.core.validators import URLValidator
 from requests import Response
 
 from mentions import options
 
 __all__ = [
-    "split_url",
-    "html_parser",
+    "get_url_validator",
     "http_get",
+    "html_parser",
     "http_post",
+    "split_url",
 ]
 
 
@@ -22,6 +24,10 @@ def split_url(target_url: str) -> Tuple[str, str, str]:
     scheme, full_domain, path, _, _ = urlsplit(target_url)
     domain = full_domain.split(":")[0]  # Remove port number if present
     return scheme, domain, path
+
+
+def get_url_validator() -> URLValidator:
+    return URLValidator(schemes=["http", "https"])
 
 
 def html_parser(content) -> BeautifulSoup:

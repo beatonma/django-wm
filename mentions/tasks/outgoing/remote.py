@@ -5,14 +5,13 @@ from urllib.parse import urlsplit
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.validators import URLValidator
 from requests import RequestException, Response
 
 from mentions import options
 from mentions.exceptions import TargetNotAccessible
 from mentions.models import OutgoingWebmentionStatus
 from mentions.resolution import get_or_create_outgoing_webmention
-from mentions.util import html_parser, http_get, http_post
+from mentions.util import get_url_validator, html_parser, http_get, http_post
 
 __all__ = [
     "try_send_webmention",
@@ -203,7 +202,7 @@ def _relative_to_absolute_url(response: Response, url: str) -> Optional[str]:
         return None
 
     try:
-        URLValidator()(url)
+        get_url_validator()(url)
         return url  # url is already well-formed.
     except ValidationError:
         scheme, domain, _, _, _ = urlsplit(response.url)

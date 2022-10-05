@@ -25,6 +25,7 @@ SETTING_MAX_RETRIES = f"{NAMESPACE}_MAX_RETRIES"
 SETTING_RETRY_INTERVAL = f"{NAMESPACE}_RETRY_INTERVAL"
 SETTING_DASHBOARD_PUBLIC = f"{NAMESPACE}_DASHBOARD_PUBLIC"
 SETTING_INCOMING_TARGET_MODEL_REQUIRED = f"{NAMESPACE}_INCOMING_TARGET_MODEL_REQUIRED"
+SETTING_ALLOW_SELF_MENTIONS = f"{NAMESPACE}_ALLOW_SELF_MENTIONS"
 
 """settings.DOMAIN_NAME is sometimes used by other libraries for the same purpose,
 no need to lock it to our namespace."""
@@ -40,6 +41,7 @@ DEFAULTS = {
     SETTING_RETRY_INTERVAL: 60 * 10,
     SETTING_DASHBOARD_PUBLIC: False,
     SETTING_INCOMING_TARGET_MODEL_REQUIRED: False,
+    SETTING_ALLOW_SELF_MENTIONS: True,
 }
 
 
@@ -117,6 +119,15 @@ def target_requires_model() -> bool:
 
     If False, any target path can receive webmentions."""
     return _get_attr(SETTING_INCOMING_TARGET_MODEL_REQUIRED)
+
+
+def allow_self_mentions() -> bool:
+    """Return settings.WEBMENTIONS_ALLOW_SELF_MENTIONS.
+
+    If True, you can send webmentions to yourself.
+    If False, outgoing links that target your own domain name will be ignored.
+    """
+    return _get_attr(SETTING_ALLOW_SELF_MENTIONS)
 
 
 def url_scheme() -> str:

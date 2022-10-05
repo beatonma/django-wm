@@ -1,29 +1,99 @@
+import logging
 from typing import Set
+from urllib.parse import urlsplit
 
-from mentions.util import html_parser
+from django.core.exceptions import ValidationError
+
+from mentions import options
+from mentions.util import get_url_validator, html_parser
 
 __all__ = [
-    "get_target_links_in_text",
+    "get_target_links_in_html",
     "is_valid_target",
 ]
 
 
-def get_target_links_in_text(text: str) -> Set[str]:
-    """Get any links from the text that should be treated as webmention targets."""
-    links = _find_links_in_text(text)
-    links = {link for link in links if is_valid_target(link)}
-
-    return links
+log = logging.getLogger(__name__)
 
 
-def is_valid_target(url: str) -> bool:
-    if url.startswith("#"):
+def get_target_links_in_html(html: str, source_path: str) -> Set[str]:
+    """Get any links from `html` that should be treated as webmention targets.
+
+    If `options.allow_self_mentions()` is `True`, links that use relative paths
+    will be resolved to an absolute URL using `source_path` and
+    `options.domain_name()`.
+
+    Args:
+        html: HTML-formatted text.
+        source_path: The URL path of the HTML source, used to resolve absolute
+                     URLs from any links that use relative paths.
+
+    Returns:
+        Absolute URLs for any valid links from `html`.
+    """
+    valid_links = set()
+    allow_self_mentions = options.allow_self_mentions()
+
+    for link in _find_links_in_html(html):
+        if is_valid_target(link, allow_self_mention=allow_self_mentions):
+            valid_links.add(link)
+            continue
+
+        if "://" in link:
+            # Ignore any unsupported schemes.
+            continue
+
+        if link.startswith("#"):
+            # Ignore local #anchors
+            continue
+
+        if allow_self_mentions:
+            abs_url = _path_to_absolute_url(link, source_path)
+            if is_valid_target(abs_url, allow_self_mention=allow_self_mentions):
+                valid_links.add(abs_url)
+            else:
+                log.warning(f"Constructed absolute url is invalid: {abs_url}")
+
+    return valid_links
+
+
+def is_valid_target(url: str, allow_self_mention: bool) -> bool:
+    """
+
+    Args:
+        url: The URL to be tested
+        allow_self_mention: Whether this server should be allowed to send
+            webmentions to itself.
+
+    Returns:
+        True if `url` is a valid URL and should be treated as a possible
+        target for webmentions, otherwise False
+    """
+    try:
+        validator = get_url_validator()
+        validator(url)
+
+    except ValidationError:
         return False
+
+    if not allow_self_mention:
+        _, domain, _, _, _ = urlsplit(url)
+        if domain == options.domain_name():
+            return False
 
     return True
 
 
-def _find_links_in_text(text: str) -> Set[str]:
-    """Get the raw target href of any links in the text."""
-    soup = html_parser(text)
+def _path_to_absolute_url(relative_path: str, source_path: str) -> str:
+    host = f"{options.url_scheme()}://{options.domain_name()}"
+
+    if relative_path.startswith("/"):
+        return f"{host}{relative_path}"
+
+    return f"{host}{source_path}{relative_path}"
+
+
+def _find_links_in_html(html: str) -> Set[str]:
+    """Get the raw target href of any links in the html."""
+    soup = html_parser(html)
     return {a["href"] for a in soup.find_all("a", href=True)}

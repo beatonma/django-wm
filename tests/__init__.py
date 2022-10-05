@@ -77,6 +77,9 @@ class OptionsTestCase(WebmentionTestCase):
             requires_model,
         )
 
+    def set_allow_self_mentions(self, allow: bool):
+        setattr(settings, options.SETTING_ALLOW_SELF_MENTIONS, allow)
+
 
 class MockResponse:
     """Mock of requests.Response."""
