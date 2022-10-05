@@ -13,24 +13,13 @@ class Article(MentionableMixin, models.Model):
     author = models.CharField(max_length=64)
     title = models.CharField(max_length=64)
     content = models.TextField()
-    allow_incoming_webmentions = models.BooleanField(
-        default=True,
-        help_text="Just for testing upgrade from 2.3.0 -> 3.0.0",
-    )
 
-    def save(self, *args, **kwargs):
-        if not self.pk:
-            self.slug = slugify(
-                datetime.datetime.now().strftime(
-                    f"%y%m%d-%H%M%S-{self.author}-{self.title}"
-                )
-            )[:32]
-        super().save(*args, **kwargs)
+    slug = None
 
     def all_text(self) -> str:
         return self.content
 
-    def get_absolute_url(self):
+    def get_absolute_url(self) -> str:
         return reverse("article", args=[self.pk])
 
     @classmethod
