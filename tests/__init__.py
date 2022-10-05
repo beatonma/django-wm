@@ -1,5 +1,8 @@
+from typing import Optional
+
 from django.conf import settings
 from django.test import TestCase
+from requests.structures import CaseInsensitiveDict
 
 from mentions import options
 
@@ -81,17 +84,28 @@ class OptionsTestCase(WebmentionTestCase):
         setattr(settings, options.SETTING_ALLOW_SELF_MENTIONS, allow)
 
 
+class MetaTestCase(TestCase):
+    """Base testcase class for tests that test test-specific stuff."""
+
+    pass
+
+
 class MockResponse:
     """Mock of requests.Response."""
+
+    url: str
+    headers: Optional[CaseInsensitiveDict]
+    text: Optional[str]
+    status_code: Optional[int]
 
     def __init__(
         self,
         url: str,
-        headers: dict = None,
-        text: str = None,
-        status_code: int = None,
+        headers: Optional[dict] = None,
+        text: Optional[str] = None,
+        status_code: Optional[int] = None,
     ):
         self.url = url
         self.text = text
         self.status_code = status_code
-        self.headers = headers
+        self.headers = CaseInsensitiveDict(headers)

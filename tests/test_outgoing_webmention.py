@@ -44,13 +44,13 @@ def _mock_get_ok(url, headers=None, **kwargs):
         f"https://{TARGET_DOMAIN}/": MockResponse(
             url,
             text=OUTGOING_WEBMENTION_HTML,
-            headers=headers,
+            headers=headers or {},
             status_code=200,
         ),
         f"https://{TARGET_DOMAIN}/some-article/": MockResponse(
             url,
             text=OUTGOING_WEBMENTION_HTML_MULTIPLE_LINKS,
-            headers=headers,
+            headers=headers or {},
             status_code=200,
         ),
     }.get(url)
@@ -60,7 +60,7 @@ def _mock_post_ok(url, headers=None, **kwargs):
     return {
         f"https://{TARGET_DOMAIN}/webmention/": MockResponse(
             url,
-            headers=headers,
+            headers=headers or {},
             status_code=200,
         ),
     }.get(url)
@@ -71,7 +71,7 @@ def _mock_post_error(url, headers=None, **kwargs):
         f"https://{TARGET_DOMAIN}/webmention/": MockResponse(
             url,
             text=OUTGOING_WEBMENTION_HTML,
-            headers=headers,
+            headers=headers or {},
             status_code=400,
         ),
     }.get(url)

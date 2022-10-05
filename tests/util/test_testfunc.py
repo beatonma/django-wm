@@ -1,10 +1,9 @@
-from unittest import TestCase
-
 from mentions.util import get_url_validator
+from tests import MetaTestCase
 from tests.util import testfunc
 
 
-class TestFuncTests(TestCase):
+class TestFuncTests(MetaTestCase):
     """TESTS: Make sure test functions work as expected."""
 
     def test_random_url(self):

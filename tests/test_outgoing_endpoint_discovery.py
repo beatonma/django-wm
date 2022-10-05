@@ -67,7 +67,9 @@ class EndpointDiscoveryTests(WebmentionTestCase):
             url=self._get_absolute_target_url(),
             headers={"Link": snippets.http_link_endpoint()},
         )
-        endpoint_from_http_headers = remote._get_endpoint_in_http_headers(mock_response)
+        endpoint_from_http_headers = remote.get_endpoint_in_http_headers(
+            mock_response.headers
+        )
         self.assertEqual(self.relative_endpoint, endpoint_from_http_headers)
 
     def test_get_endpoint_in_html_head(self):
@@ -77,7 +79,7 @@ class EndpointDiscoveryTests(WebmentionTestCase):
             url=self._get_absolute_target_url(),
             text=snippets.html_head_endpoint(),
         )
-        endpoint_from_html_head = remote._get_endpoint_in_html_response(mock_response)
+        endpoint_from_html_head = remote.get_endpoint_in_html(mock_response.text)
         self.assertEqual(self.relative_endpoint, endpoint_from_html_head)
 
     def test_get_endpoint_in_html_body(self):
@@ -87,7 +89,7 @@ class EndpointDiscoveryTests(WebmentionTestCase):
             url=self._get_absolute_target_url(),
             text=snippets.html_body_endpoint(),
         )
-        endpoint_from_html_body = remote._get_endpoint_in_html_response(mock_response)
+        endpoint_from_html_body = remote.get_endpoint_in_html(mock_response.text)
         self.assertEqual(self.relative_endpoint, endpoint_from_html_body)
 
     def test_relative_to_absolute_url(self):

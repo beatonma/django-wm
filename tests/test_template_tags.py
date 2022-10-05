@@ -17,6 +17,6 @@ class TemplateTagTests(WebmentionTestCase):
         self.assertContains(response, expected_endpoint)
 
         self.assertEqual(
-            remote._get_endpoint_in_html(response.content),
+            remote.get_endpoint_in_html(response.content),
             expected_endpoint,
         )

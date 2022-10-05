@@ -1,5 +1,4 @@
 import logging
-import re
 from typing import Optional, Tuple
 from urllib.parse import urlsplit
 
@@ -11,7 +10,11 @@ from mentions import options
 from mentions.exceptions import TargetNotAccessible
 from mentions.models import OutgoingWebmentionStatus
 from mentions.resolution import get_or_create_outgoing_webmention
-from mentions.util import get_url_validator, html_parser, http_get, http_post
+from mentions.tasks.outgoing.parsing import (
+    get_endpoint_in_html,
+    get_endpoint_in_http_headers,
+)
+from mentions.util import get_url_validator, http_get, http_post
 
 __all__ = [
     "try_send_webmention",
@@ -126,12 +129,14 @@ def _send_webmention(
     }
     response = http_post(endpoint, data=payload)
     status_code = response.status_code
+
     if status_code >= 300:
         log.warning(
             f'Sending webmention to "{endpoint}" '
             f"FAILED with status_code={status_code}"
         )
         return False, status_code
+
     else:
         log.info(
             f'Sending webmention to "{endpoint}" '
@@ -141,57 +146,14 @@ def _send_webmention(
 
 
 def _get_absolute_endpoint_from_response(response: Response) -> Optional[str]:
-    endpoint = _get_endpoint_in_http_headers(
-        response
-    ) or _get_endpoint_in_html_response(response)
+    endpoint = get_endpoint_in_http_headers(response.headers) or get_endpoint_in_html(
+        response.text
+    )
+
     abs_url = _relative_to_absolute_url(response, endpoint)
     log.debug(f"Absolute url: {endpoint} -> {abs_url}")
+
     return abs_url
-
-
-def _get_endpoint_in_html_response(response: Response) -> Optional[str]:
-    return _get_endpoint_in_html(response.text)
-
-
-def _get_endpoint_in_http_headers(response: Response) -> Optional[str]:
-    """Search for webmention endpoint in HTTP headers."""
-    try:
-        header_link = response.headers.get("Link")
-        if "webmention" in header_link:
-            endpoint = re.match(
-                r'<(?P<url>.*)>[; ]*.rel=[\'"]?webmention[\'"]?', header_link
-            ).group(1)
-            log.debug(f"Webmention endpoint found in HTTP header: '{endpoint}'")
-            return endpoint
-    except Exception as e:
-        log.debug(f"Unable to read HTTP headers: {e}")
-
-
-def _get_endpoint_in_html(html_text: str) -> Optional[str]:
-    """Search for a webmention endpoint in HTML."""
-    a_soup = html_parser(html_text)
-
-    # Check HTML <head> for <link> webmention endpoint
-    try:
-        links = a_soup.head.find_all("link", href=True, rel=True)
-        for link in links:
-            if "webmention" in link["rel"]:
-                endpoint = link["href"]
-                log.debug(f"Webmention endpoint found in document head: {endpoint}")
-                return endpoint
-    except Exception as e:
-        log.debug(f"Error reading <head> of external link: {e}")
-
-    # Check HTML <body> for <a> webmention endpoint
-    try:
-        links = a_soup.body.find_all("a", href=True, rel=True)
-        for link in links:
-            if "webmention" in link["rel"]:
-                endpoint = link["href"]
-                log.debug(f"Webmention endpoint found in document body: {endpoint}")
-                return endpoint
-    except Exception as e:
-        log.debug(f"Error reading <body> of link: {e}")
 
 
 def _relative_to_absolute_url(response: Response, url: str) -> Optional[str]:
