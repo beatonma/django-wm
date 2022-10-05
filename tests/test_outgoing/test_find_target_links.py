@@ -1,6 +1,12 @@
+from typing import Optional
+
 from mentions import options
 from mentions.tasks.outgoing.local import get_target_links_in_html
 from tests import OptionsTestCase
+
+
+def _link(href: str, text: Optional[str] = None):
+    return f"""<a href="{href}">{text or ""}</a>"""
 
 
 class OutgoingLinksTests(OptionsTestCase):
@@ -16,14 +22,14 @@ class OutgoingLinksTests(OptionsTestCase):
         super().setUp()
         self.text = f"""
             Lorem ipsum whatever
-            <a href="https://https-absolute-url.org/whatever/">Absolute https url</a>
+            {_link("https://https-absolute-url.org/whatever/", "Absolute https url")}
             Lorem ipsum whatever
-            <a href="http://http-absolute-url.org/whatever/">Absolute http url</a>
-            <a href="#s3">Ignore local #anchor</a>
-            <a href="/relative-root-path/">Relative root path self-mention</a>
-            <a href="relative-path/">Relative path self-mention</a>
-            <a href="https://{options.domain_name()}/something">Absolute self-mention</a>
-            <a href="ftp://some-ftp-server.com">FTP server</a>
+            {_link("http://http-absolute-url.org/whatever/", "Absolute http url")}
+            {_link("#s3", "Ignore local  # anchor")}
+            {_link("/relative-root-path/", "Relative root path self-mention")}
+            {_link("relative-path/", "Relative path self-mention")}
+            {_link(f"https://{options.domain_name()}/something", "Absolute self-mention")}
+            {_link("ftp://some-ftp-server.com", "FTP server")}
             Lorem ipsum whatever
         """
 
@@ -54,4 +60,29 @@ class OutgoingLinksTests(OptionsTestCase):
                 "https://https-absolute-url.org/whatever/",
                 "http://http-absolute-url.org/whatever/",
             },
+        )
+
+    def test_relative_paths(self):
+        base_url = f"https://{options.domain_name()}"
+
+        relpath = _link("whatever")
+        self.assertSetEqual(
+            {f"{base_url}/article/1/whatever"},
+            get_target_links_in_html(relpath, source_path="/article/1/"),
+        )
+
+        self.assertSetEqual(
+            {f"{base_url}/article/whatever"},
+            get_target_links_in_html(relpath, source_path="/article/1"),
+        )
+
+        rootpath = _link("/whatever")
+        self.assertSetEqual(
+            {f"{base_url}/whatever"},
+            get_target_links_in_html(rootpath, source_path="/article/1/"),
+        )
+
+        self.assertSetEqual(
+            {f"{base_url}/whatever"},
+            get_target_links_in_html(rootpath, source_path="/article/1"),
         )

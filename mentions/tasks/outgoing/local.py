@@ -1,11 +1,11 @@
 import logging
 from typing import Set
-from urllib.parse import urlsplit
+from urllib.parse import urljoin
 
 from django.core.exceptions import ValidationError
 
 from mentions import options
-from mentions.util import get_url_validator, html_parser
+from mentions.util import find_links_in_html, get_url_validator, split_url
 
 __all__ = [
     "get_target_links_in_html",
@@ -34,7 +34,7 @@ def get_target_links_in_html(html: str, source_path: str) -> Set[str]:
     valid_links = set()
     allow_self_mentions = options.allow_self_mentions()
 
-    for link in _find_links_in_html(html):
+    for link in find_links_in_html(html):
         if is_valid_target(link, allow_self_mention=allow_self_mentions):
             valid_links.add(link)
             continue
@@ -77,7 +77,7 @@ def is_valid_target(url: str, allow_self_mention: bool) -> bool:
         return False
 
     if not allow_self_mention:
-        _, domain, _, _, _ = urlsplit(url)
+        _, domain, _ = split_url(url)
         if domain == options.domain_name():
             return False
 
@@ -85,15 +85,6 @@ def is_valid_target(url: str, allow_self_mention: bool) -> bool:
 
 
 def _path_to_absolute_url(relative_path: str, source_path: str) -> str:
-    host = f"{options.url_scheme()}://{options.domain_name()}"
+    base_url = f"{options.url_scheme()}://{options.domain_name()}"
 
-    if relative_path.startswith("/"):
-        return f"{host}{relative_path}"
-
-    return f"{host}{source_path}{relative_path}"
-
-
-def _find_links_in_html(html: str) -> Set[str]:
-    """Get the raw target href of any links in the html."""
-    soup = html_parser(html)
-    return {a["href"] for a in soup.find_all("a", href=True)}
+    return urljoin(urljoin(base_url, source_path), relative_path)

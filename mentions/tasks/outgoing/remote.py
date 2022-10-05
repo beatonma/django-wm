@@ -1,6 +1,6 @@
 import logging
 from typing import Optional, Tuple
-from urllib.parse import urlsplit
+from urllib.parse import urljoin
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
@@ -167,10 +167,7 @@ def _relative_to_absolute_url(response: Response, url: str) -> Optional[str]:
         get_url_validator()(url)
         return url  # url is already well-formed.
     except ValidationError:
-        scheme, domain, _, _, _ = urlsplit(response.url)
-        if not scheme or not domain:
-            return None
-        return f"{scheme}://{domain}/" f'{url if not url.startswith("/") else url[1:]}'
+        return urljoin(response.url, url)
 
 
 def _save_for_retry(status: OutgoingWebmentionStatus, message: str) -> None:

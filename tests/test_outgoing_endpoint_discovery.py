@@ -1,5 +1,3 @@
-from django.conf import settings
-
 from mentions.tasks.outgoing import local, remote
 from tests import MockResponse, WebmentionTestCase
 from tests.util import snippets, testfunc
@@ -37,27 +35,22 @@ class EndpointDiscoveryTests(WebmentionTestCase):
 
     def test_get_absolute_endpoint_from_response(self):
         """Any exposed endpoints (in HTTP header, HTML <head> or <body>) are found and returned as an absolute url."""
+        func = remote._get_absolute_endpoint_from_response
         mock_response = MockResponse(
             url=self._get_absolute_target_url(),
             headers={"Link": snippets.http_link_endpoint()},
         )
-        absolute_endpoint_from_http_headers = (
-            remote._get_absolute_endpoint_from_response(mock_response)
-        )
+        absolute_endpoint_from_http_headers = func(mock_response)
         self.assertEqual(self.absolute_endpoint, absolute_endpoint_from_http_headers)
 
         mock_response.headers = {}
         mock_response.text = snippets.html_head_endpoint()
-        absolute_endpoint_from_html_head = remote._get_absolute_endpoint_from_response(
-            mock_response
-        )
+        absolute_endpoint_from_html_head = func(mock_response)
         self.assertEqual(self.absolute_endpoint, absolute_endpoint_from_html_head)
 
         mock_response.headers = {}
         mock_response.text = snippets.html_body_endpoint()
-        absolute_endpoint_from_html_body = remote._get_absolute_endpoint_from_response(
-            mock_response
-        )
+        absolute_endpoint_from_html_body = func(mock_response)
         self.assertEqual(self.absolute_endpoint, absolute_endpoint_from_html_body)
 
     def test_get_endpoint_in_http_headers(self):
@@ -95,25 +88,26 @@ class EndpointDiscoveryTests(WebmentionTestCase):
     def test_relative_to_absolute_url(self):
         """Relative URLs are correctly converted to absolute URLs."""
 
-        domain = settings.DOMAIN_NAME
-        page_url = f"https://{domain}/some-url-path"
+        func = remote._relative_to_absolute_url
+
+        domain = testfunc.random_domain()
+        base_url = f"https://{domain}"
+        page_url = f"{base_url}/some/url/path"
         response = MockResponse(url=page_url)
 
-        absolute_url_from_root = remote._relative_to_absolute_url(
-            response, "/webmention/"
-        )
-        self.assertEqual(f"https://{domain}/webmention/", absolute_url_from_root)
-
-        absolute_url_from_relative = remote._relative_to_absolute_url(
-            response, "webmention/"
-        )
-        self.assertEqual(f"https://{domain}/webmention/", absolute_url_from_relative)
-
-        already_absolute_url = remote._relative_to_absolute_url(
-            response, f"https://{domain}/already_absolute_path"
-        )
         self.assertEqual(
-            f"https://{domain}/already_absolute_path", already_absolute_url
+            f"https://{domain}/webmention/",
+            func(response, "/webmention/"),
+        )
+
+        self.assertEqual(
+            f"https://{domain}/some/url/webmention/",
+            func(response, "webmention/"),
+        )
+
+        self.assertEqual(
+            f"https://{domain}/already_absolute_path",
+            func(response, f"https://{domain}/already_absolute_path"),
         )
 
     def test_get_target_links_in_text(self):
@@ -136,16 +130,6 @@ class EndpointDiscoveryTests(WebmentionTestCase):
 
         outgoing_links = local.get_target_links_in_html(outgoing_content, "/")
         self.assertSetEqual(urls, outgoing_links)
-
-    def test_get_target_links_in_text__should_remove_duplicates(self):
-        """Outgoing links do not contain duplicates."""
-        outgoing_links = local.get_target_links_in_html(
-            OUTGOING_WEBMENTION_HTML_DUPLICATE_LINKS, "/"
-        )
-
-        self.assertSetEqual(
-            {"https://beatonma.org/", "https://snommoc.org/"}, outgoing_links
-        )
 
     def test_get_target_links_in_text__ignores_self_anchors(self):
         """_get_target_links_in_text should remove any links that target the source page."""
