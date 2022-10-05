@@ -27,4 +27,4 @@ class SampleAppConfig(AppConfig):
         OutgoingWebmentionStatus.objects.get_or_create(
             target_url="#s3",
             source_url="/article/2/",
-        )
+        )  # Invalid target url: should be deleted when handle_pending_webmentions is called.
