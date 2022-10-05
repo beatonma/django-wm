@@ -1,9 +1,9 @@
 import json
 from functools import reduce
-from typing import List, Optional, Union
+from typing import List, Optional
 
 import mf2py
-from bs4 import BeautifulSoup, Tag
+from bs4 import Tag
 
 from mentions.exceptions import NotEnoughData
 from mentions.models import HCard
@@ -21,7 +21,7 @@ CLASS_H_FEED = "h-feed"
 
 
 def parse_hcard(
-    soup: Union[BeautifulSoup, Tag],
+    soup: Tag,
     recursive: bool = False,
 ) -> Optional[HCard]:
     """Create or update HCard(s) using data from a BeautifulSoup document.
