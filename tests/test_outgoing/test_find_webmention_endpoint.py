@@ -1,4 +1,4 @@
-from typing import Union
+from typing import List, Union
 
 from requests.structures import CaseInsensitiveDict
 
@@ -9,7 +9,7 @@ from tests import WebmentionTestCase
 from tests.util import snippets, testfunc
 
 
-def _build_headers(link: Union[list[str], str]) -> CaseInsensitiveDict:
+def _build_headers(link: Union[List[str], str]) -> CaseInsensitiveDict:
     if isinstance(link, str):
         return CaseInsensitiveDict(
             {
