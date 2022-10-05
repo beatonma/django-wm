@@ -1,6 +1,6 @@
 # Changelog
 
-## 3.0.1 (2022-10-05)
+## 3.0.2 (2022-10-05)
 
 - Resolves [#38](https://github.com/beatonma/django-wm/issues/38): Revalidate target URLs when handling pending mentions
   - Should be unnecessary generally (they are also validated at discovery time when parsed from HTML) but important if validation checks are updated.
