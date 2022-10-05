@@ -55,7 +55,10 @@ class MentionableMixin(models.Model):
         )
 
     @classmethod
-    def resolve_from_url_kwargs(cls, **url_kwargs) -> Type["MentionableMixin"]:
+    def resolve_from_url_kwargs(
+        cls: Type["MentionableMixin"],
+        **url_kwargs,
+    ) -> "MentionableMixin":
         """Resolve a model instance from the given URL captured values.
 
         By default, an object is resolved via its unique slug.

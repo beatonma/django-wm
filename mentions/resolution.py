@@ -26,6 +26,7 @@ __all__ = [
     "get_mentions_for_view",
     "get_model_for_url_path",
     "get_or_create_outgoing_webmention",
+    "update_or_create_hcard",
 ]
 
 
@@ -60,7 +61,7 @@ def _find_urlpattern(target_path: str) -> ResolverMatch:
 def get_model_for_url_path(
     target_path: str,
     match: ResolverMatch = None,
-) -> Type[MentionableMixin]:
+) -> MentionableMixin:
     """
     Find a match in urlpatterns and return the corresponding model instance.
 
@@ -110,7 +111,6 @@ def get_mentions_for_url_path(
     target_path: str,
     full_target_url: str,
 ) -> List[QuotableMixin]:
-    """If target_path resolves to a page associated with a MentionableMixin model"""
     match = _find_urlpattern(target_path)
 
     try:
