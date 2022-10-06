@@ -35,21 +35,21 @@ register_converter(TwoDigitConverter, "mm")
 Should be added to test_urls.urlpatterns in setUp and removed again in tearDown."""
 local_urlpatterns = [
     path(
-        fr"{bad_modelname_key}/<slug:slug>",
+        rf"{bad_modelname_key}/<slug:slug>",
         AllEndpointsMentionableTestView.as_view(),
         kwargs={
             "model_name_with_mistyped_or_missing_key": constants.model_name,
         },
     ),
     path(
-        fr"{bad_modelname_value}/<slug:slug>",
+        rf"{bad_modelname_value}/<slug:slug>",
         AllEndpointsMentionableTestView.as_view(),
         kwargs={
             "model_name": "tests.UnresolvableModel",
         },
     ),
     path(
-        fr"<slug:blog_slug>/<int:year>/<mm:month>/<int:day>/<slug:post_slug>/",
+        rf"<slug:blog_slug>/<int:year>/<mm:month>/<int:day>/<slug:post_slug>/",
         BlogPostView.as_view(),
         kwargs={
             "model_name": constants.model_name_test_blogpost,
