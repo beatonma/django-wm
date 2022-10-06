@@ -14,12 +14,10 @@ from tests.util import snippets, testfunc
 
 log = logging.getLogger(__name__)
 
-SOURCE_URL_OK = testfunc.random_url()
-SOURCE_URL_NOT_FOUND = testfunc.random_url()
-SOURCE_URL_UNSUPPORTED_CONTENT_TYPE = testfunc.random_url()
-SOURCE_URL_NO_MENTIONS = testfunc.random_url()
 
+SOURCE_URL = testfunc.random_url()
 TARGET_URL = testfunc.get_simple_url(absolute=True)
+
 SOURCE_TEXT_DEFAULT = f"""<div>
 <a href="{TARGET_URL}" class="u-repost-of">link to target url</a>
 <div class="h-card">
@@ -83,26 +81,26 @@ class IncomingWebmentionsTests(WebmentionTestCase):
     @patch_http_get(text=SOURCE_TEXT_DEFAULT)
     def test_get_incoming_source(self):
         """Incoming source text is retrieved correctly."""
-        text = remote.get_source_html(SOURCE_URL_OK)
+        text = remote.get_source_html(testfunc.random_url())
         self.assertTrue(SOURCE_TEXT_DEFAULT in text)
 
     @patch_http_get(status_code=404)
     def test_get_incoming_source_inaccessible_url(self):
         """Inaccessible source URL raises SourceNotAccessible."""
         with self.assertRaises(SourceNotAccessible):
-            remote.get_source_html(SOURCE_URL_NOT_FOUND)
+            remote.get_source_html(testfunc.random_url())
 
     @patch_http_get(headers={"content-type": "image/jpeg"})
     def test_get_incoming_source_unsupported_content_type(self):
         """Source URL with unsupported content type raises SourceNotAccessible."""
         with self.assertRaises(SourceNotAccessible):
-            remote.get_source_html(SOURCE_URL_UNSUPPORTED_CONTENT_TYPE)
+            remote.get_source_html(testfunc.random_url())
 
     @patch_http_get(text=SOURCE_TEXT_DEFAULT)
     def test_process_incoming_webmention(self):
         """process_incoming_webmention targeting a URL creates a validated Webmention object when successful."""
         incoming.process_incoming_webmention(
-            source_url=SOURCE_URL_OK,
+            source_url=SOURCE_URL,
             target_url=TARGET_URL,
             sent_by=testfunc.random_url(),
         )
@@ -111,7 +109,7 @@ class IncomingWebmentionsTests(WebmentionTestCase):
         self.assertEqual(1, webmentions.count())
 
         mention = webmentions.first()
-        self.assertEqual(mention.source_url, SOURCE_URL_OK)
+        self.assertEqual(mention.source_url, SOURCE_URL)
         self.assertEqual(mention.target_url, TARGET_URL)
         self.assertTrue(mention.validated)
 
@@ -122,13 +120,13 @@ class IncomingWebmentionsTests(WebmentionTestCase):
     @patch_http_get(text=SOURCE_TEXT_WITH_REPOST)
     def test_process_incoming_webmention_with_post_type(self):
         incoming.process_incoming_webmention(
-            source_url=SOURCE_URL_OK,
+            source_url=SOURCE_URL,
             target_url=TARGET_URL,
             sent_by=testfunc.random_url(),
         )
 
         mention: Webmention = Webmention.objects.first()
-        self.assertEqual(mention.source_url, SOURCE_URL_OK)
+        self.assertEqual(mention.source_url, SOURCE_URL)
         self.assertEqual(mention.target_url, TARGET_URL)
         self.assertTrue(mention.validated)
 
@@ -143,7 +141,7 @@ class IncomingWebmentionsTests(WebmentionTestCase):
 
         with patch_http_get(text=SOURCE_TEXT_FOR_OBJECT.format(url=self.target_url)):
             incoming.process_incoming_webmention(
-                source_url=SOURCE_URL_OK,
+                source_url=SOURCE_URL,
                 target_url=self.target_url,
                 sent_by=testfunc.random_url(),
             )
@@ -152,7 +150,7 @@ class IncomingWebmentionsTests(WebmentionTestCase):
         self.assertEqual(1, webmentions.count())
 
         mention = webmentions.first()
-        self.assertEqual(mention.source_url, SOURCE_URL_OK)
+        self.assertEqual(mention.source_url, SOURCE_URL)
         self.assertEqual(mention.target_url, self.target_url)
         self.assertTrue(mention.validated)
 
@@ -164,7 +162,7 @@ class IncomingWebmentionsTests(WebmentionTestCase):
     def test_process_incoming_webmention_no_mentions_in_source(self):
         """process_incoming_webmention creates unvalidated Webmention object when target link not found in source text."""
         incoming.process_incoming_webmention(
-            source_url=SOURCE_URL_NO_MENTIONS,
+            source_url=SOURCE_URL,
             target_url=TARGET_URL,
             sent_by=testfunc.random_url(),
         )
@@ -201,7 +199,7 @@ class IncomingWebmentionOptionTests(OptionsTestCase):
     ):
         with patch_http_get(text=text):
             incoming.process_incoming_webmention(
-                source_url=SOURCE_URL_OK,
+                source_url=SOURCE_URL,
                 target_url=target_url,
                 sent_by=testfunc.random_url(),
             )
