@@ -6,16 +6,18 @@ from django import forms
 from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.urls import reverse
 from django.views import View
 from sample_app.models import Article, create_article
 
 from mentions import options
+from mentions.resolution import get_mentions_for_absolute_url
 
 log = logging.getLogger(__name__)
 
 
 default_context = {
-    "DOMAIN_NAME": settings.DOMAIN_NAME,
+    "DOMAIN_NAME": options.domain_name(),
 }
 
 
@@ -33,8 +35,8 @@ class ArticleView(View):
 
 
 class ActionForm(forms.Form):
-    target = forms.URLField(required=True)
-    author = forms.CharField(required=True, max_length=64)
+    target = forms.URLField(required=False)
+    author = forms.CharField(required=False, max_length=64)
     type = forms.CharField(
         required=False,
         widget=forms.Select(
@@ -50,7 +52,10 @@ class ActionForm(forms.Form):
             ]
         ),
     )
-    custom_content = forms.CharField(widget=forms.Textarea(attrs={"rows": 2}))
+    custom_content = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 2}),
+    )
 
 
 class ActionView(View):
@@ -71,6 +76,9 @@ class ActionView(View):
                 **default_context,
                 "articles": articles,
                 "action_form": form,
+                "mentions": get_mentions_for_absolute_url(
+                    f"{options.base_url()}{reverse('actions')}"
+                ),
             },
         )
 

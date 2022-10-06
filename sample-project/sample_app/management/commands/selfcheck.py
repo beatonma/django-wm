@@ -2,10 +2,10 @@ import logging
 import time
 
 import requests
-from django.conf import settings
 from django.core.management import BaseCommand
 
 import mentions
+from mentions import options
 
 log = logging.getLogger(__name__)
 
@@ -25,7 +25,7 @@ def self_check():
         "/webmention/get?url=/article/1/",
         "/webmention/dashboard/",
     ]:
-        url = f"http://{settings.DOMAIN_NAME}{urlpath}"
+        url = f"http://{options.domain_name()}{urlpath}"
         r = requests.get(url, timeout=2)
 
         if r.status_code != 200:

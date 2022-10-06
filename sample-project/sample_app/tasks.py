@@ -5,12 +5,14 @@ from django.conf import settings
 from sample_app.compat import IncomingMentionType
 from sample_app.models import Article, create_article
 
+from mentions import options
+
 log = logging.getLogger(__name__)
 
 
 def create_initial_articles():
     Article.objects.get_or_create(
-        title=f"First article on {settings.DOMAIN_NAME}",
+        title=f"First article on {options.domain_name()}",
         defaults={
             "content": "Something to talk about",
             "author": "A. Mouse",

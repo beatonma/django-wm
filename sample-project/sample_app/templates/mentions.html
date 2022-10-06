@@ -1,0 +1,22 @@
+<section id="mentions">
+  <aside>
+    <h2>Mentions:</h2>
+    {% for mention in mentions %}
+      <div class="mention {{ mention.post_type|default:"mention" }}">
+        <div class="meta">
+          <span class="type">{{ mention.post_type|default:"mention" }}</span><span> by </span>
+          {% if mention.hcard %}
+            <span class="h-card">
+              <a class="p-name u-url" href="{{ mention.hcard.homepage }}">{{ mention.hcard.name }}</a>
+            </span>
+          {% else %}
+            <span>somebody?</span>
+          {% endif %}
+        </div>
+        <a href="{{ mention.source_url }}">{{ mention.source_url }}</a>
+      </div>
+    {% empty %}
+      No mentions yet :(
+    {% endfor %}
+  </aside>
+</section>
