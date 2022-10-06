@@ -80,9 +80,6 @@ def get_metadata_from_source(
     else:
         raise SourceDoesNotLink()
 
-    if link is None:
-        raise SourceDoesNotLink()
-
     post_type = parse_post_type(link)
 
     hcard = find_related_hcard(link)
