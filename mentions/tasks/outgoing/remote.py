@@ -2,7 +2,6 @@ import logging
 from typing import Optional, Tuple
 from urllib.parse import urljoin
 
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from requests import RequestException, Response
 
@@ -150,24 +149,21 @@ def _get_absolute_endpoint_from_response(response: Response) -> Optional[str]:
         response.text
     )
 
-    abs_url = _relative_to_absolute_url(response, endpoint)
-    log.debug(f"Absolute url: {endpoint} -> {abs_url}")
-
-    return abs_url
+    if endpoint:
+        return _relative_to_absolute_url(response, endpoint)
 
 
 def _relative_to_absolute_url(response: Response, url: str) -> Optional[str]:
     """
     If given url is relative, try to construct an absolute url using response domain.
     """
-    if not url:
-        return None
-
     try:
         get_url_validator()(url)
         return url  # url is already well-formed.
     except ValidationError:
-        return urljoin(response.url, url)
+        absolute_url = urljoin(response.url, url)
+        log.debug(f"Relative endpoint url resolved: {url} -> {absolute_url}")
+        return absolute_url
 
 
 def _save_for_retry(status: OutgoingWebmentionStatus, message: str) -> None:

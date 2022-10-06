@@ -5,11 +5,11 @@ import random
 import uuid
 from typing import Optional, Tuple
 
-from django.conf import settings
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
 
+from mentions import options
 from mentions.models import Webmention
 from mentions.models.mixins import IncomingMentionType
 from mentions.views import view_names
@@ -67,7 +67,7 @@ def get_simple_url(absolute: bool = False):
 
 
 def _absolute_url(path):
-    return f"https://{settings.DOMAIN_NAME}{path}"
+    return f"{options.base_url()}{path}"
 
 
 def endpoint_submit_webmention() -> str:
@@ -82,7 +82,7 @@ def endpoint_get_webmentions() -> str:
 
 def endpoint_submit_webmention_absolute() -> str:
     """Return absolute URL for our root webmention endpoint on our domain."""
-    return f"https://{settings.DOMAIN_NAME}{endpoint_submit_webmention()}"
+    return f"{options.base_url()}{endpoint_submit_webmention()}"
 
 
 def random_domain() -> str:

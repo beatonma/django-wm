@@ -96,18 +96,18 @@ class EndpointDiscoveryTests(WebmentionTestCase):
         response = MockResponse(url=page_url)
 
         self.assertEqual(
-            f"https://{domain}/webmention/",
+            f"{base_url}/webmention/",
             func(response, "/webmention/"),
         )
 
         self.assertEqual(
-            f"https://{domain}/some/url/webmention/",
+            f"{base_url}/some/url/webmention/",
             func(response, "webmention/"),
         )
 
         self.assertEqual(
-            f"https://{domain}/already_absolute_path",
-            func(response, f"https://{domain}/already_absolute_path"),
+            f"{base_url}/already_absolute_path",
+            func(response, f"{base_url}/already_absolute_path"),
         )
 
     def test_get_target_links_in_text(self):

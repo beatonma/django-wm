@@ -3,8 +3,7 @@ Tests for webmentions that originate on our server, usually pointing somewhere e
 """
 import logging
 
-from django.conf import settings
-
+from mentions import options
 from mentions.models import OutgoingWebmentionStatus
 from mentions.tasks import handle_pending_webmentions
 from mentions.tasks.outgoing import process_outgoing_webmentions, remote
@@ -40,7 +39,7 @@ OUTGOING_WEBMENTION_HTML_NO_LINKS = """<html>
 class OutgoingWebmentionsTests(OptionsTestCase):
     """OUTOOING: tests for task `process_outgoing_webmentions`."""
 
-    source_url = f"https://{settings.DOMAIN_NAME}/some-url-path/"
+    source_url = f"{options.base_url()}/some-url-path/"
 
     @patch_http_post()
     def test_send_webmention(self):
@@ -72,8 +71,6 @@ class OutgoingWebmentionsTests(OptionsTestCase):
     @patch_http_get(text=OUTGOING_WEBMENTION_HTML)
     def test_process_outgoing_webmentions(self):
         """Test the entire process_outgoing_webmentions task with no errors."""
-        self.assertEqual(0, OutgoingWebmentionStatus.objects.count())
-
         successful_submissions = process_outgoing_webmentions(
             self.source_url, OUTGOING_WEBMENTION_HTML
         )

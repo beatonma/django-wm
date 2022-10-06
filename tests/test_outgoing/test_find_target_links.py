@@ -28,7 +28,7 @@ class OutgoingLinksTests(OptionsTestCase):
             {_link("#s3", "Ignore local  # anchor")}
             {_link("/relative-root-path/", "Relative root path self-mention")}
             {_link("relative-path/", "Relative path self-mention")}
-            {_link(f"https://{options.domain_name()}/something", "Absolute self-mention")}
+            {_link(f"{options.base_url()}/something", "Absolute self-mention")}
             {_link("ftp://some-ftp-server.com", "FTP server")}
             Lorem ipsum whatever
         """
@@ -43,9 +43,9 @@ class OutgoingLinksTests(OptionsTestCase):
             {
                 "https://https-absolute-url.org/whatever/",
                 "http://http-absolute-url.org/whatever/",
-                f"https://{options.domain_name()}/relative-root-path/",
-                f"https://{options.domain_name()}/article/1/relative-path/",
-                f"https://{options.domain_name()}/something",
+                f"{options.base_url()}/relative-root-path/",
+                f"{options.base_url()}/article/1/relative-path/",
+                f"{options.base_url()}/something",
             },
         )
 
@@ -63,7 +63,7 @@ class OutgoingLinksTests(OptionsTestCase):
         )
 
     def test_relative_paths(self):
-        base_url = f"https://{options.domain_name()}"
+        base_url = options.base_url()
 
         relpath = _link("whatever")
         self.assertSetEqual(

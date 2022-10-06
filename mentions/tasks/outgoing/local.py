@@ -85,6 +85,4 @@ def is_valid_target(url: str, allow_self_mention: bool) -> bool:
 
 
 def _path_to_absolute_url(relative_path: str, source_path: str) -> str:
-    base_url = f"{options.url_scheme()}://{options.domain_name()}"
-
-    return urljoin(urljoin(base_url, source_path), relative_path)
+    return urljoin(urljoin(options.base_url(), source_path), relative_path)
