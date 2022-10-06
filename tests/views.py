@@ -15,7 +15,14 @@ class MiddlewareView(View):
     """Empty view, just for testing WebmentionHeadMiddleware."""
 
     def get(self, request):
-        return HttpResponse(status=200)
+        headers = {}
+        if request.GET.get("additional_links"):
+            headers["Link"] = snippets.http_header_link(
+                "https://websub.io",
+                rel="websub",
+            )
+
+        return HttpResponse(status=200, headers=headers)
 
 
 class AllEndpointsMentionableTestView(View):
@@ -23,9 +30,10 @@ class AllEndpointsMentionableTestView(View):
 
     Webmentions are retrieved via the associated model instance."""
 
-    def get(self, request, *args, **kwargs):
-        obj = MentionableTestModel.objects.get(slug=kwargs.get("slug"))
+    def get(self, request, *args, slug: str, **kwargs):
+        obj = MentionableTestModel.objects.get(slug=slug)
         html = snippets.html_all_endpoints(obj.content)
+
         response = HttpResponse(html, status=200)
         response["Link"] = snippets.http_header_link(
             testfunc.endpoint_submit_webmention_absolute()
