@@ -1,6 +1,6 @@
 from mentions.resolution import get_or_create_outgoing_webmention
 from mentions.tasks.celeryproxy import get_logger, shared_task
-from mentions.tasks.outgoing.local import get_target_links_in_text
+from mentions.tasks.outgoing.local import get_target_links_in_html
 from mentions.tasks.outgoing.remote import try_send_webmention
 
 log = get_logger(__name__)
@@ -35,7 +35,7 @@ def process_outgoing_webmentions(source_urlpath: str, text: str) -> int:
     log.info(f"Checking for mentionable links in text from '{source_urlpath}'...")
     mentions_attempted = 0
     mentions_sent = 0
-    links_in_text = get_target_links_in_text(text)
+    links_in_text = get_target_links_in_html(text, source_path=source_urlpath)
 
     if not links_in_text:
         log.debug("No links found in text.")

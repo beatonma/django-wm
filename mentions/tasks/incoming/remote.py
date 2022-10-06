@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from typing import Optional
+from urllib.parse import urljoin
 
 from mentions.exceptions import SourceDoesNotLink, SourceNotAccessible
 from mentions.models import HCard
@@ -15,6 +16,8 @@ __all__ = [
     "get_source_html",
     "get_metadata_from_source",
 ]
+
+from mentions.util.html import find_links_in_soup
 
 
 def get_source_html(source_url: str) -> str:
@@ -59,6 +62,7 @@ class WebmentionMetadata:
 def get_metadata_from_source(
     html: str,
     target_url: str,
+    source_url: str,
 ) -> WebmentionMetadata:
     """Retrieve contextual data about the mention from the html source.
 
@@ -67,9 +71,13 @@ def get_metadata_from_source(
     """
 
     soup = html_parser(html)
-    link = soup.find("a", href=target_url)
+    links = find_links_in_soup(soup)
 
-    if link is None:
+    for link in links:
+        absolute_url = urljoin(source_url, link["href"])
+        if absolute_url == target_url:
+            break
+    else:
         raise SourceDoesNotLink()
 
     post_type = parse_post_type(link)

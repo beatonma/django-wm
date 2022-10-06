@@ -9,6 +9,7 @@ __all__ = [
     "get_config",
     "max_retries",
     "retry_interval",
+    "target_requires_model",
     "timeout",
     "url_scheme",
     "use_celery",
@@ -23,6 +24,8 @@ SETTING_TIMEOUT = f"{NAMESPACE}_TIMEOUT"
 SETTING_MAX_RETRIES = f"{NAMESPACE}_MAX_RETRIES"
 SETTING_RETRY_INTERVAL = f"{NAMESPACE}_RETRY_INTERVAL"
 SETTING_DASHBOARD_PUBLIC = f"{NAMESPACE}_DASHBOARD_PUBLIC"
+SETTING_INCOMING_TARGET_MODEL_REQUIRED = f"{NAMESPACE}_INCOMING_TARGET_MODEL_REQUIRED"
+SETTING_ALLOW_SELF_MENTIONS = f"{NAMESPACE}_ALLOW_SELF_MENTIONS"
 
 """settings.DOMAIN_NAME is sometimes used by other libraries for the same purpose,
 no need to lock it to our namespace."""
@@ -37,6 +40,8 @@ DEFAULTS = {
     SETTING_MAX_RETRIES: 5,
     SETTING_RETRY_INTERVAL: 60 * 10,
     SETTING_DASHBOARD_PUBLIC: False,
+    SETTING_INCOMING_TARGET_MODEL_REQUIRED: False,
+    SETTING_ALLOW_SELF_MENTIONS: True,
 }
 
 
@@ -102,9 +107,27 @@ def retry_interval() -> int:
     Warning: If using RabbitMQ, it may need to be reconfigured if you want to
     specify an interval of more than 15 minutes. See
     https://docs.celeryq.dev/en/stable/userguide/calling.html#eta-and-countdown
-    for more information.
-    """
+    for more information."""
     return _get_attr(SETTING_RETRY_INTERVAL)
+
+
+def target_requires_model() -> bool:
+    """Return settings.WEBMENTIONS_INCOMING_TARGET_MODEL_REQUIRED.
+
+    If True, incoming webmentions will only be accepted if they target a path
+    that resolves to a `MentionableMixin` instance.
+
+    If False, any target path can receive webmentions."""
+    return _get_attr(SETTING_INCOMING_TARGET_MODEL_REQUIRED)
+
+
+def allow_self_mentions() -> bool:
+    """Return settings.WEBMENTIONS_ALLOW_SELF_MENTIONS.
+
+    If True, you can send webmentions to yourself.
+    If False, outgoing links that target your own domain name will be ignored.
+    """
+    return _get_attr(SETTING_ALLOW_SELF_MENTIONS)
 
 
 def url_scheme() -> str:
@@ -121,10 +144,16 @@ def url_scheme() -> str:
     return scheme
 
 
+def base_url() -> str:
+    """For convenience, returns the combination of `url_scheme()` and `domain_name()`."""
+    return f"{url_scheme()}://{domain_name()}"
+
+
 def dashboard_public() -> bool:
     """Return settings.WEBMENTIONS_DASHBOARD_PUBLIC.
 
-    Intended for"""
+    This is intended to help with debugging while developing the `django-wm`
+    library and probably should not be used otherwise."""
     is_dashboard_public = _get_attr(SETTING_DASHBOARD_PUBLIC)
     if not settings.DEBUG and is_dashboard_public:
         log.warning(

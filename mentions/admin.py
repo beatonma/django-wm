@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib import admin
 
 from mentions.models import (
@@ -43,8 +44,18 @@ class QuotableAdmin(BaseAdmin):
     date_hierarchy = "published"
 
 
+class WebmentionModelForm(forms.ModelForm):
+    class Meta:
+        model = Webmention
+        widgets = {
+            "notes": forms.Textarea(attrs={"rows": 3}),
+        }
+        fields = "__all__"
+
+
 @admin.register(Webmention)
 class WebmentionAdmin(QuotableAdmin):
+    form = WebmentionModelForm
     readonly_fields = QuotableAdmin.readonly_fields + [
         "content_type",
         "object_id",

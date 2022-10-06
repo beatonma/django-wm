@@ -8,7 +8,7 @@ log = logging.getLogger(__name__)
 
 BASE_HTML = """
 <!DOCTYPE html>
-<html lang="???">
+<html lang="en-GB">
 <head>{head}</head>
 <body>
 {body}
@@ -18,11 +18,18 @@ BASE_HTML = """
 
 
 def build_html(head=None, body=None) -> str:
-    return BASE_HTML.format(head=head, body=body)
+    return BASE_HTML.format(head=head or "", body=body or "")
 
 
-def http_header_link(url):
-    return f'<{url}>; rel="webmention"'
+def http_header_link(url, **kwargs):
+    attrs = "; ".join(
+        [
+            f"""{name}="{value}\"""" if value else f"{name}"
+            for name, value in kwargs.items()
+        ]
+    )
+
+    return f"<{url}>; {attrs}"
 
 
 def _html_head_link(url):
@@ -34,7 +41,7 @@ def _html_body_link(url):
 
 
 def http_link_endpoint():
-    return http_header_link(testfunc.endpoint_submit_webmention())
+    return http_header_link(testfunc.endpoint_submit_webmention(), rel="webmention")
 
 
 def html_head_endpoint():
@@ -54,7 +61,9 @@ def html_body_endpoint():
 def html_all_endpoints(content):
     return build_html(
         head=_html_head_link(testfunc.endpoint_submit_webmention()),
-        body=f"""<div>{content}{_html_body_link(testfunc.endpoint_submit_webmention())}This is arbitrary...</div>""",
+        body=f"""<div>{content}
+        {_html_body_link(testfunc.endpoint_submit_webmention())}
+        This is arbitrary...</div>""",
     )
 
 

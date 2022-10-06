@@ -2,11 +2,11 @@ import random
 import uuid
 from typing import Optional
 
-from django.conf import settings
 from django.core.management import BaseCommand
 from sample_app.models import Article
-from sample_app.tasks import create_initial_article
+from sample_app.tasks import create_initial_articles
 
+from mentions import options
 from mentions.models import HCard, OutgoingWebmentionStatus, Webmention
 
 """
@@ -22,7 +22,7 @@ class Command(BaseCommand):
     gracefully after upgrading the django-wm library."""
 
     def handle(self, *args, **options):
-        create_initial_article()
+        create_initial_articles()
         _create_hcards()
         _create_webmentions()
 
@@ -44,7 +44,7 @@ def _create_webmentions():
 
         _create_webmention(
             source_url=_random_url(),
-            target_url=f"http://{settings.DOMAIN_NAME}{Article.objects.first().get_absolute_url()}",
+            target_url=f"{options.base_url()}{Article.objects.first().get_absolute_url()}",
             hcard=hcard,
         )
 

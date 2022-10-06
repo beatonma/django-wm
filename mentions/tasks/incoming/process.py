@@ -1,3 +1,4 @@
+from mentions import options
 from mentions.exceptions import (
     SourceDoesNotLink,
     SourceNotAccessible,
@@ -21,7 +22,7 @@ def process_incoming_webmention(source_url: str, target_url: str, sent_by: str) 
     log.info(f"Processing webmention '{source_url}' -> '{target_url}'")
 
     wm = Webmention(source_url=source_url, target_url=target_url, sent_by=sent_by)
-    notes = _Notes()
+    notes = Notes()
 
     try:
         wm.target_object = get_target_object(target_url)
@@ -31,6 +32,13 @@ def process_incoming_webmention(source_url: str, target_url: str, sent_by: str) 
             f"Unable to find matching page on our server for url '{target_url}'"
         )
 
+    if wm.target_object is None and options.target_requires_model():
+        log.warning(
+            f"Ignoring received webmention [{source_url} -> {target_url}]: "
+            "target does not resolve to a mentionable model instance."
+        )
+        return
+
     try:
         response_html = get_source_html(source_url)
 
@@ -38,22 +46,23 @@ def process_incoming_webmention(source_url: str, target_url: str, sent_by: str) 
         return _save_for_retry(source_url, target_url, sent_by)
 
     try:
-        wm = _get_metadata(wm, response_html, target_url)
+        wm = _get_metadata(wm, response_html, target_url, source_url)
         _save_mention(wm, notes, validated=True)
 
     except SourceDoesNotLink:
         _save_mention(
             wm,
-            notes=notes.warning("Source does not contain a link to our content"),
+            notes=notes.warning(f"Source does not contain a link to '{target_url}'"),
         )
 
 
-class _Notes:
+class Notes:
     """Keep track of any issues that might need to be checked manually."""
 
-    notes = []
+    def __init__(self):
+        self.notes = []
 
-    def warning(self, note) -> "_Notes":
+    def warning(self, note) -> "Notes":
         log.warning(note)
         self.notes.append(note)
         return self
@@ -62,7 +71,7 @@ class _Notes:
         return "\n".join(self.notes)[:1023]
 
 
-def _save_mention(wm: Webmention, notes: _Notes, validated: bool = False):
+def _save_mention(wm: Webmention, notes: Notes, validated: bool = False):
     wm.notes = str(notes)
     wm.validated = validated
     wm.save()
@@ -92,8 +101,14 @@ def _save_for_retry(source_url: str, target_url: str, sent_by: str):
     pending.mark_processing_failed(save=True)
 
 
-def _get_metadata(mention: Webmention, html: str, target_url: str) -> Webmention:
-    metadata = get_metadata_from_source(html=html, target_url=target_url)
+def _get_metadata(
+    mention: Webmention, html: str, target_url: str, source_url: str
+) -> Webmention:
+    metadata = get_metadata_from_source(
+        html=html,
+        target_url=target_url,
+        source_url=source_url,
+    )
     mention.post_type = metadata.post_type
     mention.hcard = metadata.hcard
     return mention

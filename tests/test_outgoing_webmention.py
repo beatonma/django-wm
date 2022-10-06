@@ -2,15 +2,12 @@
 Tests for webmentions that originate on our server, usually pointing somewhere else.
 """
 import logging
-from unittest.mock import Mock, patch
 
-import requests
-from django.conf import settings
-
+from mentions import options
 from mentions.models import OutgoingWebmentionStatus
 from mentions.tasks import handle_pending_webmentions
 from mentions.tasks.outgoing import process_outgoing_webmentions, remote
-from tests import MockResponse, OptionsTestCase
+from tests import OptionsTestCase, patch_http_get, patch_http_post
 from tests.util import testfunc
 
 log = logging.getLogger(__name__)
@@ -39,60 +36,12 @@ OUTGOING_WEBMENTION_HTML_NO_LINKS = """<html>
 """
 
 
-def _mock_get_ok(url, headers=None, **kwargs):
-    return {
-        f"https://{TARGET_DOMAIN}/": MockResponse(
-            url,
-            text=OUTGOING_WEBMENTION_HTML,
-            headers=headers,
-            status_code=200,
-        ),
-        f"https://{TARGET_DOMAIN}/some-article/": MockResponse(
-            url,
-            text=OUTGOING_WEBMENTION_HTML_MULTIPLE_LINKS,
-            headers=headers,
-            status_code=200,
-        ),
-    }.get(url)
-
-
-def _mock_post_ok(url, headers=None, **kwargs):
-    return {
-        f"https://{TARGET_DOMAIN}/webmention/": MockResponse(
-            url,
-            headers=headers,
-            status_code=200,
-        ),
-    }.get(url)
-
-
-def _mock_post_error(url, headers=None, **kwargs):
-    return {
-        f"https://{TARGET_DOMAIN}/webmention/": MockResponse(
-            url,
-            text=OUTGOING_WEBMENTION_HTML,
-            headers=headers,
-            status_code=400,
-        ),
-    }.get(url)
-
-
-def _patch_get(ok: bool):
-    return patch.object(requests, "get", Mock(side_effect=_mock_get_ok if ok else None))
-
-
-def _patch_post(ok: bool):
-    return patch.object(
-        requests, "post", Mock(side_effect=_mock_post_ok if ok else _mock_post_error)
-    )
-
-
 class OutgoingWebmentionsTests(OptionsTestCase):
     """OUTOOING: tests for task `process_outgoing_webmentions`."""
 
-    source_url = f"https://{settings.DOMAIN_NAME}/some-url-path/"
+    source_url = f"{options.base_url()}/some-url-path/"
 
-    @_patch_post(ok=True)
+    @patch_http_post()
     def test_send_webmention(self):
         """_send_webmention should return True with status code when webmention is accepted by server."""
 
@@ -105,7 +54,7 @@ class OutgoingWebmentionsTests(OptionsTestCase):
         self.assertTrue(success)
         self.assertEqual(200, status_code)
 
-    @_patch_post(ok=False)
+    @patch_http_post(status_code=400)
     def test_send_webmention__with_endpoint_error(self):
         """_send_webmention should return False with status code when webmention is not accepted by server."""
 
@@ -118,12 +67,10 @@ class OutgoingWebmentionsTests(OptionsTestCase):
         self.assertFalse(success)
         self.assertEqual(400, status_code)
 
-    @_patch_post(ok=True)
-    @_patch_get(ok=True)
+    @patch_http_post()
+    @patch_http_get(text=OUTGOING_WEBMENTION_HTML)
     def test_process_outgoing_webmentions(self):
         """Test the entire process_outgoing_webmentions task with no errors."""
-        self.assertEqual(0, OutgoingWebmentionStatus.objects.count())
-
         successful_submissions = process_outgoing_webmentions(
             self.source_url, OUTGOING_WEBMENTION_HTML
         )
@@ -138,9 +85,8 @@ class OutgoingWebmentionsTests(OptionsTestCase):
         self.assertEqual(2, successful_submissions)
         self.assertEqual(2, OutgoingWebmentionStatus.objects.count())
 
-    # No network requests should be made if links not found in text
-    @patch.object(requests, "get", None)
-    @patch.object(requests, "post", None)
+    @patch_http_get()
+    @patch_http_post()
     def test_process_outgoing_webmentions__with_no_links_found(self):
         """Test the entire process_outgoing_webmentions task with no links in provided text."""
         self.assertEqual(0, OutgoingWebmentionStatus.objects.count())
@@ -152,8 +98,8 @@ class OutgoingWebmentionsTests(OptionsTestCase):
         self.assertEqual(0, successful_webmention_submissions)
         self.assertEqual(0, OutgoingWebmentionStatus.objects.count())
 
-    @_patch_get(ok=True)
-    @_patch_post(ok=False)
+    @patch_http_get()
+    @patch_http_post(status_code=400)
     def test_process_outgoing_webmentions__with_endpoint_error(self):
         """Test the entire process_outgoing_webmentions task with endpoint error."""
 
@@ -164,8 +110,8 @@ class OutgoingWebmentionsTests(OptionsTestCase):
         self.assertEqual(0, successful_webmention_submissions)
         self.assertEqual(1, OutgoingWebmentionStatus.objects.count())
 
-    @_patch_get(ok=True)
-    @_patch_post(ok=False)
+    @patch_http_get(text=OUTGOING_WEBMENTION_HTML)
+    @patch_http_post(status_code=400)
     def test_process_outgoing_webmentions__recycles_status(self):
         self.enable_celery(False)
         self.set_retry_interval(0)

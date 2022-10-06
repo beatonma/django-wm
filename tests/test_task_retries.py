@@ -1,6 +1,3 @@
-from unittest.mock import patch
-
-import requests
 from django.utils import timezone
 from requests import Timeout
 
@@ -11,7 +8,7 @@ from mentions.models import (
     Webmention,
 )
 from mentions.tasks.scheduling import handle_pending_webmentions
-from tests import MockResponse, OptionsTestCase
+from tests import OptionsTestCase, patch_http_get, patch_http_post
 from tests.util import snippets, testfunc
 
 MAX_RETRIES = 5
@@ -23,6 +20,10 @@ def after_retry_interval() -> timezone.datetime:
     return timezone.now() + timezone.timedelta(seconds=RETRY_INTERVAL + 5)
 
 
+def throw_timeout(*args, **kwargs):
+    raise Timeout("Mocked timeout.")
+
+
 class RetryNoCeleryTests(OptionsTestCase):
     """Retry tasks"""
 
@@ -31,12 +32,6 @@ class RetryNoCeleryTests(OptionsTestCase):
         self.enable_celery(False)
         self.set_max_retries(MAX_RETRIES)
         self.set_retry_interval(RETRY_INTERVAL)
-
-    def _patched_timeout(self):
-        def _timeout_patch(*args, **kwargs):
-            raise Timeout("Mocked timeout.")
-
-        return patch.object(requests, "get", _timeout_patch)
 
 
 class RetryIncomingTests(RetryNoCeleryTests):
@@ -55,7 +50,7 @@ class RetryIncomingTests(RetryNoCeleryTests):
 
     def test_mark_for_retry_on_network_error(self):
         """PendingIncomingWebmention marked to retry later on network error."""
-        with self._patched_timeout():
+        with patch_http_get(response=throw_timeout):
             self.test_func()
 
         self.pending.refresh_from_db()
@@ -65,7 +60,7 @@ class RetryIncomingTests(RetryNoCeleryTests):
 
     def test_mark_complete(self):
         """PendingIncomingWebmention deleted when Webmention creation successful."""
-        with self._patched_success():
+        with patch_http_get(text=snippets.html_with_mentions(self.local_target)):
             self.test_func()
 
         Webmention.objects.get(
@@ -77,17 +72,6 @@ class RetryIncomingTests(RetryNoCeleryTests):
         with self.assertRaises(PendingIncomingWebmention.DoesNotExist):
             # Webmention has been generated and pending deleted as no longer needed.
             self.pending.refresh_from_db()
-
-    def _patched_success(self):
-        def _success_patch(*args, **kwargs):
-            return MockResponse(
-                self.remote_source,
-                text=snippets.html_with_mentions(self.local_target),
-                status_code=200,
-                headers={"content-type": "text/html"},
-            )
-
-        return patch.object(requests, "get", _success_patch)
 
 
 class RetryOutgoingTests(RetryNoCeleryTests):
@@ -104,7 +88,7 @@ class RetryOutgoingTests(RetryNoCeleryTests):
         )
 
     def test_make_retryable_on_network_error(self):
-        with self._patched_timeout():
+        with patch_http_get(response=throw_timeout):
             self.test_func()
 
         status: OutgoingWebmentionStatus = OutgoingWebmentionStatus.objects.first()
@@ -120,9 +104,9 @@ class RetryOutgoingTests(RetryNoCeleryTests):
             self.pending.refresh_from_db()
 
     def test_mark_complete(self):
-        with patch.object(requests, "get", self._success_patch), patch.object(
-            requests, "post", self._endpoint_patch
-        ):
+        with patch_http_get(
+            text=snippets.html_with_mentions(self.local_source)
+        ), patch_http_post(status_code=202):
             self.test_func()
 
         status: OutgoingWebmentionStatus = OutgoingWebmentionStatus.objects.first()
@@ -137,27 +121,16 @@ class RetryOutgoingTests(RetryNoCeleryTests):
     def test_success_on_retry(self):
         self.set_retry_interval(0)
 
-        with self._patched_timeout():
+        with patch_http_get(response=throw_timeout):
             for n in range(3):
                 self.test_func()
 
-        with patch.object(requests, "get", self._success_patch), patch.object(
-            requests, "post", self._endpoint_patch
-        ):
+        with patch_http_get(
+            text=snippets.html_with_mentions(self.local_source)
+        ), patch_http_post(status_code=202):
             self.test_func()
 
         status: OutgoingWebmentionStatus = OutgoingWebmentionStatus.objects.first()
         self.assertTrue(status.is_retry_successful)
         self.assertFalse(status.is_awaiting_retry)
         self.assertEqual(status.retry_attempt_count, 4)
-
-    def _success_patch(self, *args, **kwargs):
-        return MockResponse(
-            self.remote_target,
-            text=snippets.html_with_mentions(self.local_source),
-            status_code=200,
-            headers={"content-type": "text/html"},
-        )
-
-    def _endpoint_patch(self, *args, **kwargs):
-        return MockResponse("/webmention/", status_code=202)

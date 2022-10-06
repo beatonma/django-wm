@@ -6,12 +6,19 @@ from django import forms
 from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.urls import reverse
 from django.views import View
 from sample_app.models import Article, create_article
 
 from mentions import options
+from mentions.resolution import get_mentions_for_absolute_url
 
 log = logging.getLogger(__name__)
+
+
+default_context = {
+    "DOMAIN_NAME": options.domain_name(),
+}
 
 
 class ArticleView(View):
@@ -21,39 +28,57 @@ class ArticleView(View):
             request,
             "article.html",
             context={
-                "DOMAIN_NAME": settings.DOMAIN_NAME,
-                "DEFAULT_TARGET": settings.DEFAULT_MENTION_TARGET,
+                **default_context,
                 "article": article,
             },
         )
 
 
 class ActionForm(forms.Form):
-    target = forms.CharField(required=True)
-    author = forms.CharField(required=True, max_length=64)
-    type = forms.CharField(required=False, max_length=64)
+    target = forms.URLField(required=False)
+    author = forms.CharField(required=False, max_length=64)
+    type = forms.CharField(
+        required=False,
+        widget=forms.Select(
+            choices=[
+                ("", "-"),
+                ("Bookmark", "Bookmark"),
+                ("Like", "Like"),
+                ("Listen", "Listen"),
+                ("Reply", "Reply"),
+                ("Repost", "Repost"),
+                ("Translation", "Translation"),
+                ("Watch", "Watch"),
+            ]
+        ),
+    )
+    custom_content = forms.CharField(
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 2}),
+    )
 
 
 class ActionView(View):
     def get(self, request):
-        from mentions.models import OutgoingWebmentionStatus, Webmention
-
-        outgoing_mentions = OutgoingWebmentionStatus.objects.all().order_by(
-            "-created_at"
-        )
-        received_mentions = Webmention.objects.all().order_by("-created_at")
         articles = Article.objects.all()
+
+        form = ActionForm(
+            initial={
+                "target": settings.DEFAULT_MENTION_TARGET,
+                "author": "Author Authorson",
+            }
+        )
 
         return render(
             request,
             "actions.html",
             context={
-                "DOMAIN_NAME": settings.DOMAIN_NAME,
-                "DEFAULT_MENTION_TARGET": settings.DEFAULT_MENTION_TARGET,
-                "DEFAULT_MENTION_AUTHOR": "Author Authorson",
-                "OUTGOING_MENTIONS": outgoing_mentions,
-                "RECEIVED_MENTIONS": received_mentions,
+                **default_context,
                 "articles": articles,
+                "action_form": form,
+                "mentions": get_mentions_for_absolute_url(
+                    f"{options.base_url()}{reverse('actions')}"
+                ),
             },
         )
 
@@ -65,11 +90,13 @@ class ActionView(View):
             author = data.get("author")
             target_url = data.get("target")
             mention_type = data.get("type")
+            content = data.get("custom_content")
 
             create_article(
                 author=author,
                 target_url=target_url,
                 mention_type=mention_type,
+                content=content,
             )
 
             return HttpResponse(status=202)

@@ -17,15 +17,6 @@ def _noop_shared_task(func, *args, **kwargs):
     `celery` may not be installed. If `celery` cannot be imported then we need to
     provide an implementation so that un-importable `@shared_task` decorators
     don't break everything.
-
-    e.g:
-        try:
-            from celery import shared_task
-
-        except (ImportError, ModuleNotFoundError):
-            from mentions.util import noop_shared_task
-
-            shared_task = noop_shared_task
     """
 
     class Proxy:

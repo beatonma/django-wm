@@ -1,18 +1,19 @@
 import logging
-import re
 from typing import Optional, Tuple
-from urllib.parse import urlsplit
+from urllib.parse import urljoin
 
-from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.validators import URLValidator
 from requests import RequestException, Response
 
 from mentions import options
 from mentions.exceptions import TargetNotAccessible
 from mentions.models import OutgoingWebmentionStatus
 from mentions.resolution import get_or_create_outgoing_webmention
-from mentions.util import html_parser, http_get, http_post
+from mentions.tasks.outgoing.parsing import (
+    get_endpoint_in_html,
+    get_endpoint_in_http_headers,
+)
+from mentions.util import get_url_validator, http_get, http_post
 
 __all__ = [
     "try_send_webmention",
@@ -123,16 +124,18 @@ def _send_webmention(
 ) -> Tuple[bool, int]:
     payload = {
         "target": target,
-        "source": f"{options.url_scheme()}://{settings.DOMAIN_NAME}{source_urlpath}",
+        "source": urljoin(options.base_url(), source_urlpath),
     }
     response = http_post(endpoint, data=payload)
     status_code = response.status_code
+
     if status_code >= 300:
         log.warning(
             f'Sending webmention to "{endpoint}" '
             f"FAILED with status_code={status_code}"
         )
         return False, status_code
+
     else:
         log.info(
             f'Sending webmention to "{endpoint}" '
@@ -142,74 +145,25 @@ def _send_webmention(
 
 
 def _get_absolute_endpoint_from_response(response: Response) -> Optional[str]:
-    endpoint = _get_endpoint_in_http_headers(
-        response
-    ) or _get_endpoint_in_html_response(response)
-    abs_url = _relative_to_absolute_url(response, endpoint)
-    log.debug(f"Absolute url: {endpoint} -> {abs_url}")
-    return abs_url
+    endpoint = get_endpoint_in_http_headers(response.headers) or get_endpoint_in_html(
+        response.text
+    )
 
-
-def _get_endpoint_in_html_response(response: Response) -> Optional[str]:
-    return _get_endpoint_in_html(response.text)
-
-
-def _get_endpoint_in_http_headers(response: Response) -> Optional[str]:
-    """Search for webmention endpoint in HTTP headers."""
-    try:
-        header_link = response.headers.get("Link")
-        if "webmention" in header_link:
-            endpoint = re.match(
-                r'<(?P<url>.*)>[; ]*.rel=[\'"]?webmention[\'"]?', header_link
-            ).group(1)
-            log.debug(f"Webmention endpoint found in HTTP header: '{endpoint}'")
-            return endpoint
-    except Exception as e:
-        log.debug(f"Unable to read HTTP headers: {e}")
-
-
-def _get_endpoint_in_html(html_text: str) -> Optional[str]:
-    """Search for a webmention endpoint in HTML."""
-    a_soup = html_parser(html_text)
-
-    # Check HTML <head> for <link> webmention endpoint
-    try:
-        links = a_soup.head.find_all("link", href=True, rel=True)
-        for link in links:
-            if "webmention" in link["rel"]:
-                endpoint = link["href"]
-                log.debug(f"Webmention endpoint found in document head: {endpoint}")
-                return endpoint
-    except Exception as e:
-        log.debug(f"Error reading <head> of external link: {e}")
-
-    # Check HTML <body> for <a> webmention endpoint
-    try:
-        links = a_soup.body.find_all("a", href=True, rel=True)
-        for link in links:
-            if "webmention" in link["rel"]:
-                endpoint = link["href"]
-                log.debug(f"Webmention endpoint found in document body: {endpoint}")
-                return endpoint
-    except Exception as e:
-        log.debug(f"Error reading <body> of link: {e}")
+    if endpoint:
+        return _relative_to_absolute_url(response, endpoint)
 
 
 def _relative_to_absolute_url(response: Response, url: str) -> Optional[str]:
     """
     If given url is relative, try to construct an absolute url using response domain.
     """
-    if not url:
-        return None
-
     try:
-        URLValidator()(url)
+        get_url_validator()(url)
         return url  # url is already well-formed.
     except ValidationError:
-        scheme, domain, _, _, _ = urlsplit(response.url)
-        if not scheme or not domain:
-            return None
-        return f"{scheme}://{domain}/" f'{url if not url.startswith("/") else url[1:]}'
+        absolute_url = urljoin(response.url, url)
+        log.debug(f"Relative endpoint url resolved: {url} -> {absolute_url}")
+        return absolute_url
 
 
 def _save_for_retry(status: OutgoingWebmentionStatus, message: str) -> None:
