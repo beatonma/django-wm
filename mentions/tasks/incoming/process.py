@@ -22,7 +22,7 @@ def process_incoming_webmention(source_url: str, target_url: str, sent_by: str) 
     log.info(f"Processing webmention '{source_url}' -> '{target_url}'")
 
     wm = Webmention(source_url=source_url, target_url=target_url, sent_by=sent_by)
-    notes = _Notes()
+    notes = Notes()
 
     try:
         wm.target_object = get_target_object(target_url)
@@ -52,16 +52,17 @@ def process_incoming_webmention(source_url: str, target_url: str, sent_by: str) 
     except SourceDoesNotLink:
         _save_mention(
             wm,
-            notes=notes.warning("Source does not contain a link to our content"),
+            notes=notes.warning(f"Source does not contain a link to '{target_url}'"),
         )
 
 
-class _Notes:
+class Notes:
     """Keep track of any issues that might need to be checked manually."""
 
-    notes = []
+    def __init__(self):
+        self.notes = []
 
-    def warning(self, note) -> "_Notes":
+    def warning(self, note) -> "Notes":
         log.warning(note)
         self.notes.append(note)
         return self
@@ -70,7 +71,7 @@ class _Notes:
         return "\n".join(self.notes)[:1023]
 
 
-def _save_mention(wm: Webmention, notes: _Notes, validated: bool = False):
+def _save_mention(wm: Webmention, notes: Notes, validated: bool = False):
     wm.notes = str(notes)
     wm.validated = validated
     wm.save()
