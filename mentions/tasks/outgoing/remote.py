@@ -124,7 +124,7 @@ def _send_webmention(
 ) -> Tuple[bool, int]:
     payload = {
         "target": target,
-        "source": f"{options.url_scheme()}://{settings.DOMAIN_NAME}{source_urlpath}",
+        "source": urljoin(options.base_url(), source_urlpath),
     }
     response = http_post(endpoint, data=payload)
     status_code = response.status_code
