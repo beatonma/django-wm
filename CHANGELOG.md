@@ -1,6 +1,6 @@
 # Changelog
 
-## 3.0.2 (2022-10-05)
+## 3.1.0 (2022-10-06)
 
 - Resolves [#38](https://github.com/beatonma/django-wm/issues/38): Revalidate target URLs when handling pending mentions
   - Should be unnecessary generally (they are also validated at discovery time when parsed from HTML) but important if validation checks are updated.
@@ -12,6 +12,10 @@
 - Added `settings.WEBMENTIONS_ALLOW_SELF_MENTIONS` \[`bool` | default=`True`].
   - If `False`, outgoing links that target your own domain (as specified by `settings.DOMAIN_NAME`) will be ignored - you will only submit mentions to other domains.
   - If `True`, outgoing links that use a relative path (e.g. `href="/article/1/"`) are now supported.
+
+- Fix: WebmentionHeadMiddleware no longer overwrites existing links in HTTP header when adding webmention endpoint.
+
+- Fix: Webmention 'notes' no longer persists across instances.
 
 
 ## 3.0.0 (2022-09-29)
