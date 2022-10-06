@@ -1,5 +1,7 @@
-from typing import Optional
+from typing import Callable, Optional
+from unittest.mock import Mock, patch
 
+import requests
 from django.conf import settings
 from django.test import TestCase
 from requests.structures import CaseInsensitiveDict
@@ -7,7 +9,11 @@ from requests.structures import CaseInsensitiveDict
 from mentions import options
 
 
-class WebmentionTestCase(TestCase):
+class SimpleTestCase(TestCase):
+    pass
+
+
+class WebmentionTestCase(SimpleTestCase):
     def tearDown(self) -> None:
         super().tearDown()
         from mentions.models import (

@@ -8,7 +8,7 @@ log = logging.getLogger(__name__)
 
 BASE_HTML = """
 <!DOCTYPE html>
-<html lang="???">
+<html lang="en-GB">
 <head>{head}</head>
 <body>
 {body}
@@ -18,7 +18,7 @@ BASE_HTML = """
 
 
 def build_html(head=None, body=None) -> str:
-    return BASE_HTML.format(head=head, body=body)
+    return BASE_HTML.format(head=head or "", body=body or "")
 
 
 def http_header_link(url, **kwargs):

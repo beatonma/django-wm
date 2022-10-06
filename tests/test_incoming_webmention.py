@@ -2,10 +2,6 @@
 Tests for handling webmentions are sent to us from elsewhere.
 """
 import logging
-from typing import Optional
-from unittest.mock import Mock, patch
-
-import requests
 
 from mentions.exceptions import SourceNotAccessible, TargetWrongDomain
 from mentions.models import Webmention
@@ -13,11 +9,10 @@ from mentions.models.mixins import IncomingMentionType
 from mentions.tasks import incoming
 from mentions.tasks.incoming import local, remote
 from mentions.util import html_parser
-from tests import MockResponse, OptionsTestCase, WebmentionTestCase
+from tests import OptionsTestCase, WebmentionTestCase, patch_http_get
 from tests.util import snippets, testfunc
 
 log = logging.getLogger(__name__)
-
 
 SOURCE_URL_OK = testfunc.random_url()
 SOURCE_URL_NOT_FOUND = testfunc.random_url()
@@ -67,45 +62,6 @@ SOURCE_TEXT_REPLY_IN_HCITE = f"""<div class="h-entry">
 </div>"""
 
 
-def _mock_get_text(url, text=None) -> MockResponse:
-    """Return a MockResponse for the given url and optional custom text."""
-
-    def _response(status_code, headers=None):
-        if headers is None:
-            headers = {"content-type": "text/html"}
-
-        return MockResponse(
-            url,
-            text=text,
-            status_code=status_code,
-            headers=headers,
-        )
-
-    return {
-        SOURCE_URL_OK: _response(
-            status_code=200,
-        ),
-        SOURCE_URL_NOT_FOUND: _response(
-            status_code=404,
-        ),
-        SOURCE_URL_UNSUPPORTED_CONTENT_TYPE: _response(
-            status_code=200,
-            headers={"content-type": "image/jpeg"},
-        ),
-        SOURCE_URL_NO_MENTIONS: _response(
-            status_code=200,
-        ),
-    }[url]
-
-
-def _patch_get(text: Optional[str] = SOURCE_TEXT_DEFAULT):
-    return patch.object(
-        requests,
-        "get",
-        Mock(side_effect=lambda x, **kw: _mock_get_text(x, text=text)),
-    )
-
-
 class IncomingWebmentionsTests(WebmentionTestCase):
     """INCOMING: Tests for task `process_incoming_webmention`."""
 
@@ -124,25 +80,25 @@ class IncomingWebmentionsTests(WebmentionTestCase):
         with self.assertRaises(TargetWrongDomain):
             local.get_target_object(testfunc.random_url())
 
-    @_patch_get()
+    @patch_http_get(text=SOURCE_TEXT_DEFAULT)
     def test_get_incoming_source(self):
         """Incoming source text is retrieved correctly."""
         text = remote.get_source_html(SOURCE_URL_OK)
         self.assertTrue(SOURCE_TEXT_DEFAULT in text)
 
-    @_patch_get()
+    @patch_http_get(status_code=404)
     def test_get_incoming_source_inaccessible_url(self):
         """Inaccessible source URL raises SourceNotAccessible."""
         with self.assertRaises(SourceNotAccessible):
             remote.get_source_html(SOURCE_URL_NOT_FOUND)
 
-    @_patch_get()
+    @patch_http_get(headers={"content-type": "image/jpeg"})
     def test_get_incoming_source_unsupported_content_type(self):
         """Source URL with unsupported content type raises SourceNotAccessible."""
         with self.assertRaises(SourceNotAccessible):
             remote.get_source_html(SOURCE_URL_UNSUPPORTED_CONTENT_TYPE)
 
-    @_patch_get()
+    @patch_http_get(text=SOURCE_TEXT_DEFAULT)
     def test_process_incoming_webmention(self):
         """process_incoming_webmention targeting a URL creates a validated Webmention object when successful."""
         incoming.process_incoming_webmention(
@@ -163,7 +119,7 @@ class IncomingWebmentionsTests(WebmentionTestCase):
         self.assertIsNotNone(hcard)
         self.assertEqual(hcard.name, "Jane")
 
-    @_patch_get(text=SOURCE_TEXT_WITH_REPOST)
+    @patch_http_get(text=SOURCE_TEXT_WITH_REPOST)
     def test_process_incoming_webmention_with_post_type(self):
         incoming.process_incoming_webmention(
             source_url=SOURCE_URL_OK,
@@ -185,7 +141,7 @@ class IncomingWebmentionsTests(WebmentionTestCase):
     def test_process_incoming_webmention_with_target_object(self):
         """process_incoming_webmention targeting an object creates a validated Webmention object when successful."""
 
-        with _patch_get(text=SOURCE_TEXT_FOR_OBJECT.format(url=self.target_url)):
+        with patch_http_get(text=SOURCE_TEXT_FOR_OBJECT.format(url=self.target_url)):
             incoming.process_incoming_webmention(
                 source_url=SOURCE_URL_OK,
                 target_url=self.target_url,
@@ -204,7 +160,7 @@ class IncomingWebmentionsTests(WebmentionTestCase):
         self.assertIsNotNone(hcard)
         self.assertEqual(hcard.name, "Jane")
 
-    @_patch_get(text=snippets.build_html(body=SOURCE_TEXT_NO_MENTION))
+    @patch_http_get(text=snippets.build_html(body=SOURCE_TEXT_NO_MENTION))
     def test_process_incoming_webmention_no_mentions_in_source(self):
         """process_incoming_webmention creates unvalidated Webmention object when target link not found in source text."""
         incoming.process_incoming_webmention(
@@ -243,7 +199,7 @@ class IncomingWebmentionOptionTests(OptionsTestCase):
         text: str = SOURCE_TEXT_DEFAULT,
         target_url: str = TARGET_URL,
     ):
-        with _patch_get(text):
+        with patch_http_get(text=text):
             incoming.process_incoming_webmention(
                 source_url=SOURCE_URL_OK,
                 target_url=target_url,

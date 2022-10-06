@@ -1,8 +1,8 @@
-from tests import MetaTestCase
+from tests import SimpleTestCase
 from tests.util import snippets
 
 
-class SnippetsTestCase(MetaTestCase):
+class SnippetsTestCase(SimpleTestCase):
     def test_http_header_link(self):
 
         self.assertEqual(
