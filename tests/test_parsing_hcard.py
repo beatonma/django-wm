@@ -7,15 +7,20 @@ from typing import Optional
 from mentions.models import HCard
 from mentions.tasks.incoming.remote import get_metadata_from_source
 from tests import WebmentionTestCase
+from tests.util import testfunc
 
 log = logging.getLogger(__name__)
 
-MENTIONED_URL = "https://beatonma.org/interesting-content/"
+MENTIONED_URL = testfunc.random_url()
 MENTION_ANCHOR = f"""<a href="{MENTIONED_URL}">Our content</a>"""
 
 
 def _hcard_from_soup(html) -> Optional[HCard]:
-    return get_metadata_from_source(html, target_url=MENTIONED_URL).hcard
+    return get_metadata_from_source(
+        html,
+        target_url=MENTIONED_URL,
+        source_url=testfunc.random_url(),
+    ).hcard
 
 
 class TopLevelHCardParsingTests(WebmentionTestCase):

@@ -46,7 +46,7 @@ def process_incoming_webmention(source_url: str, target_url: str, sent_by: str) 
         return _save_for_retry(source_url, target_url, sent_by)
 
     try:
-        wm = _get_metadata(wm, response_html, target_url)
+        wm = _get_metadata(wm, response_html, target_url, source_url)
         _save_mention(wm, notes, validated=True)
 
     except SourceDoesNotLink:
@@ -100,8 +100,14 @@ def _save_for_retry(source_url: str, target_url: str, sent_by: str):
     pending.mark_processing_failed(save=True)
 
 
-def _get_metadata(mention: Webmention, html: str, target_url: str) -> Webmention:
-    metadata = get_metadata_from_source(html=html, target_url=target_url)
+def _get_metadata(
+    mention: Webmention, html: str, target_url: str, source_url: str
+) -> Webmention:
+    metadata = get_metadata_from_source(
+        html=html,
+        target_url=target_url,
+        source_url=source_url,
+    )
     mention.post_type = metadata.post_type
     mention.hcard = metadata.hcard
     return mention
