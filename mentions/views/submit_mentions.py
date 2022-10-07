@@ -25,7 +25,7 @@ class WebmentionView(View):
 
     def get(self, request):
         form = SubmitWebmentionForm()
-        return render(request, "webmention-submit-manual.html", {"form": form})
+        return render(request, "mentions/webmention-submit-manual.html", {"form": form})
 
     def post(self, request):
         log.info("Receiving webmention...")
@@ -40,7 +40,7 @@ class WebmentionView(View):
         client_ip = _get_client_ip(request)
 
         handle_incoming_webmention(source=source, target=target, sent_by=client_ip)
-        return render(request, "webmention-accepted.html", status=202)
+        return render(request, "mentions/webmention-accepted.html", status=202)
 
 
 def _get_client_ip(request):
