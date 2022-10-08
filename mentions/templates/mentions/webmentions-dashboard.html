@@ -107,7 +107,9 @@
 
               <span class="end">
                 {% more_icon %}
+                {% if perms.mentions.can_change_webmention %}
                 <a href="{% url "admin:mentions_webmention_change" wm.pk %}">admin</a>
+                {% endif %}
               </span>
             </div>
 
@@ -140,7 +142,9 @@
 
               <span class="end">
                 {% more_icon %}
+                {% if perms.mentions.can_change_outgoingwebmentionstatus %}
                 <a href="{% url "admin:mentions_outgoingwebmentionstatus_change" wm.pk %}">admin</a>
+                {% endif %}
               </span>
             </div>
             <div class="item-detail">
@@ -172,7 +176,10 @@
 
               <span class="end">
                 {% more_icon %}
+
+                {% if perms.mentions.can_change_pendingincomingwebmention %}
                 <a href="{% url "admin:mentions_pendingincomingwebmention_change" wm.pk %}">admin</a>
+                {% endif %}
               </span>
             </div>
 
@@ -202,7 +209,9 @@
               </span>
 
               <span class="end">
+                {% if perms.mentions.can_change_pendingoutgoingcontent %}
                 <a href="{% url "admin:mentions_pendingoutgoingcontent_change" wm.pk %}">admin</a>
+                {% endif %}
               </span>
             </div>
           </div>
