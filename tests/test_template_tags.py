@@ -1,22 +1,54 @@
+from django.contrib.auth.models import User
 from django.urls import reverse
 
+from mentions import permissions
 from mentions.tasks.outgoing import remote
-from tests import WebmentionTestCase
-from tests.util import testfunc
+from mentions.views import view_names
+from tests import OptionsTestCase
 
 
-class TemplateTagTests(WebmentionTestCase):
+class TemplateTagTests(OptionsTestCase):
     """TEMPLATE: Test template tags."""
 
-    def test_webmention_endpoint_templatetag(self):
-        """{% webmentions_endpoint %} renders correctly."""
-        expected_endpoint = testfunc.endpoint_submit_webmention()
-        response = self.client.get(reverse("test-template-tags"))
+    def setUp(self) -> None:
+        super().setUp()
+        self.test_view_url = reverse("test-template-tags")
+        self.user = User.objects.create_user("dashboard-user")
+        permissions.can_view_dashboard.grant(self.user)
 
-        self.assertTemplateUsed(response, "templatetags_example.html")
+    def test_webmentions_endpoint_renders_correctly(self):
+        """{% webmentions_endpoint %} renders correctly."""
+        expected_endpoint = reverse(view_names.webmention_api_incoming)
+        response = self.client.get(self.test_view_url)
+
         self.assertContains(response, expected_endpoint)
 
         self.assertEqual(
             remote.get_endpoint_in_html(response.content),
             expected_endpoint,
         )
+
+    def test_webmentions_dashbaord_without_permission_is_empty(self):
+        """{% webmentions_dashboard %} renders correctly."""
+        self.set_dashboard_public(False)
+        expected_endpoint = reverse(view_names.webmention_dashboard)
+        response = self.client.get(self.test_view_url)
+
+        self.assertNotContains(response, expected_endpoint)
+
+    def test_webmentions_dashboard_with_permission_renders_correctly(self):
+        self.set_dashboard_public(False)
+        expected_endpoint = reverse(view_names.webmention_dashboard)
+        self.client.force_login(self.user)
+        response = self.client.get(self.test_view_url)
+
+        self.assertContains(response, expected_endpoint, count=2)
+        self.assertContains(response, "Webmentions Dashboard")
+        self.assertContains(response, "Custom dashboard title")
+
+    def test_webmentions_dashboard_with_public_dashboard_renders_correctly(self):
+        self.set_dashboard_public(True)
+        expected_endpoint = reverse(view_names.webmention_dashboard)
+        response = self.client.get(self.test_view_url)
+
+        self.assertContains(response, expected_endpoint)
