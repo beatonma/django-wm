@@ -1,6 +1,4 @@
-"""
-Utility functions used in multiple test files.
-"""
+"""Utility functions used in multiple test files."""
 import random
 import uuid
 from typing import Optional, Tuple
@@ -42,7 +40,7 @@ def create_webmention(
     return Webmention.objects.create(
         source_url=source_url or random_url(),
         target_url=target_url or random_url(),
-        post_type=post_type.name.lower() if post_type else None,
+        post_type=post_type.serialized_name() if post_type else None,
         sent_by=sent_by or random_url(),
         approved=approved,
         validated=validated,

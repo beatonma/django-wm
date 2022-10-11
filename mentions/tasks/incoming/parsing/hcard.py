@@ -6,6 +6,7 @@ import mf2py
 from bs4 import Tag
 
 from mentions.exceptions import NotEnoughData
+from mentions.microformats import H_CARD, H_ENTRY, H_FEED
 from mentions.models import HCard
 
 __all__ = [
@@ -15,9 +16,14 @@ __all__ = [
 
 from mentions.resolution import update_or_create_hcard
 
-CLASS_H_CARD = "h-card"
-CLASS_H_ENTRY = "h-entry"
-CLASS_H_FEED = "h-feed"
+# Key names for mf2py parsing output
+AUTHOR = "author"
+CHILDREN = "children"
+TYPE = "type"
+PROPERTIES = "properties"
+NAME = "name"
+URL = "url"
+PHOTO = "photo"
 
 
 def parse_hcard(
@@ -36,13 +42,13 @@ def parse_hcard(
 
 def find_related_hcard(link: Tag) -> Optional[HCard]:
     """Try to find a post-specific h-card from a parent `h-entry` or `h-feed`."""
-    hentry = link.find_parent(class_=CLASS_H_ENTRY)
+    hentry = link.find_parent(class_=H_ENTRY)
     if hentry:
         hcard = parse_hcard(hentry, recursive=True)
         if hcard:
             return hcard
 
-    hfeed = link.find_parent(class_=CLASS_H_FEED)
+    hfeed = link.find_parent(class_=H_FEED)
     if hfeed:
         hcard = parse_hcard(hfeed, recursive=True)
         if hcard:
@@ -62,9 +68,9 @@ def _find_hcard(data: List[dict], recursive: bool = False) -> Optional[HCard]:
     fallback = []  # List of items that may contain an embedded h-card
 
     for item in data:
-        _type = item.get("type", [])
+        _type = item.get(TYPE, [])
 
-        if CLASS_H_CARD in _type:
+        if H_CARD in _type:
             try:
                 hcard = _create_hcard(item)
                 if hcard:
@@ -74,7 +80,7 @@ def _find_hcard(data: List[dict], recursive: bool = False) -> Optional[HCard]:
                 # This h-card is missing required fields, keep looking for a better-formed one.
                 pass
 
-        elif recursive and (CLASS_H_ENTRY in _type or CLASS_H_FEED in _type):
+        elif recursive and (H_ENTRY in _type or H_FEED in _type):
             fallback.append(item)
 
     if not recursive:
@@ -90,21 +96,21 @@ def _find_embedded_hcard(items: List[dict]) -> Optional[HCard]:
         return None
 
     for item in items:
-        _type = item.get("type")
-        props = item.get("properties")
+        _type = item.get(TYPE)
+        props = item.get(PROPERTIES)
 
-        if "author" in props:
-            return _find_hcard(props.get("author"))
+        if AUTHOR in props:
+            return _find_hcard(props.get(AUTHOR))
 
-        elif "children" in item:
-            return _find_hcard(item.get("children", []))
+        elif CHILDREN in item:
+            return _find_hcard(item.get(CHILDREN, []))
 
 
 def _create_hcard(data: dict) -> HCard:
-    props = data.get("properties")
-    homepage = props.get("url", [None])[0]
-    name = props.get("name", [""])[0]
-    avatar = props.get("photo", [""])[0]
+    props = data.get(PROPERTIES)
+    homepage = props.get(URL, [None])[0]
+    name = props.get(NAME, [""])[0]
+    avatar = props.get(PHOTO, [""])[0]
     _json = json.dumps(data, sort_keys=True)
 
     _require_any_of([name, homepage])

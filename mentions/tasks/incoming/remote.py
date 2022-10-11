@@ -87,6 +87,6 @@ def get_metadata_from_source(
         hcard = parse_hcard(soup, recursive=False)
 
     return WebmentionMetadata(
-        post_type=post_type.name.lower() if post_type else None,
+        post_type=post_type.serialized_name() if post_type else None,
         hcard=hcard,
     )

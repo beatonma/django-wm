@@ -11,23 +11,29 @@ __all__ = [
     "QuotableMixin",
 ]
 
+from mentions import microformats
+
 
 class IncomingMentionType(Enum):
     """Properties that describe the context of the incoming webmention.
 
     See: https://microformats.org/wiki/h-entry"""
 
-    Bookmark = "u-bookmark-of"
-    Like = "u-like-of"
-    Listen = "u-listen-of"
-    Reply = "u-in-reply-to"
-    Repost = "u-repost-of"
-    Translation = "u-translation-of"
-    Watch = "u-watch-of"
+    Bookmark = microformats.BOOKMARK
+    Like = microformats.LIKE
+    Listen = microformats.LISTEN
+    Reply = microformats.REPLY
+    Repost = microformats.REPOST
+    Translation = microformats.TRANSLATION
+    Watch = microformats.WATCH
 
     @classmethod
     def choices(cls) -> List[Tuple[str, str]]:
         return [(x.lower(), x) for x in cls.__members__.keys()]
+
+    def serialized_name(self) -> str:
+        """The value used in the database and API responses."""
+        return self.name.lower()
 
 
 class QuotableMixin(models.Model):
