@@ -71,44 +71,42 @@ class OutgoingWebmentionsTests(OptionsTestCase):
     @patch_http_get(text=OUTGOING_WEBMENTION_HTML)
     def test_process_outgoing_webmentions(self):
         """Test the entire process_outgoing_webmentions task with no errors."""
-        successful_submissions = process_outgoing_webmentions(
+        successful = process_outgoing_webmentions(
             self.source_url, OUTGOING_WEBMENTION_HTML
         )
 
-        self.assertEqual(1, successful_submissions)
-        self.assertEqual(1, OutgoingWebmentionStatus.objects.count())
+        self.assertEqual(1, successful)
+        self.assert_exists(OutgoingWebmentionStatus)
 
-        successful_submissions = process_outgoing_webmentions(
+        successful = process_outgoing_webmentions(
             self.source_url, OUTGOING_WEBMENTION_HTML_MULTIPLE_LINKS
         )
 
-        self.assertEqual(2, successful_submissions)
-        self.assertEqual(2, OutgoingWebmentionStatus.objects.count())
+        self.assertEqual(2, successful)
+        self.assert_exists(OutgoingWebmentionStatus, count=2)
 
     @patch_http_get()
     @patch_http_post()
     def test_process_outgoing_webmentions__with_no_links_found(self):
         """Test the entire process_outgoing_webmentions task with no links in provided text."""
-        self.assertEqual(0, OutgoingWebmentionStatus.objects.count())
-
-        successful_webmention_submissions = process_outgoing_webmentions(
+        successful = process_outgoing_webmentions(
             self.source_url, OUTGOING_WEBMENTION_HTML_NO_LINKS
         )
 
-        self.assertEqual(0, successful_webmention_submissions)
-        self.assertEqual(0, OutgoingWebmentionStatus.objects.count())
+        self.assertEqual(0, successful)
+        self.assert_not_exists(OutgoingWebmentionStatus)
 
     @patch_http_get()
     @patch_http_post(status_code=400)
     def test_process_outgoing_webmentions__with_endpoint_error(self):
         """Test the entire process_outgoing_webmentions task with endpoint error."""
 
-        successful_webmention_submissions = process_outgoing_webmentions(
+        successful = process_outgoing_webmentions(
             self.source_url, OUTGOING_WEBMENTION_HTML
         )
 
-        self.assertEqual(0, successful_webmention_submissions)
-        self.assertEqual(1, OutgoingWebmentionStatus.objects.count())
+        self.assertEqual(0, successful)
+        self.assert_exists(OutgoingWebmentionStatus)
 
     @patch_http_get(text=OUTGOING_WEBMENTION_HTML)
     @patch_http_post(status_code=400)
@@ -118,7 +116,7 @@ class OutgoingWebmentionsTests(OptionsTestCase):
 
         # Process links from text to target url.
         process_outgoing_webmentions(self.source_url, OUTGOING_WEBMENTION_HTML)
-        status: OutgoingWebmentionStatus = OutgoingWebmentionStatus.objects.first()
+        status = self.assert_exists(OutgoingWebmentionStatus)
         self.assertEqual(status.retry_attempt_count, 1)
 
         # After failure, retrying process increments retry_attempt_count.
@@ -129,7 +127,5 @@ class OutgoingWebmentionsTests(OptionsTestCase):
         # Reprocessing raw text reuses same status instance, resetting its retry tracking.
         process_outgoing_webmentions(self.source_url, OUTGOING_WEBMENTION_HTML)
 
-        self.assertEqual(OutgoingWebmentionStatus.objects.count(), 1)
-        self.assertEqual(
-            OutgoingWebmentionStatus.objects.first().retry_attempt_count, 1
-        )
+        status = self.assert_exists(OutgoingWebmentionStatus)
+        self.assertEqual(status.retry_attempt_count, 1)

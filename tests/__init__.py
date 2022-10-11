@@ -1,15 +1,19 @@
 import logging
-from typing import Callable, Optional
+from typing import Callable, Optional, Type, TypeVar, Union
 from unittest.mock import Mock, patch
 
 import requests
 from django.conf import settings
+from django.db import models
+from django.db.models import QuerySet
 from django.test import TestCase
 from requests.structures import CaseInsensitiveDict
 
 from mentions import options
 
 log = logging.getLogger(__name__)
+
+M = TypeVar("M", bound=models.Model)
 
 
 class SimpleTestCase(TestCase):
@@ -54,6 +58,26 @@ class WebmentionTestCase(SimpleTestCase):
         all_models = [*app_models, *test_models]
         for Model in all_models:
             Model.objects.all().delete()
+
+    def assert_exists(
+        self,
+        Model: Type[M],
+        count: int = 1,
+        **query,
+    ) -> Union[M, QuerySet[M]]:
+        """Assert that the expected number of model instances exist and return it/them."""
+        if count == 1:
+            try:
+                return Model.objects.get(**query)
+            except (Model.DoesNotExist, Model.MultipleObjectsReturned) as e:
+                raise AssertionError(f"Expected 1 intance of {Model}: {e}")
+
+        qs = Model.objects.filter(**query)
+        self.assertEqual(count, qs.count())
+        return qs
+
+    def assert_not_exists(self, Model: Type[M], **query):
+        self.assertFalse(Model.objects.filter(**query).exists())
 
 
 class OptionsTestCase(WebmentionTestCase):

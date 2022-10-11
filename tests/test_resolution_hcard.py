@@ -67,7 +67,7 @@ class HCardResolutionTests(WebmentionTestCase):
             ),
             avatar_only,
         )
-        self.assertEqual(HCard.objects.count(), 4)
+        self.assert_exists(HCard, count=4)
 
         # Multiple hcards may share the same homepage url if they have different names.
         resolution.update_or_create_hcard(
@@ -76,7 +76,7 @@ class HCardResolutionTests(WebmentionTestCase):
             avatar="https://beatonma.org/static/images/avatar.jpg",
             data="{}",
         ),
-        self.assertEqual(HCard.objects.count(), 5)
+        self.assert_exists(HCard, count=5)
 
         # Multiple hcards may share the same name if they have different homepage urls.
         resolution.update_or_create_hcard(
@@ -85,4 +85,4 @@ class HCardResolutionTests(WebmentionTestCase):
             avatar="https://beatonma.org/static/images/avatar.jpg",
             data="{}",
         ),
-        self.assertEqual(HCard.objects.count(), 6)
+        self.assert_exists(HCard, count=6)

@@ -2,6 +2,9 @@
 Tests for handling webmentions are sent to us from elsewhere.
 """
 import logging
+from typing import Union
+
+from django.db.models import QuerySet
 
 from mentions.exceptions import SourceNotAccessible, TargetWrongDomain
 from mentions.models import Webmention
@@ -105,10 +108,7 @@ class IncomingWebmentionsTests(WebmentionTestCase):
             sent_by=testfunc.random_url(),
         )
 
-        webmentions = Webmention.objects.all()
-        self.assertEqual(1, webmentions.count())
-
-        mention = webmentions.first()
+        mention = self.assert_exists(Webmention)
         self.assertEqual(mention.source_url, SOURCE_URL)
         self.assertEqual(mention.target_url, TARGET_URL)
         self.assertTrue(mention.validated)
@@ -125,7 +125,7 @@ class IncomingWebmentionsTests(WebmentionTestCase):
             sent_by=testfunc.random_url(),
         )
 
-        mention: Webmention = Webmention.objects.first()
+        mention = self.assert_exists(Webmention)
         self.assertEqual(mention.source_url, SOURCE_URL)
         self.assertEqual(mention.target_url, TARGET_URL)
         self.assertTrue(mention.validated)
@@ -146,10 +146,7 @@ class IncomingWebmentionsTests(WebmentionTestCase):
                 sent_by=testfunc.random_url(),
             )
 
-        webmentions = Webmention.objects.all()
-        self.assertEqual(1, webmentions.count())
-
-        mention = webmentions.first()
+        mention = self.assert_exists(Webmention)
         self.assertEqual(mention.source_url, SOURCE_URL)
         self.assertEqual(mention.target_url, self.target_url)
         self.assertTrue(mention.validated)
@@ -167,10 +164,7 @@ class IncomingWebmentionsTests(WebmentionTestCase):
             sent_by=testfunc.random_url(),
         )
 
-        webmentions = Webmention.objects.all()
-        self.assertEqual(1, webmentions.count())
-
-        mention = webmentions.first()
+        mention = self.assert_exists(Webmention)
         self.assertFalse(mention.validated)
 
     def test_parse_link_type(self):
@@ -196,7 +190,7 @@ class IncomingWebmentionOptionTests(OptionsTestCase):
         expected_count: int,
         text: str = SOURCE_TEXT_DEFAULT,
         target_url: str = TARGET_URL,
-    ):
+    ) -> Webmention:
         with patch_http_get(text=text):
             incoming.process_incoming_webmention(
                 source_url=SOURCE_URL,
@@ -204,14 +198,14 @@ class IncomingWebmentionOptionTests(OptionsTestCase):
                 sent_by=testfunc.random_url(),
             )
 
-        self.assertEqual(expected_count, Webmention.objects.count())
+        return self.assert_exists(Webmention, count=expected_count)
 
     def test_process_incoming_webmention_with_object_not_required(self):
         """When mention does not target a model instance, setting False accepts the mention."""
         self.set_incoming_target_model_required(False)
 
-        self.assert_webmention_count(1)
-        self.assertIsNone(Webmention.objects.first().target_object)
+        mention = self.assert_webmention_count(1)
+        self.assertIsNone(mention.target_object)
 
     def test_process_incoming_webmention_with_object_required(self):
         """When mention does not target a model instance, setting True ignores the mention."""
@@ -226,12 +220,12 @@ class IncomingWebmentionOptionTests(OptionsTestCase):
         target_obj = testfunc.create_mentionable_object()
         target_url = testfunc.get_absolute_url_for_object(target_obj)
 
-        self.assert_webmention_count(
+        mention = self.assert_webmention_count(
             1,
             text=SOURCE_TEXT_FOR_OBJECT.format(url=target_url),
             target_url=target_url,
         )
-        self.assertIsNotNone(Webmention.objects.first().target_object)
+        self.assertIsNotNone(mention.target_object)
 
     def test_target_object_with_object_not_required(self):
         """When mention targets a model instance, setting has no effect."""
@@ -240,9 +234,9 @@ class IncomingWebmentionOptionTests(OptionsTestCase):
         target_obj = testfunc.create_mentionable_object()
         target_url = testfunc.get_absolute_url_for_object(target_obj)
 
-        self.assert_webmention_count(
+        mention = self.assert_webmention_count(
             1,
             text=SOURCE_TEXT_FOR_OBJECT.format(url=target_url),
             target_url=target_url,
         )
-        self.assertIsNotNone(Webmention.objects.first().target_object)
+        self.assertIsNotNone(mention.target_object)

@@ -106,7 +106,7 @@ class GetWebmentionsNoModelTests(_BaseTestCase):
 
     def test_webmention_type_retrieved_correctly(self):
         """Webmention with post_type is serialized correctly."""
-        wm: Webmention = Webmention.objects.first()
+        wm = self.assert_exists(Webmention)
         wm.post_type = "bookmark"
         wm.save(update_fields=["post_type"])
 

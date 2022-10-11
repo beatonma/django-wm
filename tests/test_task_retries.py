@@ -91,7 +91,7 @@ class RetryOutgoingTests(RetryNoCeleryTests):
         with patch_http_get(response=throw_timeout):
             self.test_func()
 
-        status: OutgoingWebmentionStatus = OutgoingWebmentionStatus.objects.first()
+        status = self.assert_exists(OutgoingWebmentionStatus)
         self.assertEqual(status.target_url, self.remote_target)
         self.assertEqual(status.source_url, self.local_source)
 
@@ -109,7 +109,7 @@ class RetryOutgoingTests(RetryNoCeleryTests):
         ), patch_http_post(status_code=202):
             self.test_func()
 
-        status: OutgoingWebmentionStatus = OutgoingWebmentionStatus.objects.first()
+        status = self.assert_exists(OutgoingWebmentionStatus)
         self.assertEqual(status.retry_attempt_count, 1)
         self.assertFalse(status.is_awaiting_retry)
         self.assertTrue(status.is_retry_successful)
@@ -130,7 +130,7 @@ class RetryOutgoingTests(RetryNoCeleryTests):
         ), patch_http_post(status_code=202):
             self.test_func()
 
-        status: OutgoingWebmentionStatus = OutgoingWebmentionStatus.objects.first()
+        status = self.assert_exists(OutgoingWebmentionStatus)
         self.assertTrue(status.is_retry_successful)
         self.assertFalse(status.is_awaiting_retry)
         self.assertEqual(status.retry_attempt_count, 4)

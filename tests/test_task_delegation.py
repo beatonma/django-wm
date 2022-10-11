@@ -30,10 +30,7 @@ class IncomingWebmentionDelegationTests(OptionsTestCase):
 
         handle_incoming_webmention(self.source, self.target, self.sent_by)
 
-        all_pending = PendingIncomingWebmention.objects.all()
-        self.assertEqual(1, all_pending.count())
-
-        pending = all_pending.first()
+        pending = self.assert_exists(PendingIncomingWebmention)
         self.assertEqual(pending.source_url, self.source)
         self.assertEqual(pending.target_url, self.target)
         self.assertEqual(pending.sent_by, self.sent_by)
@@ -48,8 +45,7 @@ class IncomingWebmentionDelegationTests(OptionsTestCase):
             handle_incoming_webmention(self.source, self.target, self.sent_by)
             self.assertTrue(handle_task.called)
 
-        pending = PendingIncomingWebmention.objects.all()
-        self.assertEqual(0, pending.count())
+        self.assert_not_exists(PendingIncomingWebmention)
 
     def test_task_calls_process_and_reschedule(self):
         self.enable_celery(True)
@@ -80,10 +76,7 @@ class OutgoingWebmentionDelegationTests(OptionsTestCase):
 
         handle_outgoing_webmentions(self.absolute_url, self.all_text)
 
-        all_pending = PendingOutgoingContent.objects.all()
-        self.assertEqual(1, all_pending.count())
-
-        pending = all_pending.first()
+        pending = self.assert_exists(PendingOutgoingContent)
         self.assertEqual(pending.absolute_url, self.absolute_url)
         self.assertEqual(pending.text, self.all_text)
 
@@ -97,8 +90,7 @@ class OutgoingWebmentionDelegationTests(OptionsTestCase):
             handle_outgoing_webmentions(self.absolute_url, self.all_text)
             self.assertTrue(handle_task.called)
 
-        all_pending = PendingOutgoingContent.objects.all()
-        self.assertEqual(0, all_pending.count())
+        self.assert_not_exists(PendingOutgoingContent)
 
     def test_task_calls_process_and_reschedule(self):
         self.enable_celery(True)
