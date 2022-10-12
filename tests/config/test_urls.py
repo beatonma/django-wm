@@ -12,7 +12,7 @@ from tests.views import (
 urlpatterns = [
     # A page associated with a MentionableMixin model with correct configuration - webmentions linked by model instance.
     path(
-        rf"with_correct_config/<slug:slug>",
+        rf"with_correct_config/<int:object_id>",
         AllEndpointsMentionableTestView.as_view(),
         kwargs={
             "model_name": constants.model_name,

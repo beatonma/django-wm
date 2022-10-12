@@ -15,10 +15,11 @@ log = logging.getLogger(__name__)
 class MentionableTestModel(MentionableMixin, models.Model):
     """Basic mentionable model with all required methods implemented."""
 
+    name = models.CharField(max_length=32, null=True, unique=True)
     content = models.TextField(blank=True, null=True)
 
     def get_absolute_url(self):
-        return reverse(viewname.with_target_object_view, args=[self.slug])
+        return reverse(viewname.with_target_object_view, args=[self.id])
 
     def all_text(self):
         return self.content
@@ -45,7 +46,7 @@ class BadTestModelMissingAllText(MentionableMixin, models.Model):
     content = models.TextField(blank=True, null=True)
 
     def get_absolute_url(self):
-        return reverse(viewname.with_target_object_view, args=[self.slug])
+        return reverse(viewname.with_target_object_view, args=[self.id])
 
     class Meta:
         app_label = "tests"
@@ -62,7 +63,7 @@ class MentionableTestBlogPost(MentionableMixin, models.Model):
     """A MentionableMixin model with custom resolve_from_url_kwargs implementation.
 
     Models are now resolved using arbitrary kwargs from the relevant urlpatterns
-    path - not necessarily just '<slug:slug>'.
+    path - not necessarily just '<int:object_id>'.
 
     This model uses multiple slugs and date fields in its urlpatterns path,
     and we should be able to resolve from that path back to an instance of this

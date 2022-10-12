@@ -35,14 +35,14 @@ register_converter(TwoDigitConverter, "mm")
 Should be added to test_urls.urlpatterns in setUp and removed again in tearDown."""
 local_urlpatterns = [
     path(
-        rf"{bad_modelname_key}/<slug:slug>",
+        rf"{bad_modelname_key}/<int:object_id>",
         AllEndpointsMentionableTestView.as_view(),
         kwargs={
             "model_name_with_mistyped_or_missing_key": constants.model_name,
         },
     ),
     path(
-        rf"{bad_modelname_value}/<slug:slug>",
+        rf"{bad_modelname_value}/<int:object_id>",
         AllEndpointsMentionableTestView.as_view(),
         kwargs={
             "model_name": "tests.UnresolvableModel",
@@ -109,14 +109,14 @@ class GetModelForUrlPathWithBadConfigTests(_BaseLocalUrlpatternsTestCase):
         """urlpatterns with no entry for model_name in path kwargs raises NoModelForUrlPath exception."""
         with self.assertRaises(NoModelForUrlPath):
             resolution.get_model_for_url(
-                self._urlpath(bad_modelname_key, self.target.slug)
+                self._urlpath(bad_modelname_key, self.target.pk)
             )
 
     def test_get_model_for_url__raises_badconfig_when_model_name_unresolvable(self):
         """Unresolvable model_name raises BadUrlConfig exception."""
         with self.assertRaises(BadUrlConfig):
             resolution.get_model_for_url(
-                self._urlpath(bad_modelname_value, self.target.slug)
+                self._urlpath(bad_modelname_value, self.target.pk)
             )
 
 

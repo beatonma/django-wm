@@ -74,7 +74,7 @@ class IncomingWebmentionsTests(WebmentionTestCase):
         """Target object is resolved from URL correctly."""
         retrieved_model = local.get_target_object(self.target_url)
 
-        self.assertEqual(retrieved_model.slug, self.target.slug)
+        self.assertEqual(retrieved_model.pk, self.target.pk)
 
     def test_get_target_object_wrong_domain_raises_exception(self):
         """Target URL with wrong domain raises TargetWrongDomain."""

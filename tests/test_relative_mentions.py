@@ -8,13 +8,13 @@ from tests import OptionsTestCase, patch_http_get, patch_http_post
 from tests.models import MentionableTestModel
 from tests.util import snippets, testfunc, viewname
 
-RECEIVER_SLUG = "webmention_receiver"
-SENDER_SLUG = "webmention_sender"
+RECEIVER_ID = 1
+SENDER_ID = 2
 
-RECEIVER_URLPATH = reverse(viewname.with_target_object_view, args=[RECEIVER_SLUG])
+RECEIVER_URLPATH = reverse(viewname.with_target_object_view, args=[RECEIVER_ID])
 RECEIVER_ABSOLUTE_URL = config.build_url(RECEIVER_URLPATH)
 
-SENDER_URLPATH = reverse(viewname.with_target_object_view, args=[SENDER_SLUG])
+SENDER_URLPATH = reverse(viewname.with_target_object_view, args=[SENDER_ID])
 SENDER_ABSOLUTE_URL = config.build_url(SENDER_URLPATH)
 
 RECEIVER_CONTENT = snippets.html_all_endpoints("Some interesting content")
@@ -36,13 +36,13 @@ class RelativeUrlMentionTests(OptionsTestCase):
     def setUp(self) -> None:
         super().setUp()
         self.receiver = MentionableTestModel.objects.create(
+            id=RECEIVER_ID,
             content=RECEIVER_CONTENT,
-            slug=RECEIVER_SLUG,
         )
 
         self.sender = MentionableTestModel.objects.create(
+            id=SENDER_ID,
             content=SENDER_CONTENT,
-            slug=SENDER_SLUG,
         )
 
     @patch_http_post()

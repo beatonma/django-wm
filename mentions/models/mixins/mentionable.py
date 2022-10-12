@@ -16,11 +16,6 @@ class MentionableMixin(models.Model):
 
     allow_outgoing_webmentions = models.BooleanField(default=False)
 
-    # `slug` field is no longer required as of version 2.3.0.
-    # It may be removed in a future update, but for now we use it to provide
-    # a default implementation of :func:`resolve_from_url_kwargs`
-    slug = models.SlugField(unique=True)
-
     def mentions(self) -> List["QuotableMixin"]:
         from mentions.resolution import get_mentions_for_object
 
@@ -38,8 +33,8 @@ class MentionableMixin(models.Model):
 
     def all_text(self) -> str:
         """
-        Return all the text that should be searched when looking for
-        outgoing Webmentions. Any URLs found in this text will be
+        Return all the HTML-formatted text that should be searched when looking
+        for outgoing Webmentions. Any <a> tags found in this content will be
         checked for webmention support.
 
         Typically this will just be the main text of your model, but
@@ -61,10 +56,10 @@ class MentionableMixin(models.Model):
     ) -> "MentionableMixin":
         """Resolve a model instance from the given URL captured values.
 
-        By default, an object is resolved via its unique slug.
+        By default, an object is resolved via its id using the object_id kwarg.
 
-        If your model does not have a unique slug, override this classmethod
-        to retrieve an object using the URL parameters in url_kwargs.
+        You may override this classmethod to retrieve an object using any
+        URL parameters in url_kwargs.
 
         e.g.
         If your urlpatterns path looks like
@@ -75,7 +70,7 @@ class MentionableMixin(models.Model):
             def resolve_from_url_kwargs(cls, year: int, slug: str, **url_kwargs):
                 return cls.objects.get(date__year=year, slug=slug)
         """
-        return cls.objects.get(slug=url_kwargs.get("slug"))
+        return cls.objects.get(id=url_kwargs.get("object_id"))
 
     def should_process_webmentions(self) -> bool:
         """Return True if this instance should process webmentions when saved."""

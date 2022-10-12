@@ -30,8 +30,8 @@ class AllEndpointsMentionableTestView(View):
 
     Webmentions are retrieved via the associated model instance."""
 
-    def get(self, request, *args, slug: str, **kwargs):
-        obj = MentionableTestModel.objects.get(slug=slug)
+    def get(self, request, *args, object_id: int, **kwargs):
+        obj = MentionableTestModel.objects.get(id=object_id)
         html = snippets.html_all_endpoints(obj.content)
 
         response = HttpResponse(html, status=200)

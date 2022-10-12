@@ -9,11 +9,7 @@ from tests.util import testfunc
 
 
 def _create_model_instance(Model):
-    pk, slug = testfunc.get_id_and_slug()
-
     return Model.objects.create(
-        pk=pk,
-        slug=slug,
         content=testfunc.random_domain(),
     )
 

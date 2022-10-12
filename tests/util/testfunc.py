@@ -1,11 +1,10 @@
 """Utility functions used in multiple test files."""
 import random
 import uuid
-from typing import Optional, Tuple
+from typing import Optional
 
 from django.db import models
 from django.urls import reverse
-from django.utils.text import slugify
 
 from mentions import config
 from mentions.models import Webmention
@@ -15,17 +14,9 @@ from tests.models import MentionableTestModel
 from tests.util import viewname
 
 
-def get_id_and_slug() -> Tuple[int, str]:
-    """Create a random id and slug."""
-    _id = random.randint(1, 1_000_000)
-    slug = slugify(random_str())
-    return _id, slug
-
-
 def create_mentionable_object(content: str = ""):
     """Create and return an instance of MentionableTestModel."""
-    pk, slug = get_id_and_slug()
-    return MentionableTestModel.objects.create(pk=pk, slug=slug, content=content)
+    return MentionableTestModel.objects.create(content=content)
 
 
 def create_webmention(
