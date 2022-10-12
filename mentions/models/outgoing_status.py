@@ -5,6 +5,7 @@ from mentions.models.mixins import RetryableMixin
 
 __all__ = [
     "OutgoingWebmentionStatus",
+    "get_or_create_outgoing_webmention",
 ]
 
 
@@ -42,3 +43,28 @@ class OutgoingWebmentionStatus(RetryableMixin, MentionsBaseModel):
     class Meta:
         ordering = ["-created_at"]
         verbose_name_plural = "Outgoing Webmentions"
+
+
+def get_or_create_outgoing_webmention(
+    source_urlpath: str,
+    target_url: str,
+    reset_retries: bool = False,
+) -> OutgoingWebmentionStatus:
+    """Safely get or create a OutgoingWebmentionStatus instance for given URLs.
+
+    Since version 3.0.0 the URLs are effectively treated as 'unique together',
+    but there may exist 'duplicate' instances from a previous installation."""
+
+    kwargs = {
+        "source_url": source_urlpath,
+        "target_url": target_url,
+    }
+    try:
+        status = OutgoingWebmentionStatus.objects.get_or_create(**kwargs)[0]
+    except OutgoingWebmentionStatus.MultipleObjectsReturned:
+        status = OutgoingWebmentionStatus.objects.filter(**kwargs).first()
+
+    if reset_retries:
+        status.reset_retries()
+
+    return status

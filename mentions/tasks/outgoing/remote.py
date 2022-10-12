@@ -8,7 +8,7 @@ from requests import RequestException, Response
 from mentions import options
 from mentions.exceptions import TargetNotAccessible
 from mentions.models import OutgoingWebmentionStatus
-from mentions.resolution import get_or_create_outgoing_webmention
+from mentions.models.outgoing_status import get_or_create_outgoing_webmention
 from mentions.tasks.outgoing.parsing import (
     get_endpoint_in_html,
     get_endpoint_in_http_headers,

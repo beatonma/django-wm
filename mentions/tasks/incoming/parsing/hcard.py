@@ -8,13 +8,13 @@ from bs4 import Tag
 from mentions.exceptions import NotEnoughData
 from mentions.microformats import H_CARD, H_ENTRY, H_FEED
 from mentions.models import HCard
+from mentions.models.hcard import update_or_create_hcard
 
 __all__ = [
     "parse_hcard",
     "find_related_hcard",
 ]
 
-from mentions.resolution import update_or_create_hcard
 
 # Key names for mf2py parsing output
 AUTHOR = "author"

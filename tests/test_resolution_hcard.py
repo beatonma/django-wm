@@ -1,5 +1,5 @@
-from mentions import resolution
 from mentions.models import HCard
+from mentions.models.hcard import update_or_create_hcard
 from tests import WebmentionTestCase
 
 
@@ -29,7 +29,7 @@ class HCardResolutionTests(WebmentionTestCase):
         )
 
         self.assertEqual(
-            resolution.update_or_create_hcard(
+            update_or_create_hcard(
                 homepage="https://beatonma.org",
                 name="Michael Beaton",
                 avatar="https://beatonma.org/static/images/avatar.jpg",
@@ -39,7 +39,7 @@ class HCardResolutionTests(WebmentionTestCase):
         )
 
         self.assertEqual(
-            resolution.update_or_create_hcard(
+            update_or_create_hcard(
                 homepage="https://beatonma.org",
                 name=None,
                 avatar="https://beatonma.org/static/images/avatar.jpg",
@@ -49,7 +49,7 @@ class HCardResolutionTests(WebmentionTestCase):
         )
 
         self.assertEqual(
-            resolution.update_or_create_hcard(
+            update_or_create_hcard(
                 homepage=None,
                 name="Michael Beaton",
                 avatar="https://beatonma.org/static/images/avatar.jpg",
@@ -59,7 +59,7 @@ class HCardResolutionTests(WebmentionTestCase):
         )
 
         self.assertEqual(
-            resolution.update_or_create_hcard(
+            update_or_create_hcard(
                 homepage=None,
                 name=None,
                 avatar="https://beatonma.org/static/images/avatar.jpg",
@@ -70,7 +70,7 @@ class HCardResolutionTests(WebmentionTestCase):
         self.assert_exists(HCard, count=4)
 
         # Multiple hcards may share the same homepage url if they have different names.
-        resolution.update_or_create_hcard(
+        update_or_create_hcard(
             homepage="https://beatonma.org",
             name="Michael Smith",
             avatar="https://beatonma.org/static/images/avatar.jpg",
@@ -79,7 +79,7 @@ class HCardResolutionTests(WebmentionTestCase):
         self.assert_exists(HCard, count=5)
 
         # Multiple hcards may share the same name if they have different homepage urls.
-        resolution.update_or_create_hcard(
+        update_or_create_hcard(
             homepage="https://beatonma-alt.org",
             name="Michael Beaton",
             avatar="https://beatonma.org/static/images/avatar.jpg",
