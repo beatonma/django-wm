@@ -1,6 +1,6 @@
 from django.urls import reverse
 
-from mentions import options
+from mentions import config
 from mentions.views import view_names
 
 __all__ = [
@@ -20,7 +20,7 @@ class WebmentionHeadMiddleware:
         path = reverse(view_names.webmention_api_incoming)
 
         existing = response.get("Link")
-        endpoint_link = f'<{options.base_url()}{path}>; rel="webmention"'
+        endpoint_link = f'<{config.build_url(path)}>; rel="webmention"'
 
         response["Link"] = ",".join([x for x in [existing, endpoint_link] if x])
 

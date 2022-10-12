@@ -1,6 +1,6 @@
 from django.urls import reverse
 
-from mentions import options
+from mentions import config
 from mentions.models import OutgoingWebmentionStatus, Webmention
 from mentions.tasks.incoming import process_incoming_webmention
 from mentions.tasks.outgoing import process_outgoing_webmentions
@@ -12,10 +12,10 @@ RECEIVER_SLUG = "webmention_receiver"
 SENDER_SLUG = "webmention_sender"
 
 RECEIVER_URLPATH = reverse(viewname.with_target_object_view, args=[RECEIVER_SLUG])
-RECEIVER_ABSOLUTE_URL = f"{options.base_url()}{RECEIVER_URLPATH}"
+RECEIVER_ABSOLUTE_URL = config.build_url(RECEIVER_URLPATH)
 
 SENDER_URLPATH = reverse(viewname.with_target_object_view, args=[SENDER_SLUG])
-SENDER_ABSOLUTE_URL = f"{options.base_url()}{SENDER_URLPATH}"
+SENDER_ABSOLUTE_URL = config.build_url(SENDER_URLPATH)
 
 RECEIVER_CONTENT = snippets.html_all_endpoints("Some interesting content")
 SENDER_CONTENT = snippets.build_html(

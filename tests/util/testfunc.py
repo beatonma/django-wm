@@ -7,7 +7,7 @@ from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
 
-from mentions import options
+from mentions import config
 from mentions.models import Webmention
 from mentions.models.mixins import IncomingMentionType
 from mentions.views import view_names
@@ -52,20 +52,13 @@ def get_absolute_url_for_object(obj: models.Model = None):
     if obj is None:
         obj = create_mentionable_object(content=random_str())
 
-    return _absolute_url(obj.get_absolute_url())
+    return config.build_url(obj.get_absolute_url())
 
 
 def get_simple_url(absolute: bool = False):
     """Return relative URL for a simple page with no associated models."""
     path = reverse(viewname.no_object_view)
-    if absolute:
-        return _absolute_url(path)
-    else:
-        return path
-
-
-def _absolute_url(path):
-    return f"{options.base_url()}{path}"
+    return config.build_url(path)
 
 
 def endpoint_submit_webmention() -> str:
@@ -80,7 +73,7 @@ def endpoint_get_webmentions() -> str:
 
 def endpoint_submit_webmention_absolute() -> str:
     """Return absolute URL for our root webmention endpoint on our domain."""
-    return f"{options.base_url()}{endpoint_submit_webmention()}"
+    return config.build_url(endpoint_submit_webmention())
 
 
 def random_domain() -> str:

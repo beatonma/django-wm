@@ -3,6 +3,7 @@ import logging
 from django.http import HttpResponseBadRequest, JsonResponse
 from django.views import View
 
+from mentions import config
 from mentions.exceptions import TargetDoesNotExist
 from mentions.resolution import get_mentions_for_url_path
 from mentions.serialize import serialize_mentions
@@ -20,13 +21,12 @@ class GetMentionsView(View):
     """Return any mentions (Webmention, SimpleMention) associated with a given url."""
 
     def get(self, request):
-        for_url = request.GET.get("url")
+        for_urlpath = request.GET.get("url")
 
-        if not for_url:
+        if not for_urlpath:
             return HttpResponseBadRequest("Missing args")
 
-        scheme, domain, path = split_url(request.build_absolute_uri())
-        full_target_url = f"{scheme}://{domain}{for_url}"
+        full_target_url = config.build_url(for_urlpath)
 
         try:
             wm = get_mentions_for_url_path(for_url, full_target_url=full_target_url)

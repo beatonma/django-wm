@@ -1,6 +1,6 @@
 from typing import Optional
 
-from mentions import options
+from mentions import config
 from mentions.tasks.outgoing.local import get_target_links_in_html
 from tests import OptionsTestCase
 
@@ -28,7 +28,7 @@ class OutgoingLinksTests(OptionsTestCase):
             {_link("#s3", "Ignore local  # anchor")}
             {_link("/relative-root-path/", "Relative root path self-mention")}
             {_link("relative-path/", "Relative path self-mention")}
-            {_link(f"{options.base_url()}/something", "Absolute self-mention")}
+            {_link(config.build_url("/something"), "Absolute self-mention")}
             {_link("ftp://some-ftp-server.com", "FTP server")}
             Lorem ipsum whatever
         """
@@ -43,9 +43,9 @@ class OutgoingLinksTests(OptionsTestCase):
             {
                 "https://https-absolute-url.org/whatever/",
                 "http://http-absolute-url.org/whatever/",
-                f"{options.base_url()}/relative-root-path/",
-                f"{options.base_url()}/article/1/relative-path/",
-                f"{options.base_url()}/something",
+                config.build_url("/relative-root-path/"),
+                config.build_url("/article/1/relative-path/"),
+                config.build_url("/something"),
             },
         )
 
@@ -63,26 +63,24 @@ class OutgoingLinksTests(OptionsTestCase):
         )
 
     def test_relative_paths(self):
-        base_url = options.base_url()
-
         relpath = _link("whatever")
         self.assertSetEqual(
-            {f"{base_url}/article/1/whatever"},
+            {config.build_url("/article/1/whatever")},
             get_target_links_in_html(relpath, source_path="/article/1/"),
         )
 
         self.assertSetEqual(
-            {f"{base_url}/article/whatever"},
+            {config.build_url("/article/whatever")},
             get_target_links_in_html(relpath, source_path="/article/1"),
         )
 
         rootpath = _link("/whatever")
         self.assertSetEqual(
-            {f"{base_url}/whatever"},
+            {config.build_url("/whatever")},
             get_target_links_in_html(rootpath, source_path="/article/1/"),
         )
 
         self.assertSetEqual(
-            {f"{base_url}/whatever"},
+            {config.build_url("/whatever")},
             get_target_links_in_html(rootpath, source_path="/article/1"),
         )

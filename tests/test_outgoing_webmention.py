@@ -3,7 +3,7 @@ Tests for webmentions that originate on our server, usually pointing somewhere e
 """
 import logging
 
-from mentions import options
+from mentions import config
 from mentions.models import OutgoingWebmentionStatus
 from mentions.tasks import handle_pending_webmentions
 from mentions.tasks.outgoing import process_outgoing_webmentions, remote
@@ -39,7 +39,7 @@ OUTGOING_WEBMENTION_HTML_NO_LINKS = """<html>
 class OutgoingWebmentionsTests(OptionsTestCase):
     """OUTOOING: tests for task `process_outgoing_webmentions`."""
 
-    source_url = f"{options.base_url()}/some-url-path/"
+    source_url = config.build_url("/some-url-path/")
 
     @patch_http_post()
     def test_send_webmention(self):

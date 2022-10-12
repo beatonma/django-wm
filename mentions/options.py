@@ -144,11 +144,6 @@ def url_scheme() -> str:
     return scheme
 
 
-def base_url() -> str:
-    """For convenience, returns the combination of `url_scheme()` and `domain_name()`."""
-    return f"{url_scheme()}://{domain_name()}"
-
-
 def dashboard_public() -> bool:
     """Return settings.WEBMENTIONS_DASHBOARD_PUBLIC.
 

@@ -10,8 +10,8 @@ from django.urls import reverse
 from django.views import View
 from sample_app.models import Article, create_article
 
-from mentions import options
-from mentions.resolution import get_mentions_for_absolute_url
+from mentions import config, options
+from mentions.resolution import get_mentions_for_url
 
 log = logging.getLogger(__name__)
 
@@ -76,9 +76,7 @@ class ActionView(View):
                 **default_context,
                 "articles": articles,
                 "action_form": form,
-                "mentions": get_mentions_for_absolute_url(
-                    f"{options.base_url()}{reverse('actions')}"
-                ),
+                "mentions": get_mentions_for_url(config.build_url(reverse("actions"))),
             },
         )
 

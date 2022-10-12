@@ -1,6 +1,6 @@
 from django.urls import reverse
 
-from mentions import options
+from mentions import config
 from tests import WebmentionTestCase
 from tests.util import constants, viewname
 
@@ -11,7 +11,7 @@ class WebmentionHeadMiddlewareTests(WebmentionTestCase):
     def setUp(self) -> None:
         super().setUp()
         self.endpoint_http_link = (
-            f'<{options.base_url()}/{constants.namespace}/>; rel="webmention"'
+            f'<{config.build_url(f"/{constants.namespace}/")}>; rel="webmention"'
         )
 
     def test_middleware_adds_endpoint_to_http_headers(self):
