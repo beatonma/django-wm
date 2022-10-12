@@ -1,3 +1,9 @@
+"""Exceptions raised by the `mentions` app.
+
+Any other exceptions raised should be caught and/or wrapped by one of
+these exception classes."""
+
+
 class WebmentionsException(Exception):
     """Base class for mentions-specific exceptions."""
 
@@ -12,6 +18,22 @@ class IncomingWebmentionException(WebmentionsException):
 
 class OutgoingWebmentionException(WebmentionsException):
     """Base class for an error that occurs while trying to send a webmention."""
+
+    pass
+
+
+class WebmentionsConfigurationException(WebmentionsException):
+    """Base class for an error related to `django-wm` setup."""
+
+
+class BadUrlConfig(WebmentionsConfigurationException):
+    """URL resolution completed but did not include required data."""
+
+    pass
+
+
+class ImplementationRequired(WebmentionsConfigurationException):
+    """A MentionableMixin model has not implemented a required method."""
 
     pass
 
@@ -40,25 +62,14 @@ class SourceDoesNotLink(IncomingWebmentionException):
     pass
 
 
+class NoModelForUrlPath(IncomingWebmentionException):
+    """URL resolved to a `urlpattern` which did not include `model_name` kwarg."""
+
+    pass
+
+
 class TargetNotAccessible(OutgoingWebmentionException):
     """Target URL does not exist, or returns an error code."""
-
-    pass
-
-
-class BadConfig(WebmentionsException):
-    """URL resolution completed but did not include required data.
-
-    The returned ResolverMatch.kwargs object must have entries for:
-        - 'model_name'
-        - 'slug'
-    """
-
-    pass
-
-
-class ImplementationRequired(WebmentionsException):
-    """A MentionableMixin model has not implemented a required method."""
 
     pass
 

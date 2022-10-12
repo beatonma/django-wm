@@ -9,7 +9,7 @@ from django.utils.text import slugify
 
 from mentions import config
 from mentions.models import Webmention
-from mentions.models.mixins import IncomingMentionType
+from mentions.models.mixins import IncomingMentionType, MentionableMixin
 from mentions.views import view_names
 from tests.models import MentionableTestModel
 from tests.util import viewname
@@ -31,6 +31,7 @@ def create_mentionable_object(content: str = ""):
 def create_webmention(
     source_url: Optional[str] = None,
     target_url: Optional[str] = None,
+    target_object: Optional[MentionableMixin] = None,
     post_type: Optional[IncomingMentionType] = None,
     sent_by: Optional[str] = None,
     approved: bool = True,
@@ -39,7 +40,8 @@ def create_webmention(
 ) -> Webmention:
     return Webmention.objects.create(
         source_url=source_url or random_url(),
-        target_url=target_url or random_url(),
+        target_url=target_url or get_simple_url(),
+        target_object=target_object,
         post_type=post_type.serialized_name() if post_type else None,
         sent_by=sent_by or random_url(),
         approved=approved,
@@ -55,7 +57,7 @@ def get_absolute_url_for_object(obj: models.Model = None):
     return config.build_url(obj.get_absolute_url())
 
 
-def get_simple_url(absolute: bool = False):
+def get_simple_url():
     """Return relative URL for a simple page with no associated models."""
     path = reverse(viewname.no_object_view)
     return config.build_url(path)

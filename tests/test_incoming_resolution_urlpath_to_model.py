@@ -4,7 +4,7 @@ from django.urls import path, register_converter
 from django.utils import timezone
 
 from mentions import resolution
-from mentions.exceptions import BadConfig, TargetDoesNotExist
+from mentions.exceptions import BadUrlConfig, NoModelForUrlPath, TargetDoesNotExist
 from tests import WebmentionTestCase
 from tests.models import MentionableTestBlogPost, SampleBlog
 from tests.util import constants, testfunc
@@ -88,36 +88,34 @@ class GetModelForUrlPathTests(_BaseTestCase):
 
     def test_get_model_for_url__with_correct_slug(self):
         """Reverse URL lookup finds the correct object."""
-        retrieved_object = resolution.get_model_for_url_path(
-            self.target.get_absolute_url()
-        )
+        retrieved_object = resolution.get_model_for_url(self.target.get_absolute_url())
 
         self.assertEqual(retrieved_object.pk, self.target.pk)
 
     def test_get_model_for_url__with_unknown_url(self):
         """URL with an unrecognised path raises TargetDoesNotExist exception."""
         with self.assertRaises(TargetDoesNotExist):
-            resolution.get_model_for_url_path("/some/nonexistent/urlpath")
+            resolution.get_model_for_url("/some/nonexistent/urlpath")
 
 
 class GetModelForUrlPathWithBadConfigTests(_BaseLocalUrlpatternsTestCase):
-    """INCOMING: Tests for get_model_for_url_path when there are errors in `urlpatterns` configuration."""
+    """INCOMING: Tests for get_model_for_url when there are errors in `urlpatterns` configuration."""
 
     @classmethod
     def _urlpath(self, path: str, slug: str) -> str:
         return f"/{path}/{slug}"
 
     def test_get_model_for_url__with_bad_model_name_config(self):
-        """urlpatterns with no entry for model_name in path kwargs raises BadConfig exception."""
-        with self.assertRaises(BadConfig):
-            resolution.get_model_for_url_path(
+        """urlpatterns with no entry for model_name in path kwargs raises NoModelForUrlPath exception."""
+        with self.assertRaises(NoModelForUrlPath):
+            resolution.get_model_for_url(
                 self._urlpath(bad_modelname_key, self.target.slug)
             )
 
     def test_get_model_for_url__raises_badconfig_when_model_name_unresolvable(self):
-        """Unresolvable model_name raises BadConfig exception."""
-        with self.assertRaises(BadConfig):
-            resolution.get_model_for_url_path(
+        """Unresolvable model_name raises BadUrlConfig exception."""
+        with self.assertRaises(BadUrlConfig):
+            resolution.get_model_for_url(
                 self._urlpath(bad_modelname_value, self.target.slug)
             )
 
@@ -150,7 +148,7 @@ class GetModelForUrlWithCustomObjectResolution(_BaseLocalUrlpatternsTestCase):
 
     def test_get_model_for_url__with_custom_lookup(self):
         """Reverse URL lookup with custom resolve_from_url_kwargs implementation finds the correct object."""
-        retrieved_object = resolution.get_model_for_url_path(
+        retrieved_object = resolution.get_model_for_url(
             "/blogslug/2022/03/28/testpostslug/"
         )
 

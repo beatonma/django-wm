@@ -5,9 +5,8 @@ from django.views import View
 
 from mentions import config
 from mentions.exceptions import TargetDoesNotExist
-from mentions.resolution import get_mentions_for_url_path
+from mentions.resolution import get_mentions_for_url
 from mentions.serialize import serialize_mentions
-from mentions.util import split_url
 
 __all__ = [
     "GetMentionsView",
@@ -29,7 +28,7 @@ class GetMentionsView(View):
         full_target_url = config.build_url(for_urlpath)
 
         try:
-            wm = get_mentions_for_url_path(for_url, full_target_url=full_target_url)
+            wm = get_mentions_for_url(full_target_url)
 
             return JsonResponse(
                 {

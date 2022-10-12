@@ -1,166 +1,125 @@
 import logging
-from importlib import import_module
-from typing import Iterable, List, Optional, Type
+from typing import List
 
 from django.apps import apps
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.models import Q
 from django.http import HttpRequest
-from django.urls import Resolver404, ResolverMatch
+from django.urls import Resolver404, ResolverMatch, get_resolver
 
-from mentions.exceptions import BadConfig, TargetDoesNotExist
-from mentions.models import HCard, OutgoingWebmentionStatus, SimpleMention, Webmention
-from mentions.models.base import MentionsBaseModel
+from mentions.exceptions import BadUrlConfig, NoModelForUrlPath, TargetDoesNotExist
+from mentions.models import SimpleMention, Webmention
 from mentions.models.mixins import MentionableMixin, QuotableMixin
-from mentions.util import split_url
+from mentions.util.url import get_urlpath
+from mentions.views import contract
 
 log = logging.getLogger(__name__)
 
 
 __all__ = [
-    "get_mentions_for_absolute_url",
     "get_mentions_for_object",
-    "get_mentions_for_url_path",
     "get_mentions_for_view",
-    "get_model_for_url_path",
+    "get_mentions_for_url",
+    "get_model_for_url",
 ]
 
 
-def _find_urlpattern(target_path: str) -> ResolverMatch:
-    """
-    Find a match in urlpatterns or raise TargetDoesNotExist
-    """
-    target_path = target_path.lstrip("/")  # Remove any leading slashes
-    urlconf = import_module(settings.ROOT_URLCONF)
-    urlpatterns = urlconf.urlpatterns
+def get_urlpattern_match(url_path: str) -> ResolverMatch:
+    """Resolves a URL path to the corresponding `urlpatterns` entry.
 
-    for x in urlpatterns:
-        # x may be an instance of either:
-        # - django.urls.resolvers.URLResolver
-        # - django.urls.resolvers.URLPattern
-        try:
-            match = x.resolve(target_path)
-            if match:
-                break
-        except Resolver404:
-            # May be raised by URLResolver
-            pass
-    else:
-        # No match found
+    Raises:
+        TargetDoesNotExist: If a match cannot be found.
+    """
+    try:
+        return get_resolver(settings.ROOT_URLCONF).resolve(url_path)
+    except Resolver404:
         raise TargetDoesNotExist(
-            f"Cannot find a matching urlpattern entry for path={target_path}"
+            f"Cannot find a matching urlpattern entry for path={url_path}"
         )
-    log.debug(f"Found matching urlpattern: {match}")
-    return match
 
 
-def get_model_for_url_path(
-    target_path: str,
-    match: ResolverMatch = None,
-) -> MentionableMixin:
-    """
-    Find a match in urlpatterns and return the corresponding model instance.
+def get_model_for_url(url: str) -> MentionableMixin:
+    """Find the model instance represented by the given URL.
 
-    Any mentionable View that corresponds to a model instance should include
-    kwargs in its `urlpatterns` definition to enable resolution.
-    - `model_name`: dotted python path for the target model.
-    - Any other kwargs are passed to the model's `resolve_from_url_kwargs`
-      classmethod to resolve the model instance. The default implementation
-      uses the `slug` kwarg but this may be overridden.
+    For this to work:
+    - the `urlpatterns` entry that corresponds to the model must include
+        a `model_name` kwarg with the model class' dotted path.
+    - the model must implement the @classmethod `resolve_from_url_kwargs`
 
-        e.g.
+    For implementation details see:
+     https://github.com/beatonma/django-wm/wiki/URL-Patterns
+     https://github.com/beatonma/django-wm/wiki/Models#mentionablemixin
+
+    e.g.
         path(
-            r"articles/<slug:slug>/",
+            r"articles/<int:article_id>/",
             ArticleView.as_view(),
             kwargs={
                 "model_name": "blog.Article",
             },
             name="blog-article"),
+
+    Returns:
+        An instance of a model that implements MentionableMixin.
+
+    Raises:
+        TargetDoesNotExist: Unable to resolve `url_path` to a `ResolverMatch`,
+            or a model instance cannot be resolved from ResolverMatch kwargs.
+        NoModelForUrlPath: The ResolverMatch does not have `model_name` kwarg.
     """
-    if match is None:
-        match = _find_urlpattern(target_path)
+    url_path = get_urlpath(url)
+    match = get_urlpattern_match(url_path)
+    urlpath_kwargs = {**match.kwargs}
 
-    urlpath_kwargs: dict = dict(**match.kwargs)
-
-    # Dotted path to model class declaration
     try:
-        model_name = urlpath_kwargs.pop("model_name")
+        model_name = urlpath_kwargs.pop(contract.URLPATTERNS_MODEL_NAME)
     except KeyError:
-        raise BadConfig(
-            f"urlpattern must include a kwargs entry called 'model_name': {match}"
-        )
+        raise NoModelForUrlPath()
 
     try:
-        model = apps.get_model(model_name)
+        model: MentionableMixin = apps.get_model(model_name)
+
     except LookupError:
-        raise BadConfig(f"Cannot find model `{model_name}` - check your urlpattern!")
+        raise BadUrlConfig(
+            f"Cannot find model `{model_name}` - check your urlpatterns!"
+        )
 
     try:
         return model.resolve_from_url_kwargs(**urlpath_kwargs)
     except ObjectDoesNotExist:
         raise TargetDoesNotExist(
-            f"Cannot find instance of model='{model}' with kwargs='{urlpath_kwargs}'"
+            f"Cannot find instance of model `{model}` with kwargs=`{urlpath_kwargs}`"
         )
 
 
-def get_mentions_for_url_path(
-    target_path: str,
-    full_target_url: str,
-) -> List[QuotableMixin]:
-    match = _find_urlpattern(target_path)
-
+def get_mentions_for_url(url: str) -> List[QuotableMixin]:
     try:
-        obj = get_model_for_url_path(target_path, match)
+        obj = get_model_for_url(url)
         return obj.mentions()
-    except (BadConfig, TargetDoesNotExist):
+
+    except NoModelForUrlPath:
         pass
 
-    # Add or remove a trailing slash to full_target_url so we can look for both.
-    full_target_url_invert_slash = (
-        full_target_url[:-1] if full_target_url.endswith("/") else f"{full_target_url}/"
-    )
-
-    q_filter = (
-        Q(target_url=full_target_url)
-        | Q(target_url=full_target_url_invert_slash)
-        | Q(target_url=target_path)
-    )
-
-    webmentions = Webmention.objects.filter(
-        q_filter,
-        approved=True,
-        validated=True,
-    )
-    simple_mentions = SimpleMention.objects.filter(q_filter)
-
-    return list(webmentions) + list(simple_mentions)
+    return get_public_mentions(target_url=url)
 
 
-def get_mentions_for_absolute_url(url: str) -> Iterable[QuotableMixin]:
-    scheme, domain, path = split_url(url)
-    full_target_url = f"{scheme}://{domain}{path}"
-
-    return get_mentions_for_url_path(path, full_target_url=full_target_url)
-
-
-def get_mentions_for_view(request: HttpRequest) -> Iterable[QuotableMixin]:
-    """Call from your View implementation so you can include mentions in your template."""
-
-    return get_mentions_for_absolute_url(request.build_absolute_uri())
+def get_mentions_for_view(request: HttpRequest) -> List[QuotableMixin]:
+    return get_mentions_for_url(request.build_absolute_uri())
 
 
 def get_mentions_for_object(obj: MentionableMixin) -> List[QuotableMixin]:
     ctype = ContentType.objects.get_for_model(obj.__class__)
+
+    return get_public_mentions(content_type=ctype, object_id=obj.id)
+
+
+def get_public_mentions(**filter) -> List[QuotableMixin]:
     webmentions = Webmention.objects.filter(
-        content_type=ctype,
-        object_id=obj.id,
+        **filter,
         approved=True,
         validated=True,
     )
-    simple_mentions = SimpleMention.objects.filter(
-        content_type=ctype,
-        object_id=obj.id,
-    )
+    simple_mentions = SimpleMention.objects.filter(**filter)
+
     return list(webmentions) + list(simple_mentions)

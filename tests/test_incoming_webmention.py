@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 
 
 SOURCE_URL = testfunc.random_url()
-TARGET_URL = testfunc.get_simple_url(absolute=True)
+TARGET_URL = testfunc.get_simple_url()
 
 SOURCE_TEXT_DEFAULT = f"""<div>
 <a href="{TARGET_URL}" class="u-repost-of">link to target url</a>
