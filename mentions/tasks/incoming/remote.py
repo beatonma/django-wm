@@ -11,13 +11,13 @@ from mentions.tasks.incoming.parsing import (
     parse_post_type,
 )
 from mentions.util import html_parser, http_get
+from mentions.util.html import find_links_in_soup
 
 __all__ = [
     "get_source_html",
     "get_metadata_from_source",
+    "WebmentionMetadata",
 ]
-
-from mentions.util.html import find_links_in_soup
 
 
 def get_source_html(source_url: str) -> str:
