@@ -61,18 +61,18 @@ class WebmentionTestCase(SimpleTestCase):
 
     def assert_exists(
         self,
-        Model: Type[M],
+        model_class: Type[M],
         count: int = 1,
         **query,
     ) -> Union[M, QuerySet[M]]:
         """Assert that the expected number of model instances exist and return it/them."""
         if count == 1:
             try:
-                return Model.objects.get(**query)
-            except (Model.DoesNotExist, Model.MultipleObjectsReturned) as e:
-                raise AssertionError(f"Expected 1 intance of {Model}: {e}")
+                return model_class.objects.get(**query)
+            except (model_class.DoesNotExist, model_class.MultipleObjectsReturned) as e:
+                raise AssertionError(f"Expected 1 instance of {model_class}: {e}")
 
-        qs = Model.objects.filter(**query)
+        qs = model_class.objects.filter(**query)
         self.assertEqual(count, qs.count())
         return qs
 

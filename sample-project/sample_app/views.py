@@ -8,7 +8,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.views import View
-from sample_app.models import Article, create_article
+from sample_app.models import Article, Blog, create_article
 
 from mentions import config, options
 from mentions.resolution import get_mentions_for_url
@@ -30,6 +30,19 @@ class ArticleView(View):
             context={
                 **default_context,
                 "article": article,
+            },
+        )
+
+
+class BlogView(View):
+    def get(self, request, blog_id: int, *args, **kwargs):
+        blog = Blog.objects.get(pk=blog_id)
+        return render(
+            request,
+            "article.html",
+            context={
+                **default_context,
+                "article": blog,
             },
         )
 

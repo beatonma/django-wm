@@ -5,3 +5,4 @@ Required extra kwargs for any `urlpatterns` entry that is expected to
 resolve to a MentionableMixin instance.
 """
 URLPATTERNS_MODEL_NAME = "model_name"
+URLPATTERNS_MODEL_LOOKUP = "model_field_mapping"

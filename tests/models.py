@@ -28,6 +28,25 @@ class MentionableTestModel(MentionableMixin, models.Model):
         app_label = "tests"
 
 
+class HelperMentionableTestModel(MentionableMixin, models.Model):
+    """
+    Same as MentionableTestModel, except that its URL pattern is configured
+    with mentions_path helper.
+    """
+
+    name = models.CharField(max_length=32, null=True, unique=True)
+    content = models.TextField(blank=True, null=True)
+
+    def get_absolute_url(self):
+        return reverse(viewname.helper_with_target_object_view, args=[self.id])
+
+    def all_text(self):
+        return self.content
+
+    class Meta:
+        app_label = "tests"
+
+
 class BadTestModelMissingGetAbsoluteUrl(MentionableMixin, models.Model):
     """A MentionableMixin model that forgot to implement get_absolute_url()"""
 

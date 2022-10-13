@@ -56,6 +56,9 @@ class MentionableMixin(models.Model):
     ) -> "MentionableMixin":
         """Resolve a model instance from the given URL captured values.
 
+        You can skip implementing this if you use one of the `urlpatterns`
+        helpers: `mentions_path` or `mentions_re_path`.
+
         By default, an object is resolved via its id using the object_id kwarg.
 
         You may override this classmethod to retrieve an object using any

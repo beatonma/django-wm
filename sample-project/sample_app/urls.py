@@ -1,7 +1,25 @@
 from django.urls import path
-from sample_app.views import ActionView, ArticleView, MaybeTimeoutView, TimeoutView
+from sample_app.models import Blog
+from sample_app.views import (
+    ActionView,
+    ArticleView,
+    BlogView,
+    MaybeTimeoutView,
+    TimeoutView,
+)
+
+from mentions.helpers.urls import mentions_path
 
 urlpatterns = [
+    mentions_path(
+        "blog/<int:blog_id>/",
+        BlogView.as_view(),
+        model_class=Blog,
+        model_field_mapping={
+            "blog_id": "id",
+        },
+        name="blog",
+    ),
     path(
         "article/<int:article_id>/",
         ArticleView.as_view(),

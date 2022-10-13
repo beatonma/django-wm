@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Type
 
 from django.apps import apps
 from django.conf import settings
@@ -8,11 +8,12 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.http import HttpRequest
 from django.urls import Resolver404, ResolverMatch, get_resolver
 
+from mentions import contract
 from mentions.exceptions import BadUrlConfig, NoModelForUrlPath, TargetDoesNotExist
+from mentions.helpers.resolution import get_model_for_url_by_helper
 from mentions.models import SimpleMention, Webmention
 from mentions.models.mixins import MentionableMixin, QuotableMixin
 from mentions.util.url import get_urlpath
-from mentions.views import contract
 
 log = logging.getLogger(__name__)
 
@@ -70,15 +71,15 @@ def get_model_for_url(url: str) -> MentionableMixin:
     """
     url_path = get_urlpath(url)
     match = get_urlpattern_match(url_path)
-    urlpath_kwargs = {**match.kwargs}
+    urlpattern_kwargs = {**match.kwargs}
 
     try:
-        model_name = urlpath_kwargs.pop(contract.URLPATTERNS_MODEL_NAME)
+        model_name = urlpattern_kwargs.pop(contract.URLPATTERNS_MODEL_NAME)
     except KeyError:
         raise NoModelForUrlPath()
 
     try:
-        model: MentionableMixin = apps.get_model(model_name)
+        model_class: Type[MentionableMixin] = apps.get_model(model_name)
 
     except LookupError:
         raise BadUrlConfig(
@@ -86,10 +87,22 @@ def get_model_for_url(url: str) -> MentionableMixin:
         )
 
     try:
-        return model.resolve_from_url_kwargs(**urlpath_kwargs)
+        return get_model_for_url_by_helper(model_class, urlpattern_kwargs)
+
+    except KeyError:
+        # URL pattern was not created by helper functions.
+        pass
+
     except ObjectDoesNotExist:
         raise TargetDoesNotExist(
-            f"Cannot find instance of model `{model}` with kwargs=`{urlpath_kwargs}`"
+            f"Cannot find instance of model `{model_class}` with kwargs=`{urlpattern_kwargs}`"
+        )
+
+    try:
+        return model_class.resolve_from_url_kwargs(**urlpattern_kwargs)
+    except ObjectDoesNotExist:
+        raise TargetDoesNotExist(
+            f"Cannot find instance of model `{model_class}` with kwargs=`{urlpattern_kwargs}`"
         )
 
 
