@@ -2,9 +2,6 @@
 Tests for handling webmentions are sent to us from elsewhere.
 """
 import logging
-from typing import Union
-
-from django.db.models import QuerySet
 
 from mentions.exceptions import SourceNotAccessible, TargetWrongDomain
 from mentions.models import Webmention
