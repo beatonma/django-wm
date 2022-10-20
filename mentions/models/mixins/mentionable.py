@@ -2,6 +2,7 @@ from typing import List, Type
 
 from django.db import models
 
+from mentions import options
 from mentions.exceptions import ImplementationRequired
 from mentions.models.mixins.quotable import QuotableMixin
 
@@ -73,7 +74,13 @@ class MentionableMixin(models.Model):
             def resolve_from_url_kwargs(cls, year: int, slug: str, **url_kwargs):
                 return cls.objects.get(date__year=year, slug=slug)
         """
-        return cls.objects.get(id=url_kwargs.get("object_id"))
+        param_mapping = options.default_url_parameter_mapping()
+        query = {
+            model_field: url_kwargs.get(url_param)
+            for url_param, model_field in param_mapping.items()
+        }
+
+        return cls.objects.get(**query)
 
     def should_process_webmentions(self) -> bool:
         """Return True if this instance should process webmentions when saved."""

@@ -1,4 +1,5 @@
 import logging
+from typing import Dict
 
 from django.conf import settings
 
@@ -26,6 +27,7 @@ SETTING_RETRY_INTERVAL = f"{NAMESPACE}_RETRY_INTERVAL"
 SETTING_DASHBOARD_PUBLIC = f"{NAMESPACE}_DASHBOARD_PUBLIC"
 SETTING_INCOMING_TARGET_MODEL_REQUIRED = f"{NAMESPACE}_INCOMING_TARGET_MODEL_REQUIRED"
 SETTING_ALLOW_SELF_MENTIONS = f"{NAMESPACE}_ALLOW_SELF_MENTIONS"
+SETTING_DEFAULT_URL_PARAMETER_MAPPING = f"{NAMESPACE}_DEFAULT_URL_PARAMETER_MAPPING"
 
 """settings.DOMAIN_NAME is sometimes used by other libraries for the same purpose,
 no need to lock it to our namespace."""
@@ -42,6 +44,7 @@ DEFAULTS = {
     SETTING_DASHBOARD_PUBLIC: False,
     SETTING_INCOMING_TARGET_MODEL_REQUIRED: False,
     SETTING_ALLOW_SELF_MENTIONS: True,
+    SETTING_DEFAULT_URL_PARAMETER_MAPPING: {"object_id": "id"},
 }
 
 
@@ -128,6 +131,21 @@ def allow_self_mentions() -> bool:
     If False, outgoing links that target your own domain name will be ignored.
     """
     return _get_attr(SETTING_ALLOW_SELF_MENTIONS)
+
+
+def default_url_parameter_mapping() -> Dict[str, str]:
+    """Return settings.WEBMENTIONS_DEFAULT_URL_PARAMETER_MAPPING.
+
+    This is used by `MentionableMixin.resolve_from_url_kwargs` if you do not
+    override it on your model.
+
+    The first value is the name of the parameter captured from your URL pattern,
+    the second is the name of the field on the model.
+
+    e.g. The default {"object_id": "id"} will result in a model query that looks
+    like `MyModel.objects.get(id=url_kwargs.get("object_id"))`.
+    """
+    return _get_attr(SETTING_DEFAULT_URL_PARAMETER_MAPPING)
 
 
 def url_scheme() -> str:
