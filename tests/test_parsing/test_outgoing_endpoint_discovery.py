@@ -1,3 +1,5 @@
+from requests.structures import CaseInsensitiveDict
+
 from mentions.tasks.outgoing import local, remote
 from tests import MockResponse, WebmentionTestCase
 from tests.util import snippets, testfunc
@@ -22,7 +24,7 @@ aesjfgkljasn <a href="#contents">Link to self #ID</a>
 
 
 class EndpointDiscoveryTests(WebmentionTestCase):
-    """OUTGOING: Endpoint discovery & resolution."""
+    """OUTGOING: Endpoint discovery from HTTP headers and HTML content."""
 
     absolute_endpoint = testfunc.endpoint_submit_webmention_absolute()
     relative_endpoint = testfunc.endpoint_submit_webmention()
@@ -56,33 +58,25 @@ class EndpointDiscoveryTests(WebmentionTestCase):
     def test_get_endpoint_in_http_headers(self):
         """Endpoints exposed in HTTP header are found correctly."""
 
-        mock_response = MockResponse(
-            url=self._get_absolute_target_url(),
-            headers={"Link": snippets.http_link_endpoint()},
-        )
         endpoint_from_http_headers = remote.get_endpoint_in_http_headers(
-            mock_response.headers
+            CaseInsensitiveDict({"Link": snippets.http_link_endpoint()})
         )
         self.assertEqual(self.relative_endpoint, endpoint_from_http_headers)
 
     def test_get_endpoint_in_html_head(self):
         """Endpoints exposed in HTML <head> are found correctly."""
 
-        mock_response = MockResponse(
-            url=self._get_absolute_target_url(),
-            text=snippets.html_head_endpoint(),
+        endpoint_from_html_head = remote.get_endpoint_in_html(
+            snippets.html_head_endpoint()
         )
-        endpoint_from_html_head = remote.get_endpoint_in_html(mock_response.text)
         self.assertEqual(self.relative_endpoint, endpoint_from_html_head)
 
     def test_get_endpoint_in_html_body(self):
         """Endpoints exposed in HTML <body> are found correctly."""
 
-        mock_response = MockResponse(
-            url=self._get_absolute_target_url(),
-            text=snippets.html_body_endpoint(),
+        endpoint_from_html_body = remote.get_endpoint_in_html(
+            snippets.html_body_endpoint()
         )
-        endpoint_from_html_body = remote.get_endpoint_in_html(mock_response.text)
         self.assertEqual(self.relative_endpoint, endpoint_from_html_body)
 
     def test_relative_to_absolute_url(self):
@@ -109,33 +103,3 @@ class EndpointDiscoveryTests(WebmentionTestCase):
             f"{base_url}/already_absolute_path",
             func(response, f"{base_url}/already_absolute_path"),
         )
-
-    def test_get_target_links_in_text(self):
-        """Outgoing links are found correctly."""
-
-        urls = {
-            f"https://{testfunc.random_domain()}",
-            f"http://{testfunc.random_domain()}/some-path",
-            f"https://{testfunc.random_domain()}/some-path/something_else_04/",
-            f"https://subdomain.{testfunc.random_domain()}/blah-blah/",
-            *{testfunc.random_url() for _ in range(0, 5)},
-        }
-
-        outgoing_content = "".join(
-            [
-                f'This is some content that mentions <a href="{url}">this page</a>.'
-                for url in urls
-            ]
-        )
-
-        outgoing_links = local.get_target_links_in_html(outgoing_content, "/")
-        self.assertSetEqual(urls, outgoing_links)
-
-    def test_get_target_links_in_text__ignores_self_anchors(self):
-        """_get_target_links_in_text should remove any links that target the source page."""
-
-        outgoing_links = local.get_target_links_in_html(
-            OUTGOING_WEBMENTION_HTML_SELF_LINKS, "/"
-        )
-
-        self.assertSetEqual({"https://beatonma.org/"}, outgoing_links)

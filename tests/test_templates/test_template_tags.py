@@ -1,18 +1,39 @@
 from django.contrib.auth.models import User
-from django.urls import reverse
+from django.test.utils import override_settings
+from django.urls import path, reverse
+from django.views.generic import TemplateView
 
 from mentions import permissions
 from mentions.tasks.outgoing import remote
 from mentions.views import view_names
 from tests import OptionsTestCase
+from tests.config.test_urls import urlpatterns as base_urlpatterns
+
+VIEW_NAME = "test-template-tags-view"
 
 
+class TemplateTagTestView(TemplateView):
+    """Render page to test `{% webmentions_endpoint %}` tag."""
+
+    template_name = "templatetags_example.html"
+
+
+urlpatterns = base_urlpatterns + [
+    path(
+        "templatetagstest/",
+        TemplateTagTestView.as_view(),
+        name=VIEW_NAME,
+    ),
+]
+
+
+@override_settings(ROOT_URLCONF=__name__)
 class TemplateTagTests(OptionsTestCase):
     """TEMPLATE: Test template tags."""
 
     def setUp(self) -> None:
         super().setUp()
-        self.test_view_url = reverse("test-template-tags")
+        self.test_view_url = reverse(VIEW_NAME)
         self.user = User.objects.create_user("dashboard-user")
         permissions.can_view_dashboard.grant(self.user)
 

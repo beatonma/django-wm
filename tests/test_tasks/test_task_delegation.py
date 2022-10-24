@@ -9,7 +9,7 @@ from mentions.tasks.scheduling import (
     handle_outgoing_webmentions,
     handle_pending_webmentions,
 )
-from tests import OptionsTestCase
+from tests import OptionsTestCase, WebmentionTestCase
 from tests.util import testfunc
 
 
@@ -105,7 +105,7 @@ class OutgoingWebmentionDelegationTests(OptionsTestCase):
             self.assertTrue(reschedule.called)
 
 
-class HandlePendingMentionsTests(OptionsTestCase):
+class HandlePendingMentionsTests(WebmentionTestCase):
     """PENDING: Check behaviour of scheduling.handle_pending_webmentions."""
 
     def setUp(self) -> None:

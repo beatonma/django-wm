@@ -1,16 +1,8 @@
 from django.contrib import admin
 from django.urls import include, path
 
-from mentions.helpers.urls import mentions_path
-from tests.models import HelperMentionableTestModel
-from tests.util import constants, viewname
-from tests.views import (
-    AllEndpointsMentionableTestView,
-    HelperMentionableTestView,
-    MiddlewareView,
-    SimpleNoObjectTestView,
-    TemplateTagTestView,
-)
+from tests.util import constants, testfunc, viewname
+from tests.views import AllEndpointsMentionableTestView, SimpleNoObjectTestView
 
 urlpatterns = [
     # A page associated with a MentionableMixin model with correct configuration - webmentions linked by model instance.
@@ -22,29 +14,11 @@ urlpatterns = [
         },
         name=viewname.with_target_object_view,
     ),
-    # Same as above, using mentions_path helper.
-    mentions_path(
-        "with_helper_config/<int:arbitrary_name>/",
-        HelperMentionableTestView.as_view(),
-        model_class=HelperMentionableTestModel,
-        model_field_mapping={"arbitrary_name": "id"},
-        name=viewname.helper_with_target_object_view,
-    ),
     # An arbitrary page with no model association - webmentions are linked by URL.
     path(
-        "some-page/",
+        testfunc.random_str(),
         SimpleNoObjectTestView.as_view(),
         name=viewname.no_object_view,
-    ),
-    path(
-        "templatetagstest",
-        TemplateTagTestView.as_view(),
-        name="test-template-tags",
-    ),
-    path(
-        "middleware/",
-        MiddlewareView.as_view(),
-        name=viewname.middleware,
     ),
     path(f"{constants.namespace}/", include("mentions.urls")),
     path("test-admin/", admin.site.urls),

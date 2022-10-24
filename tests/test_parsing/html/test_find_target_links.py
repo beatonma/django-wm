@@ -25,7 +25,7 @@ class OutgoingLinksTests(OptionsTestCase):
             {_link("https://https-absolute-url.org/whatever/", "Absolute https url")}
             Lorem ipsum whatever
             {_link("http://http-absolute-url.org/whatever/", "Absolute http url")}
-            {_link("#s3", "Ignore local  # anchor")}
+            {_link("#s3", "Ignore local #anchor")}
             {_link("/relative-root-path/", "Relative root path self-mention")}
             {_link("relative-path/", "Relative path self-mention")}
             {_link(config.build_url("/something"), "Absolute self-mention")}

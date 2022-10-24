@@ -76,8 +76,12 @@ class WebmentionTestCase(SimpleTestCase):
         self.assertEqual(count, qs.count())
         return qs
 
-    def assert_not_exists(self, Model: Type[M], **query):
-        self.assertFalse(Model.objects.filter(**query).exists())
+    def assert_not_exists(self, model_class: Type[M], **query):
+        qs = model_class.objects.filter(**query)
+        self.assertFalse(
+            qs.exists(),
+            msg=f"Model {model_class.__name__} with query={query} should not exist: {qs}",
+        )
 
 
 class OptionsTestCase(WebmentionTestCase):
