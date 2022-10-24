@@ -38,6 +38,14 @@ class FormApiTests(ApiTestCase):
         self.assertExistsInModule("SubmitWebmentionForm")
 
 
+class HelperApiTests(ApiTestCase):
+    module_name = "mentions.helpers"
+
+    def test_expected_helpers_are_accessible(self):
+        self.assertExistsInModule("mentions_path")
+        self.assertExistsInModule("mentions_re_path")
+
+
 class MiddlewareApiTests(ApiTestCase):
     module_name = "mentions.middleware"
 
