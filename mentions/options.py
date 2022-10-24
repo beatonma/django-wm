@@ -1,3 +1,20 @@
+"""Options for `django-wm` are configured by adding attributes to Django settings.
+
+These may be set in (exclusively) one of the following formats:
+
+# settings.py
+# This format supported from 4.0
+WEBMENTIONS = {
+    "TIMEOUT": 10,
+    "USE_CELERY": True,
+}
+
+# settings.py
+WEBMENTIONS_TIMEOUT = 10
+WEBMENTIONS_USE_CELERY = True
+
+"""
+
 import logging
 from typing import Dict
 
@@ -52,7 +69,12 @@ log = logging.getLogger(__name__)
 
 
 def _get_attr(key: str):
-    return getattr(settings, key, DEFAULTS[key])
+    if not key.startswith(NAMESPACE) or not hasattr(settings, NAMESPACE):
+        return getattr(settings, key, DEFAULTS[key])
+
+    opts: dict = getattr(settings, NAMESPACE)
+    simple_key = key[len(f"{NAMESPACE}_") :]
+    return opts.get(simple_key, DEFAULTS[key])
 
 
 def get_config() -> dict:

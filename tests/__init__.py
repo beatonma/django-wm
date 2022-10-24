@@ -98,6 +98,9 @@ class OptionsTestCase(WebmentionTestCase):
         for key, value in self.defaults.items():
             setattr(settings, key, value)
 
+        if hasattr(settings, options.NAMESPACE):
+            delattr(settings, options.NAMESPACE)
+
     def enable_celery(self, enable: bool):
         setattr(settings, options.SETTING_USE_CELERY, enable)
 
