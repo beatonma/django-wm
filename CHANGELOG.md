@@ -1,5 +1,17 @@
 # Changelog
 
+## 4.0.0
+
+Wiki pages are now [live](https://github.com/beatonma/django-wm/wiki/).
+
+Removed `slug` field from `MentionableMixin`.
+- If you use it, please add it on your model implementation: `slug = models.SlugField(unique=True)`.
+
+Added `urlpatterns` helper functions `mentions_path`, `mentions_re_path` for simpler setup.
+- More straightforward view-to-model mapping.
+- Removes the need to implement `resolve_from_url_kwargs` on your MentionableMixin implementation.
+
+
 ## 3.1.0 (2022-10-06)
 
 - Resolves [#38](https://github.com/beatonma/django-wm/issues/38): Revalidate target URLs when handling pending mentions
