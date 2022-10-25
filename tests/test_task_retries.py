@@ -134,3 +134,36 @@ class RetryOutgoingTests(RetryNoCeleryTests):
         self.assertTrue(status.is_retry_successful)
         self.assertFalse(status.is_awaiting_retry)
         self.assertEqual(status.retry_attempt_count, 4)
+
+    def test_outgoing_reused(self):
+        """Ensure that the correct status is updated. Check for #43."""
+        OutgoingWebmentionStatus.objects.create(
+            source_url=self.local_source,
+            target_url=self.remote_target,
+            is_awaiting_retry=False,
+        )
+        OutgoingWebmentionStatus.objects.create(
+            source_url=self.local_source,
+            target_url=self.remote_target,
+            is_awaiting_retry=True,  # This one should be updated.
+        )
+        OutgoingWebmentionStatus.objects.create(
+            source_url=self.local_source,
+            target_url=self.remote_target,
+            is_awaiting_retry=False,
+        )
+
+        self.set_retry_interval(0)
+
+        with patch_http_get(response=throw_timeout):
+            for n in range(3):
+                self.test_func()
+
+        with patch_http_get(
+            text=snippets.html_with_mentions(self.local_source)
+        ), patch_http_post(status_code=202):
+            self.test_func()
+
+        self.assertFalse(
+            OutgoingWebmentionStatus.objects.filter(is_awaiting_retry=True).exists()
+        )

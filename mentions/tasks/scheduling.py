@@ -129,7 +129,11 @@ def _handle_pending_outgoing():
             continue
 
         if outgoing_retry.can_retry():
-            try_send_webmention(outgoing_retry.source_url, outgoing_retry.target_url)
+            try_send_webmention(
+                source_urlpath=outgoing_retry.source_url,
+                target_url=outgoing_retry.target_url,
+                outgoing_status=outgoing_retry,
+            )
 
     for pending_out in PendingOutgoingContent.objects.all():
         process_outgoing_webmentions(pending_out.absolute_url, pending_out.text)
