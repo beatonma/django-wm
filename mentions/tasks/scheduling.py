@@ -25,6 +25,22 @@ __all__ = [
 ]
 
 
+@shared_task
+def handle_pending_webmentions(incoming: bool = True, outgoing: bool = True):
+    """Process any webmentions that are pending processing, including retries.
+
+    Typically run via `manage.py pending_mentions`"""
+
+    if incoming:
+        _handle_pending_incoming()
+
+    if outgoing:
+        _handle_pending_outgoing()
+
+    if options.use_celery():
+        _maybe_reschedule_handle_pending_webmentions()
+
+
 def handle_incoming_webmention(source: str, target: str, sent_by: str) -> None:
     """Delegate processing to `celery` if available, otherwise store for later.
 
@@ -83,22 +99,6 @@ def _task_handle_outgoing(absolute_url: str, text: str) -> None:
     _maybe_reschedule_handle_pending_webmentions()
 
 
-@shared_task
-def handle_pending_webmentions(incoming: bool = True, outgoing: bool = True):
-    """Process any webmentions that are pending processing, including retries.
-
-    Typically run via `manage.py pending_mentions`"""
-
-    if incoming:
-        _handle_pending_incoming()
-
-    if outgoing:
-        _handle_pending_outgoing()
-
-    if options.use_celery():
-        _maybe_reschedule_handle_pending_webmentions()
-
-
 def _handle_pending_incoming():
     for incoming_wm in PendingIncomingWebmention.objects.filter(is_awaiting_retry=True):
         if incoming_wm.can_retry():
@@ -129,7 +129,11 @@ def _handle_pending_outgoing():
             continue
 
         if outgoing_retry.can_retry():
-            try_send_webmention(outgoing_retry.source_url, outgoing_retry.target_url)
+            try_send_webmention(
+                source_urlpath=outgoing_retry.source_url,
+                target_url=outgoing_retry.target_url,
+                outgoing_status=outgoing_retry,
+            )
 
     for pending_out in PendingOutgoingContent.objects.all():
         process_outgoing_webmentions(pending_out.absolute_url, pending_out.text)
@@ -169,7 +173,7 @@ def _reschedule_handle_pending_webmentions():
     ]
 
     if scheduled_task_etas:
-        log.info(f"Task '{task_name}' already scheduled: eta {scheduled_task_etas}")
+        log.info(f"Task '{task_name}' already scheduled: ETA {scheduled_task_etas}")
         return
 
     # Schedule fresh task

@@ -67,6 +67,9 @@ class RetryableMixin(models.Model):
         if not self.is_awaiting_retry:
             return False
 
+        if self.retry_attempt_count >= options.max_retries():
+            return False
+
         if self.last_retry_attempt is None:
             return True
 

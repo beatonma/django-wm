@@ -35,7 +35,7 @@ log = logging.getLogger(__name__)
 def try_send_webmention(
     source_urlpath: str,
     target_url: str,
-    outgoing_status: Optional[OutgoingWebmentionStatus] = None,
+    outgoing_status: Optional[OutgoingWebmentionStatus],
 ) -> Optional[bool]:
     """Try to send a webmention for target_url.
 

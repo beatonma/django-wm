@@ -28,16 +28,21 @@ class WebmentionView(View):
         return render(request, "mentions/webmention-submit-manual.html", {"form": form})
 
     def post(self, request):
-        log.info("Receiving webmention...")
+        log.debug("Receiving webmention...")
         form = SubmitWebmentionForm(request.POST)
 
         if not form.is_valid():
+            log.info(f"Received webmention failed form validation: {form.data}")
             return HttpResponseBadRequest()
 
         data = form.cleaned_data
         source = data["source"]
         target = data["target"]
         client_ip = _get_client_ip(request)
+
+        log.info(
+            f"Accepted webmention submission (not yet verified): {source} -> {target}"
+        )
 
         handle_incoming_webmention(source=source, target=target, sent_by=client_ip)
         return render(request, "mentions/webmention-accepted.html", status=202)
