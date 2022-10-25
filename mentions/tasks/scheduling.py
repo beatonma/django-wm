@@ -25,6 +25,22 @@ __all__ = [
 ]
 
 
+@shared_task
+def handle_pending_webmentions(incoming: bool = True, outgoing: bool = True):
+    """Process any webmentions that are pending processing, including retries.
+
+    Typically run via `manage.py pending_mentions`"""
+
+    if incoming:
+        _handle_pending_incoming()
+
+    if outgoing:
+        _handle_pending_outgoing()
+
+    if options.use_celery():
+        _maybe_reschedule_handle_pending_webmentions()
+
+
 def handle_incoming_webmention(source: str, target: str, sent_by: str) -> None:
     """Delegate processing to `celery` if available, otherwise store for later.
 
@@ -81,22 +97,6 @@ def handle_outgoing_webmentions(absolute_url: str, text: str) -> None:
 def _task_handle_outgoing(absolute_url: str, text: str) -> None:
     process_outgoing_webmentions(source_urlpath=absolute_url, text=text)
     _maybe_reschedule_handle_pending_webmentions()
-
-
-@shared_task
-def handle_pending_webmentions(incoming: bool = True, outgoing: bool = True):
-    """Process any webmentions that are pending processing, including retries.
-
-    Typically run via `manage.py pending_mentions`"""
-
-    if incoming:
-        _handle_pending_incoming()
-
-    if outgoing:
-        _handle_pending_outgoing()
-
-    if options.use_celery():
-        _maybe_reschedule_handle_pending_webmentions()
 
 
 def _handle_pending_incoming():
@@ -173,7 +173,7 @@ def _reschedule_handle_pending_webmentions():
     ]
 
     if scheduled_task_etas:
-        log.info(f"Task '{task_name}' already scheduled: eta {scheduled_task_etas}")
+        log.info(f"Task '{task_name}' already scheduled: ETA {scheduled_task_etas}")
         return
 
     # Schedule fresh task
