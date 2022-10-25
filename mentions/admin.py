@@ -10,6 +10,12 @@ from mentions.models import (
     Webmention,
 )
 
+RETRYABLEMIXIN_FIELDS = [
+    "is_awaiting_retry",
+    "last_retry_attempt",
+    "retry_attempt_count",
+]
+
 
 @admin.action(permissions=["change"])
 def approve_webmention(modeladmin, request, queryset):
@@ -120,6 +126,7 @@ class OutgoingWebmentionStatusAdmin(BaseAdmin):
         "status_message",
         "response_code",
         "successful",
+        *RETRYABLEMIXIN_FIELDS,
     ]
     list_display = [
         "source_url",
@@ -138,9 +145,19 @@ class HCardAdmin(BaseAdmin):
 
 @admin.register(PendingIncomingWebmention)
 class PendingIncomingAdmin(BaseAdmin):
-    pass
+    readonly_fields = [
+        "created_at",
+        "source_url",
+        "target_url",
+        "sent_by",
+        *RETRYABLEMIXIN_FIELDS,
+    ]
 
 
 @admin.register(PendingOutgoingContent)
 class PendingOutgoingAdmin(BaseAdmin):
-    pass
+    readonly_fields = [
+        "created_at",
+        "absolute_url",
+        "text",
+    ]
