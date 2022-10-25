@@ -77,8 +77,7 @@ def is_valid_target(url: str, allow_self_mention: bool) -> bool:
         return False
 
     if not allow_self_mention:
-        _, domain, _ = split_url(url)
-        if domain == options.domain_name():
+        if get_domain(url) == options.domain_name():
             return False
 
     return True
