@@ -1,13 +1,15 @@
 """Options for `django-wm` are configured by adding attributes to Django settings.
 
-These may be set in (exclusively) one of the following formats:
+These may be defined in either of the following two formats. Choose one format
+or the other. If `WEBMENTIONS` is defined, the latter format will be ignored.
 
 # settings.py
-# This format supported from 4.0
 WEBMENTIONS = {
     "TIMEOUT": 10,
     "USE_CELERY": True,
 }
+
+--- or ---
 
 # settings.py
 WEBMENTIONS_TIMEOUT = 10
