@@ -20,6 +20,8 @@ from typing import Dict
 
 from django.conf import settings
 
+import mentions
+
 __all__ = [
     "auto_approve",
     "dashboard_public",
@@ -31,6 +33,7 @@ __all__ = [
     "timeout",
     "url_scheme",
     "use_celery",
+    "user_agent",
 ]
 
 
@@ -45,6 +48,7 @@ SETTING_DASHBOARD_PUBLIC = f"{NAMESPACE}_DASHBOARD_PUBLIC"
 SETTING_INCOMING_TARGET_MODEL_REQUIRED = f"{NAMESPACE}_INCOMING_TARGET_MODEL_REQUIRED"
 SETTING_ALLOW_SELF_MENTIONS = f"{NAMESPACE}_ALLOW_SELF_MENTIONS"
 SETTING_DEFAULT_URL_PARAMETER_MAPPING = f"{NAMESPACE}_DEFAULT_URL_PARAMETER_MAPPING"
+SETTING_USER_AGENT = f"{NAMESPACE}_USER_AGENT"
 
 """settings.DOMAIN_NAME is sometimes used by other libraries for the same purpose,
 no need to lock it to our namespace."""
@@ -62,6 +66,7 @@ DEFAULTS = {
     SETTING_INCOMING_TARGET_MODEL_REQUIRED: False,
     SETTING_ALLOW_SELF_MENTIONS: True,
     SETTING_DEFAULT_URL_PARAMETER_MAPPING: {"object_id": "id"},
+    SETTING_USER_AGENT: f"django-wm/{mentions.__version__} (+{mentions.__url__})",
 }
 
 
@@ -182,6 +187,13 @@ def url_scheme() -> str:
         )
 
     return scheme
+
+
+def user_agent() -> str:
+    """Return settings.WEBMENTIONS_USER_AGENT.
+
+    This is included with all network requests made by `django-wm`."""
+    return _get_attr(SETTING_USER_AGENT)
 
 
 def dashboard_public() -> bool:
