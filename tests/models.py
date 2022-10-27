@@ -12,71 +12,48 @@ from tests.util import viewname
 log = logging.getLogger(__name__)
 
 
-class MentionableTestModel(MentionableMixin, models.Model):
-    """Basic mentionable model with all required methods implemented."""
+class BaseModel(MentionableMixin, models.Model):
+    class Meta:
+        abstract = True
+        app_label = "tests"
 
     name = models.CharField(max_length=32, null=True, unique=True)
     content = models.TextField(blank=True, null=True)
+    viewname = models.CharField(
+        max_length=100,
+        default=viewname.with_target_object_view,
+    )
+
+
+class MentionableTestModel(BaseModel):
+    """Basic mentionable model with all required methods implemented."""
 
     def get_absolute_url(self):
-        return reverse(viewname.with_target_object_view, args=[self.id])
+        return reverse(self.viewname, args=[self.id])
 
     def get_content_html(self):
         return self.content
 
-    class Meta:
-        app_label = "tests"
 
-
-class HelperMentionableTestModel(MentionableMixin, models.Model):
-    """
-    Same as MentionableTestModel, except that its URL pattern is configured
-    with mentions_path helper.
-    """
-
-    name = models.CharField(max_length=32, null=True, unique=True)
-    content = models.TextField(blank=True, null=True)
-
-    def get_absolute_url(self):
-        return reverse(viewname.helper_with_target_object_view, args=[self.id])
-
-    def all_text(self):
-        return self.content
-
-    class Meta:
-        app_label = "tests"
-
-
-class BadTestModelMissingGetAbsoluteUrl(MentionableMixin, models.Model):
+class BadTestModelMissingGetAbsoluteUrl(BaseModel):
     """A MentionableMixin model that forgot to implement get_absolute_url()"""
 
     def get_content_html(self):
         return self.content
 
-    class Meta:
-        app_label = "tests"
 
-
-class BadTestModelMissingAllText(MentionableMixin, models.Model):
-    """A MentionableMixin model that forgot to implement all_text()"""
-
-    content = models.TextField(blank=True, null=True)
+class BadTestModelMissingAllText(BaseModel):
+    """A MentionableMixin model that forgot to implement get_content_html()"""
 
     def get_absolute_url(self):
-        return reverse(viewname.with_target_object_view, args=[self.id])
-
-    class Meta:
-        app_label = "tests"
+        return reverse(self.viewname, args=[self.id])
 
 
 class SampleBlog(models.Model):
     slug = models.SlugField()
 
-    class Meta:
-        app_label = "tests"
 
-
-class MentionableTestBlogPost(MentionableMixin, models.Model):
+class MentionableTestBlogPost(BaseModel):
     """A MentionableMixin model with custom resolve_from_url_kwargs implementation.
 
     Models are now resolved using arbitrary kwargs from the relevant urlpatterns
@@ -87,7 +64,6 @@ class MentionableTestBlogPost(MentionableMixin, models.Model):
     model.
     """
 
-    content = models.TextField(blank=True, null=True)
     timestamp = models.DateTimeField(default=timezone.now)
 
     slug = models.SlugField(
@@ -132,6 +108,3 @@ class MentionableTestBlogPost(MentionableMixin, models.Model):
             timestamp__day=day,
             slug=post_slug,
         )
-
-    class Meta:
-        app_label = "tests"
