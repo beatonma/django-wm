@@ -9,7 +9,7 @@ from sample_app.compat import MentionableMixin
 log = logging.getLogger(__name__)
 
 
-class BasePost(models.Model):
+class BasePost(MentionableMixin, models.Model):
     class Meta:
         abstract = True
 
@@ -24,7 +24,7 @@ class BasePost(models.Model):
         return f"{self.author}: {self.title}"
 
 
-class Article(BasePost, MentionableMixin, models.Model):
+class Article(BasePost, models.Model):
     """Manual urlpatterns configuration, requires `resolve_from_url_kwargs`."""
 
     def get_absolute_url(self) -> str:
@@ -35,7 +35,7 @@ class Article(BasePost, MentionableMixin, models.Model):
         return Article.objects.get(pk=article_id)
 
 
-class Blog(BasePost, MentionableMixin, models.Model):
+class Blog(BasePost, models.Model):
     """Using `mentions_path` helper."""
 
     def get_absolute_url(self) -> str:
