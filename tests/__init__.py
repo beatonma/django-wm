@@ -91,6 +91,7 @@ class OptionsTestCase(WebmentionTestCase):
     defined in global settings once the test is done."""
 
     def setUp(self) -> None:
+        super().setUp()
         self.defaults = options.get_config()
 
     def tearDown(self) -> None:

@@ -43,9 +43,9 @@ class BlogPostView(View):
     ):
         obj = MentionableTestBlogPost.objects.get(
             blog__slug=blog_slug,
-            time_published__year=year,
-            time_published__month=month,
-            time_published__day=day,
+            timestamp__year=year,
+            timestamp__month=month,
+            timestamp__day=day,
             slug=post_slug,
         )
         html = snippets.html_all_endpoints(obj.content)
@@ -58,7 +58,7 @@ class BlogPostView(View):
 
 urlpatterns = [
     path(
-        rf"<slug:blog_slug>/<int:year>/<mm:month>/<int:day>/<slug:post_slug>/",
+        r"<slug:blog_slug>/<int:year>/<mm:month>/<int:day>/<slug:post_slug>/",
         BlogPostView.as_view(),
         kwargs={
             "model_name": constants.model_name_test_blogpost,

@@ -79,18 +79,6 @@ class MentionableTestBlogPost(BaseModel):
     def get_content_html(self):
         return self.content
 
-    def get_absolute_url(self):
-        return reverse(
-            "weblogs:post_detail",
-            kwargs={
-                "blog_slug": self.blog.slug,
-                "year": self.timestamp.strftime("%Y"),
-                "month": self.timestamp.strftime("%m"),
-                "day": self.timestamp.strftime("%d"),
-                "post_slug": self.slug,
-            },
-        )
-
     @classmethod
     def resolve_from_url_kwargs(
         cls,
