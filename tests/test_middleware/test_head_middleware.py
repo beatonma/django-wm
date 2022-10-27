@@ -5,7 +5,7 @@ from django.views import View
 
 from mentions import config
 from tests import WebmentionTestCase
-from tests.config.test_urls import urlpatterns as base_urlpatterns
+from tests.config.test_urls import core_urlpatterns
 from tests.util import constants, snippets
 
 VIEW_NAME = "middleware"
@@ -25,7 +25,7 @@ class MiddlewareView(View):
         return HttpResponse(status=200, headers=headers)
 
 
-urlpatterns = base_urlpatterns + [
+urlpatterns = core_urlpatterns + [
     path(
         "middleware/",
         MiddlewareView.as_view(),

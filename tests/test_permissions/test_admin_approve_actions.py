@@ -1,12 +1,21 @@
+from django.contrib import admin
 from django.contrib.admin.helpers import ACTION_CHECKBOX_NAME
 from django.contrib.auth.models import Permission, User
-from django.urls import reverse
+from django.test.utils import override_settings
+from django.urls import path, reverse
 
 from mentions.models import Webmention
 from tests import WebmentionTestCase
+from tests.config.test_urls import core_urlpatterns
 from tests.util import testfunc
 
+urlpatterns = [
+    *core_urlpatterns,
+    path("test-admin/", admin.site.urls),
+]
 
+
+@override_settings(ROOT_URLCONF=__name__)
 class AdminApproveMentionTests(WebmentionTestCase):
     """Tests for Webmention admin actions `approve_webmention` and `disapprove_webmention`."""
 

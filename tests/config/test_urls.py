@@ -1,9 +1,21 @@
-from django.contrib import admin
 from django.urls import include, path
 
 from tests.util import constants, testfunc, viewname
 from tests.views import AllEndpointsMentionableTestView, SimpleNoObjectTestView
 
+# Patterns that we almost always want to include.
+core_urlpatterns = [
+    # An arbitrary page with no model association - webmentions are linked by URL.
+    path(
+        testfunc.random_str(),
+        SimpleNoObjectTestView.as_view(),
+        name=viewname.no_object_view,
+    ),
+    path(f"{constants.namespace}/", include("mentions.urls")),
+]
+
+
+# Default patterns which we sometimes want to disable/override.
 urlpatterns = [
     # A page associated with a MentionableMixin model with correct configuration - webmentions linked by model instance.
     path(
@@ -14,12 +26,5 @@ urlpatterns = [
         },
         name=viewname.with_target_object_view,
     ),
-    # An arbitrary page with no model association - webmentions are linked by URL.
-    path(
-        testfunc.random_str(),
-        SimpleNoObjectTestView.as_view(),
-        name=viewname.no_object_view,
-    ),
-    path(f"{constants.namespace}/", include("mentions.urls")),
-    path("test-admin/", admin.site.urls),
+    *core_urlpatterns,
 ]

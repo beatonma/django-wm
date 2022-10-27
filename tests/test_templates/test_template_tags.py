@@ -7,7 +7,7 @@ from mentions import permissions
 from mentions.tasks.outgoing import remote
 from mentions.views import view_names
 from tests import OptionsTestCase
-from tests.config.test_urls import urlpatterns as base_urlpatterns
+from tests.config.test_urls import core_urlpatterns
 
 VIEW_NAME = "test-template-tags-view"
 
@@ -18,7 +18,7 @@ class TemplateTagTestView(TemplateView):
     template_name = "templatetags_example.html"
 
 
-urlpatterns = base_urlpatterns + [
+urlpatterns = core_urlpatterns + [
     path(
         "templatetagstest/",
         TemplateTagTestView.as_view(),
