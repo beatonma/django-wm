@@ -21,7 +21,7 @@ class MentionableTestModel(MentionableMixin, models.Model):
     def get_absolute_url(self):
         return reverse(viewname.with_target_object_view, args=[self.id])
 
-    def all_text(self):
+    def get_content_html(self):
         return self.content
 
     class Meta:
@@ -50,9 +50,7 @@ class HelperMentionableTestModel(MentionableMixin, models.Model):
 class BadTestModelMissingGetAbsoluteUrl(MentionableMixin, models.Model):
     """A MentionableMixin model that forgot to implement get_absolute_url()"""
 
-    content = models.TextField(blank=True, null=True)
-
-    def all_text(self):
+    def get_content_html(self):
         return self.content
 
     class Meta:
@@ -102,7 +100,7 @@ class MentionableTestBlogPost(MentionableMixin, models.Model):
         on_delete=models.CASCADE,
     )
 
-    def all_text(self):
+    def get_content_html(self):
         return self.content
 
     def get_absolute_url(self):

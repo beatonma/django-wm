@@ -68,7 +68,7 @@ class OutgoingWebmentionDelegationTests(OptionsTestCase):
 
         obj = testfunc.create_mentionable_object("Content that might mention a URL")
         self.absolute_url = obj.get_absolute_url()
-        self.all_text = obj.all_text()
+        self.all_text = obj.get_content_html()
 
     def test_outgoing_with_celery_disabled(self):
         """handle_outgoing_webmentions creates PendingOutgoingContent when celery is disabled."""

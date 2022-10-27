@@ -47,7 +47,7 @@ class PendingOutgoingContent(MentionsBaseModel):
         unique=True,
     )
     text = models.TextField(
-        help_text="Text that may contain mentionable links. (retrieved via MentionableMixin.all_text())"
+        help_text="Text that may contain mentionable links. (retrieved via MentionableMixin.get_content_html())"
     )
 
     def __str__(self):

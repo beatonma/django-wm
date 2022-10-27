@@ -50,7 +50,7 @@ class RelativeUrlMentionTests(OptionsTestCase):
     def test_submit_relative_webmention(self):
         successful = process_outgoing_webmentions(
             self.sender.get_absolute_url(),
-            self.sender.all_text(),
+            self.sender.get_content_html(),
         )
 
         self.assertEqual(1, successful)

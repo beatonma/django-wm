@@ -1,3 +1,4 @@
+import logging
 from typing import List, Type
 
 from django.db import models
@@ -9,6 +10,8 @@ from mentions.models.mixins.quotable import QuotableMixin
 __all__ = [
     "MentionableMixin",
 ]
+
+log = logging.getLogger(__name__)
 
 
 class MentionableMixin(models.Model):
@@ -32,7 +35,7 @@ class MentionableMixin(models.Model):
             f"{self.__class__.__name__} does not implement get_absolute_url()"
         )
 
-    def all_text(self) -> str:
+    def get_content_html(self) -> str:
         """
         Return all the HTML-formatted text that should be searched when looking
         for outgoing Webmentions. Any <a> tags found in this content will be
@@ -43,11 +46,24 @@ class MentionableMixin(models.Model):
         such as a summary or abstract.
 
         Example:
-            def all_text(self) -> str:
+            def get_content_html(self) -> str:
                 return f'{self.introduction} {self.main_content}'
         """
+
+        log.warning(
+            "Method `MentionableMixin.all_text()` is deprecated, replaced by "
+            "`MentionableMixin.get_content_html()`. Please rename the method "
+            f"on your model `{self.__class__.__name__}`."
+        )
+
+        return self.all_text()
+
+    def all_text(self) -> str:
+        """Deprecated in 4.0: Replaced by `get_content_html()`.
+
+        Only the name has changed - purpose and signature are the same."""
         raise ImplementationRequired(
-            f"{self.__class__.__name__} does not implement all_text()"
+            f"{self.__class__.__name__} does not implement get_content_html()"
         )
 
     @classmethod
@@ -92,4 +108,6 @@ class MentionableMixin(models.Model):
         if self.should_process_webmentions():
             from mentions.tasks import handle_outgoing_webmentions
 
-            handle_outgoing_webmentions(self.get_absolute_url(), self.all_text())
+            handle_outgoing_webmentions(
+                self.get_absolute_url(), self.get_content_html()
+            )

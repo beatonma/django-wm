@@ -17,7 +17,7 @@ class BasePost(models.Model):
     title = models.CharField(max_length=64)
     content = models.TextField()
 
-    def all_text(self) -> str:
+    def get_content_html(self) -> str:
         return self.content
 
     def __str__(self):
