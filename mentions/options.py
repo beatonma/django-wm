@@ -40,16 +40,16 @@ __all__ = [
 
 
 NAMESPACE = "WEBMENTIONS"
-SETTING_USE_CELERY = f"{NAMESPACE}_USE_CELERY"
+SETTING_ALLOW_SELF_MENTIONS = f"{NAMESPACE}_ALLOW_SELF_MENTIONS"
 SETTING_AUTO_APPROVE = f"{NAMESPACE}_AUTO_APPROVE"
-SETTING_URL_SCHEME = f"{NAMESPACE}_URL_SCHEME"
-SETTING_TIMEOUT = f"{NAMESPACE}_TIMEOUT"
+SETTING_DASHBOARD_PUBLIC = f"{NAMESPACE}_DASHBOARD_PUBLIC"
+SETTING_DEFAULT_URL_PARAMETER_MAPPING = f"{NAMESPACE}_DEFAULT_URL_PARAMETER_MAPPING"
+SETTING_INCOMING_TARGET_MODEL_REQUIRED = f"{NAMESPACE}_INCOMING_TARGET_MODEL_REQUIRED"
 SETTING_MAX_RETRIES = f"{NAMESPACE}_MAX_RETRIES"
 SETTING_RETRY_INTERVAL = f"{NAMESPACE}_RETRY_INTERVAL"
-SETTING_DASHBOARD_PUBLIC = f"{NAMESPACE}_DASHBOARD_PUBLIC"
-SETTING_INCOMING_TARGET_MODEL_REQUIRED = f"{NAMESPACE}_INCOMING_TARGET_MODEL_REQUIRED"
-SETTING_ALLOW_SELF_MENTIONS = f"{NAMESPACE}_ALLOW_SELF_MENTIONS"
-SETTING_DEFAULT_URL_PARAMETER_MAPPING = f"{NAMESPACE}_DEFAULT_URL_PARAMETER_MAPPING"
+SETTING_TIMEOUT = f"{NAMESPACE}_TIMEOUT"
+SETTING_URL_SCHEME = f"{NAMESPACE}_URL_SCHEME"
+SETTING_USE_CELERY = f"{NAMESPACE}_USE_CELERY"
 SETTING_USER_AGENT = f"{NAMESPACE}_USER_AGENT"
 
 """settings.DOMAIN_NAME is sometimes used by other libraries for the same purpose,
@@ -57,17 +57,17 @@ no need to lock it to our namespace."""
 SETTING_DOMAIN_NAME = "DOMAIN_NAME"
 
 DEFAULTS = {
-    SETTING_DOMAIN_NAME: None,
     SETTING_AUTO_APPROVE: False,
-    SETTING_URL_SCHEME: "https",
-    SETTING_USE_CELERY: True,
-    SETTING_TIMEOUT: 10,
+    SETTING_ALLOW_SELF_MENTIONS: True,
+    SETTING_DASHBOARD_PUBLIC: False,
+    SETTING_DEFAULT_URL_PARAMETER_MAPPING: {"object_id": "id"},
+    SETTING_DOMAIN_NAME: None,
+    SETTING_INCOMING_TARGET_MODEL_REQUIRED: False,
     SETTING_MAX_RETRIES: 5,
     SETTING_RETRY_INTERVAL: 60 * 10,
-    SETTING_DASHBOARD_PUBLIC: False,
-    SETTING_INCOMING_TARGET_MODEL_REQUIRED: False,
-    SETTING_ALLOW_SELF_MENTIONS: True,
-    SETTING_DEFAULT_URL_PARAMETER_MAPPING: {"object_id": "id"},
+    SETTING_TIMEOUT: 10,
+    SETTING_URL_SCHEME: "https",
+    SETTING_USE_CELERY: True,
     SETTING_USER_AGENT: f"django-wm/{mentions.__version__} (+{mentions.__url__})",
 }
 
@@ -88,18 +88,13 @@ def get_config() -> dict:
     return {key: _get_attr(key) for key in DEFAULTS.keys()}
 
 
-def domain_name() -> str:
-    """Return settings.DOMAIN_NAME."""
-    return _get_attr(SETTING_DOMAIN_NAME)
+def allow_self_mentions() -> bool:
+    """Return settings.WEBMENTIONS_ALLOW_SELF_MENTIONS.
 
-
-def use_celery() -> bool:
-
-    """Return settings.WEBMENTIONS_USE_CELERY, or True if not set.
-
-    This setting enables/disables the use of `celery` for running tasks.
-    If disabled, user must run these tasks using `manage.py pending_mentions` management command."""
-    return _get_attr(SETTING_USE_CELERY)
+    If True, you can send webmentions to yourself.
+    If False, outgoing links that target your own domain name will be ignored.
+    """
+    return _get_attr(SETTING_ALLOW_SELF_MENTIONS)
 
 
 def auto_approve() -> bool:
@@ -111,11 +106,38 @@ def auto_approve() -> bool:
     return _get_attr(SETTING_AUTO_APPROVE)
 
 
-def timeout() -> float:
-    """Return settings.WEBMENTIONS_TIMEOUT.
+def dashboard_public() -> bool:
+    """Return settings.WEBMENTIONS_DASHBOARD_PUBLIC.
 
-    Timeout (in seconds) used for network requests when sending or verifying webmentions."""
-    return _get_attr(SETTING_TIMEOUT)
+    This is intended to help with debugging while developing the `django-wm`
+    library and probably should not be used otherwise."""
+    is_dashboard_public = _get_attr(SETTING_DASHBOARD_PUBLIC)
+    if not settings.DEBUG and is_dashboard_public:
+        log.warning(
+            f"settings.{SETTING_DASHBOARD_PUBLIC} should not be `True` when in production!"
+        )
+
+    return is_dashboard_public
+
+
+def default_url_parameter_mapping() -> Dict[str, str]:
+    """Return settings.WEBMENTIONS_DEFAULT_URL_PARAMETER_MAPPING.
+
+    This is used by `MentionableMixin.resolve_from_url_kwargs` if you do not
+    override it on your model.
+
+    The first value is the name of the parameter captured from your URL pattern,
+    the second is the name of the field on the model.
+
+    e.g. The default {"object_id": "id"} will result in a model query that looks
+    like `MyModel.objects.get(id=url_kwargs.get("object_id"))`.
+    """
+    return _get_attr(SETTING_DEFAULT_URL_PARAMETER_MAPPING)
+
+
+def domain_name() -> str:
+    """Return settings.DOMAIN_NAME."""
+    return _get_attr(SETTING_DOMAIN_NAME)
 
 
 def max_retries() -> int:
@@ -153,28 +175,11 @@ def target_requires_model() -> bool:
     return _get_attr(SETTING_INCOMING_TARGET_MODEL_REQUIRED)
 
 
-def allow_self_mentions() -> bool:
-    """Return settings.WEBMENTIONS_ALLOW_SELF_MENTIONS.
+def timeout() -> float:
+    """Return settings.WEBMENTIONS_TIMEOUT.
 
-    If True, you can send webmentions to yourself.
-    If False, outgoing links that target your own domain name will be ignored.
-    """
-    return _get_attr(SETTING_ALLOW_SELF_MENTIONS)
-
-
-def default_url_parameter_mapping() -> Dict[str, str]:
-    """Return settings.WEBMENTIONS_DEFAULT_URL_PARAMETER_MAPPING.
-
-    This is used by `MentionableMixin.resolve_from_url_kwargs` if you do not
-    override it on your model.
-
-    The first value is the name of the parameter captured from your URL pattern,
-    the second is the name of the field on the model.
-
-    e.g. The default {"object_id": "id"} will result in a model query that looks
-    like `MyModel.objects.get(id=url_kwargs.get("object_id"))`.
-    """
-    return _get_attr(SETTING_DEFAULT_URL_PARAMETER_MAPPING)
+    Timeout (in seconds) used for network requests when sending or verifying webmentions."""
+    return _get_attr(SETTING_TIMEOUT)
 
 
 def url_scheme() -> str:
@@ -191,22 +196,16 @@ def url_scheme() -> str:
     return scheme
 
 
+def use_celery() -> bool:
+    """Return settings.WEBMENTIONS_USE_CELERY, or True if not set.
+
+    This setting enables/disables the use of `celery` for running tasks.
+    If disabled, user must run these tasks using `manage.py pending_mentions` management command."""
+    return _get_attr(SETTING_USE_CELERY)
+
+
 def user_agent() -> str:
     """Return settings.WEBMENTIONS_USER_AGENT.
 
     This is included with all network requests made by `django-wm`."""
     return _get_attr(SETTING_USER_AGENT)
-
-
-def dashboard_public() -> bool:
-    """Return settings.WEBMENTIONS_DASHBOARD_PUBLIC.
-
-    This is intended to help with debugging while developing the `django-wm`
-    library and probably should not be used otherwise."""
-    is_dashboard_public = _get_attr(SETTING_DASHBOARD_PUBLIC)
-    if not settings.DEBUG and is_dashboard_public:
-        log.warning(
-            f"settings.{SETTING_DASHBOARD_PUBLIC} should not be `True` when in production!"
-        )
-
-    return is_dashboard_public
