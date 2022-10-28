@@ -13,25 +13,8 @@ class HelperPathTests(SimpleTestCase):
             model_field_mapping={
                 "arbitrary_id": "id",
             },
-        )
-
-        self.assertEqual(
-            path_def.default_args["model_name"],
-            "tests.MentionableTestModel",
-        )
-
-        self.assertEqual(
-            path_def.default_args["model_field_mapping"]["arbitrary_id"],
-            "id",
-        )
-
-    def test_mentions_re_path_definition(self):
-        path_def = mentions_re_path(
-            r"with_helper_config/<int:arbitrary_id>/",
-            AllEndpointsMentionableTestView.as_view(),
-            model_class=MentionableTestModel,
-            model_field_mapping={
-                "arbitrary_id": "id",
+            kwargs={
+                "something-else": 3,
             },
         )
 
@@ -44,3 +27,28 @@ class HelperPathTests(SimpleTestCase):
             path_def.default_args["model_field_mapping"]["arbitrary_id"],
             "id",
         )
+
+        self.assertEqual(path_def.default_args["something-else"], 3)
+
+    def test_mentions_re_path_definition(self):
+        path_def = mentions_re_path(
+            r"with_helper_config/<int:arbitrary_id>/",
+            AllEndpointsMentionableTestView.as_view(),
+            model_class=MentionableTestModel,
+            model_field_mapping={
+                "arbitrary_id": "id",
+            },
+            kwargs={"another-thing": "blah"},
+        )
+
+        self.assertEqual(
+            path_def.default_args["model_name"],
+            "tests.MentionableTestModel",
+        )
+
+        self.assertEqual(
+            path_def.default_args["model_field_mapping"]["arbitrary_id"],
+            "id",
+        )
+
+        self.assertEqual(path_def.default_args["another-thing"], "blah")
