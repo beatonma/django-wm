@@ -1,7 +1,5 @@
-from django.http import HttpResponse
 from django.test.utils import override_settings
 from django.utils import timezone
-from django.views import View
 
 from mentions import config, resolution
 from mentions.exceptions import TargetDoesNotExist
@@ -12,21 +10,20 @@ from tests.config.test_urls import core_urlpatterns
 from tests.models import MentionableTestBlogPost, MentionableTestModel, SampleBlog
 
 
-class StubView(View):
-    def get(self, request, *args, **kwargs):
-        return HttpResponse(status=200)
+def viewfunc():
+    pass
 
 
 urlpatterns = [
     mentions_path(
         "with_helper_config/<int:arbitrary_name>/",
-        StubView.as_view(),
+        viewfunc,
         model_class=MentionableTestModel,
         model_field_mapping={"arbitrary_name": "id"},
     ),
     mentions_path(
         "blogs/<slug:blog_slug>/<int:year>/<int:month>/<int:day>/<slug:post_slug>/",
-        StubView.as_view(),
+        viewfunc,
         model_class=MentionableTestBlogPost,
         model_field_mapping={
             "blog_slug": "blog__slug__exact",
@@ -38,15 +35,20 @@ urlpatterns = [
     ),
     mentions_path(
         "with_sequence_field_mapping/<int:mapping_as_sequence>",
-        StubView.as_view(),
+        viewfunc,
         model_class=MentionableTestModel,
         model_field_mapping=[
             ("mapping_as_sequence", "id"),
         ],
     ),
+    mentions_path(
+        "model_field_mapping_omitted/<int:id>",
+        viewfunc,
+        model_class=MentionableTestModel,
+    ),
     mentions_re_path(
         r"regexpath/[0-9]+/(?P<regex_name>[\w-]+)/",
-        StubView.as_view(),
+        viewfunc,
         model_class=MentionableTestModel,
         model_field_mapping={
             "regex_name": "name",
@@ -101,14 +103,18 @@ class UrlpatternsHelperTests(WebmentionTestCase):
             )
 
     def test_mentions_path_with_mapping_as_sequence(self):
-        MentionableTestModel.objects.create()
-        obj = MentionableTestModel.objects.create(
-            id=1432,
-        )
-        MentionableTestModel.objects.create()
+        obj = MentionableTestModel.objects.create(id=1432)
 
         retrieved_object = resolution.get_model_for_url(
             "/with_sequence_field_mapping/1432"
+        )
+        self.assertEqual(obj, retrieved_object)
+
+    def test_mentions_path_with_mapping_omitted(self):
+        obj = MentionableTestModel.objects.create(id=9861)
+
+        retrieved_object = resolution.get_model_for_url(
+            "/model_field_mapping_omitted/9861"
         )
         self.assertEqual(obj, retrieved_object)
 
