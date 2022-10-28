@@ -25,16 +25,24 @@ urlpatterns = [
         model_field_mapping={"arbitrary_name": "id"},
     ),
     mentions_path(
-        r"blogs/<slug:blog_slug>/<int:year>/<int:month>/<int:day>/<slug:post_slug>/",
+        "blogs/<slug:blog_slug>/<int:year>/<int:month>/<int:day>/<slug:post_slug>/",
         StubView.as_view(),
         model_class=MentionableTestBlogPost,
         model_field_mapping={
-            "blog_slug": "blog__slug",
+            "blog_slug": "blog__slug__exact",
             "year": "timestamp__year",
             "month": "timestamp__month",
             "day": "timestamp__day",
             "post_slug": "slug",
         },
+    ),
+    mentions_path(
+        "with_sequence_field_mapping/<int:mapping_as_sequence>",
+        StubView.as_view(),
+        model_class=MentionableTestModel,
+        model_field_mapping=[
+            ("mapping_as_sequence", "id"),
+        ],
     ),
     mentions_re_path(
         r"regexpath/[0-9]+/(?P<regex_name>[\w-]+)/",
@@ -92,6 +100,18 @@ class UrlpatternsHelperTests(WebmentionTestCase):
                 "/blogs/blog-slug/2022/3/29/something-different/"
             )
 
+    def test_mentions_path_with_mapping_as_sequence(self):
+        MentionableTestModel.objects.create()
+        obj = MentionableTestModel.objects.create(
+            id=1432,
+        )
+        MentionableTestModel.objects.create()
+
+        retrieved_object = resolution.get_model_for_url(
+            "/with_sequence_field_mapping/1432"
+        )
+        self.assertEqual(obj, retrieved_object)
+
     def test_mentions_re_path(self):
         MentionableTestModel.objects.create()
         obj = MentionableTestModel.objects.create(name="regex-model")
@@ -100,3 +120,6 @@ class UrlpatternsHelperTests(WebmentionTestCase):
         retrieved_object = resolution.get_model_for_url("/regexpath/1243/regex-model/")
 
         self.assertEqual(obj, retrieved_object)
+
+        with self.assertRaises(TargetDoesNotExist):
+            resolution.get_model_for_url("/regexpath/abc/regex-model/")

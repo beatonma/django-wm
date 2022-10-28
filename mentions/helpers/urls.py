@@ -1,9 +1,9 @@
-from typing import Dict, Optional, Sequence, Type, Union
+from typing import Dict, Optional, Type
 
 from django.urls import URLPattern, path, re_path
 
 from mentions import contract
-from mentions.util.types import MentionableImpl
+from mentions.helpers.types import MentionableImpl, ModelFieldMapping
 
 __all__ = [
     "mentions_path",
@@ -15,7 +15,7 @@ def mentions_path(
     route,
     view,
     model_class: Type[MentionableImpl],
-    model_field_mapping: Optional[Union[Dict, Sequence]] = None,
+    model_field_mapping: Optional[ModelFieldMapping] = None,
     kwargs: Optional[Dict] = None,
     name: Optional[str] = None,
 ) -> URLPattern:
@@ -32,7 +32,7 @@ def mentions_path(
         model_class: The type of MentionableMixin model that this path represents.
         model_field_mapping: A mapping of captured kwarg names to model field names, if they differ.
             This may be a {captured_name: model_field_name} dictionary, or
-            a list of (captured_name, model_field_name) pairs.
+            a list of (captured_name, model_field_name) tuples.
         kwargs: extras options for `view` [modified and passed to django.urls.path]
         name: Used for reverse lookup [passed to django.urls.path]
 
@@ -56,7 +56,7 @@ def mentions_re_path(
     route,
     view,
     model_class: Type[MentionableImpl],
-    model_field_mapping: Optional[Union[Dict, Sequence]] = None,
+    model_field_mapping: Optional[ModelFieldMapping] = None,
     kwargs: Optional[Dict] = None,
     name: Optional[str] = None,
 ) -> URLPattern:

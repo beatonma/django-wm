@@ -1,14 +1,13 @@
 from typing import Dict, Optional, Type
 
 from mentions import contract
-from mentions.models.mixins import MentionableMixin
-from mentions.util.types import MentionableImpl
+from mentions.helpers.types import MentionableImpl, ModelFieldMapping
 
 
 def get_model_for_url_by_helper(
     model_class: Type[MentionableImpl],
     urlpattern_kwargs: Dict,
-) -> Optional[MentionableMixin]:
+) -> Optional[MentionableImpl]:
     """Resolve a model instance from urlpattern kwargs, as configured by
     `mentions_path` or `mentions_re_path` helper functions.
 
@@ -22,10 +21,12 @@ def get_model_for_url_by_helper(
     Raises:
         KeyError: If the given urlpattern_kwargs does not contain helper values.
     """
-    model_field_mapping = urlpattern_kwargs.pop(contract.URLPATTERNS_MODEL_LOOKUP)
+    model_field_mapping: ModelFieldMapping = urlpattern_kwargs.pop(
+        contract.URLPATTERNS_MODEL_LOOKUP
+    )
 
     if isinstance(model_field_mapping, dict):
-        model_field_mapping = model_field_mapping.items()
+        model_field_mapping = set(model_field_mapping.items())
 
     query = {value: urlpattern_kwargs[key] for key, value in model_field_mapping}
     return model_class.objects.get(**query)
