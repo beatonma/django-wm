@@ -21,7 +21,13 @@ default_context = {
 }
 
 
-class ArticleView(View):
+class BaseView(View):
+    def dispatch(self, request, *args, **kwargs):
+        log.info(f"{request} | {request.headers}")
+        return super().dispatch(request, *args, **kwargs)
+
+
+class ArticleView(BaseView):
     def get(self, request, article_id: int, *args, **kwargs):
         article = Article.objects.get(pk=article_id)
         return render(
@@ -34,7 +40,7 @@ class ArticleView(View):
         )
 
 
-class BlogView(View):
+class BlogView(BaseView):
     def get(self, request, blog_id: int, *args, **kwargs):
         blog = Blog.objects.get(pk=blog_id)
         return render(
@@ -71,7 +77,7 @@ class ActionForm(forms.Form):
     )
 
 
-class ActionView(View):
+class ActionView(BaseView):
     def get(self, request):
         articles = Article.objects.all()
 
@@ -119,7 +125,7 @@ class ActionView(View):
             return HttpResponse(status=400)
 
 
-class TimeoutView(View):
+class TimeoutView(BaseView):
     """A view which takes too long to respond."""
 
     def get(self, request):
@@ -127,7 +133,7 @@ class TimeoutView(View):
         return HttpResponse("That took a while!", status=200)
 
 
-class MaybeTimeoutView(View):
+class MaybeTimeoutView(BaseView):
     def get(self, request):
         timed_out = random.random() > 0.4
 
