@@ -1,15 +1,36 @@
 # Changelog
 
-## 4.0.0
+## 4.0.0 ( TODO )
 
-Wiki pages are now [live](https://github.com/beatonma/django-wm/wiki/).
+- Wiki pages are now [live](https://github.com/beatonma/django-wm/wiki/)!
 
-Removed `slug` field from `MentionableMixin`.
-- If you use it, please add it on your model implementation: `slug = models.SlugField(unique=True)`.
+- `MentionableMixin`:
+  - Removed `slug` field. If you use this field you can restore the previous behaviour by adding the following to your model.
 
-Added `urlpatterns` helper functions `mentions_path`, `mentions_re_path` for simpler setup.
-- More straightforward view-to-model mapping.
-- Removes the need to implement `resolve_from_url_kwargs` on your MentionableMixin implementation.
+    ```python
+  
+    class MyModel(MentionableMixin, models.Model):
+        slug = models.SlugField(unique=True)
+  
+        @classmethod
+        def resolve_from_url_kwargs(cls, slug, **url_kwargs):
+            return cls.objects.get(slug=slug)
+    ```
+  - Deprecated method`all_text`, replaced by `get_content_html`. Overriding `all_text` still works for now but will log a warning asking you to rename the method.
+
+- Moved template files to `mentions` sub-directory. If you have custom overrides of these templates in your root `templates/` directory please move them to `templates/mentions/`.
+
+- Added `urlpatterns` helper functions `mentions_path`, `mentions_re_path` for simpler setup.
+  - More straightforward view-to-model mapping.
+  - Removes the need to implement `resolve_from_url_kwargs` on your MentionableMixin implementation.
+
+- Added user agent header to all network requests.
+  - Customisable via `settings.WEBMENTIONS_USER_AGENT`.
+
+
+## 3.1.1 (2022-10-26)
+
+Fixes [#43](https://github.com/beatonma/django-wm/issues/43): outgoing webmention being resubmitted continuously.
 
 
 ## 3.1.0 (2022-10-06)
@@ -209,7 +230,7 @@ Fix: Test view defined in main urlpatterns.
 
 ### Breaking Changes
 
-- Migrations are now included. If you are upgrading from any `1.x.x` version please follow [these instructions](docs/upgrading_to_2.0.md) to avoid data loss. Thanks to **@GriceTurrble for providing these instructions.
+- Migrations are now included. If you are upgrading from any `1.x.x` version please follow [these instructions](https://github.com/beatonma/django-wm/wiki/Guide_Upgrading-to-2.0) to avoid data loss. Thanks to **@GriceTurrble for providing these instructions.
 
 - `requirements.txt` `celery` version updated to `5.2.2` due to [CVE-2021-23727](https://github.com/advisories/GHSA-q4xr-rc97-m4xx). If you are upgrading from `4.x` please follow the [upgrade instructions](https://docs.celeryproject.org/en/stable/history/whatsnew-5.0.html#upgrading-from-celery-4-x) provided by Celery.
 
