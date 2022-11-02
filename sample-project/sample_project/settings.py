@@ -14,17 +14,26 @@ ALLOWED_HOSTS = [
 CSRF_TRUSTED_ORIGINS = [
     f"http://{DOMAIN_NAME}",
 ]
+
+CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL")
+
+
+# Settings for sample_app.
 DEFAULT_MENTION_TARGET_DOMAIN = os.environ.get("DEFAULT_MENTION_TARGET_DOMAIN") or ""
 DEFAULT_MENTION_TARGET = f"http://{DEFAULT_MENTION_TARGET_DOMAIN}{os.environ.get('DEFAULT_MENTION_TARGET') or ''}"
-CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL")
+AUTOMENTION_EMABLED = os.environ.get("AUTOMENTION_ENABLED", "True").lower() == "true"
 AUTOMENTION_URLS = [
     f"http://{DEFAULT_MENTION_TARGET_DOMAIN}{x}"
     for x in (os.environ.get("AUTOMENTION_URLS") or "").split(",")
 ]
+# End of settings for sample_app
 
+
+# Settings for django-wm
 try:
     import celery
 
+    # Enable celery depending on current docker configuration.
     WEBMENTIONS_USE_CELERY = True
 except ImportError:
     WEBMENTIONS_USE_CELERY = False
@@ -35,6 +44,7 @@ WEBMENTIONS_TIMEOUT = 3
 WEBMENTIONS_DASHBOARD_PUBLIC = True
 WEBMENTIONS_RETRY_INTERVAL = 2 * 60
 WEBMENTIONS_MAX_RETRIES = 5
+# End of settings for django-wm
 
 
 STATIC_URL = "/static/"
