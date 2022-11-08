@@ -108,6 +108,7 @@ class ViewApiTests(ApiTestCase):
 
     def test_expected_views_are_accessible(self):
         self.assertExistsInModule(
+            "GetMentionsByTypeView",
             "GetMentionsView",
             "WebmentionView",
             "WebmentionDashboardView",

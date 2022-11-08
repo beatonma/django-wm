@@ -61,7 +61,11 @@ def endpoint_submit_webmention() -> str:
 
 def endpoint_get_webmentions() -> str:
     """Return relative URL for our webmention /get endpoint."""
-    return reverse(view_names.webmention_api_get_for_object)
+    return reverse(view_names.webmention_api_get)
+
+
+def endpoint_get_webmentions_by_type() -> str:
+    return reverse(view_names.webmention_api_get_by_type)
 
 
 def endpoint_submit_webmention_absolute() -> str:

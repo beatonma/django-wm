@@ -1,6 +1,7 @@
 from django.urls import path, re_path
 
 from mentions.views import (
+    GetMentionsByTypeView,
     GetMentionsView,
     WebmentionDashboardView,
     WebmentionView,
@@ -22,7 +23,12 @@ urlpatterns = [
     re_path(
         r"^get/?$",
         GetMentionsView.as_view(),
-        name=view_names.webmention_api_get_for_object,
+        name=view_names.webmention_api_get,
+    ),
+    path(
+        r"^get-by-type/?$",
+        GetMentionsByTypeView.as_view(),
+        name=view_names.webmention_api_get_by_type,
     ),
     path(
         "dashboard/",

@@ -7,3 +7,10 @@ resolve to a MentionableMixin instance.
 URLPATTERNS_MODEL_NAME = "model_name"
 URLPATTERNS_MODEL_FILTERS = "model_filters"
 URLPATTERNS_MODEL_FILTER_MAP = "model_filter_map"
+
+
+"""API JSON keys"""
+MENTIONS = "mentions"
+MENTIONS_BY_TYPE = "mentions_by_type"
+TARGET_URL = "target_url"
+MESSAGE = "message"
