@@ -18,6 +18,10 @@ if __name__ == "__main__":
     django.setup()
 
     test_runner = get_runner(settings)()
-    failures = test_runner.run_tests(["tests"])
+
+    # Detailed report fr any tests that are non-passing (failed, skipped...)
+    default_args = "-r a".split(" ")
+    args = sys.argv or default_args
+    failures = test_runner.run_tests(["tests", *args])
 
     sys.exit(bool(failures))
