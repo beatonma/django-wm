@@ -1,18 +1,28 @@
+import logging
 import os
 import uuid
+
+from tests.config.settings import wagtail_settings
+
+log = logging.getLogger(__name__)
 
 TEST_RUNNER = "tests.config.runner.PytestRunner"
 
 
+def _any_str() -> str:
+    return uuid.uuid4().hex[::5]
+
+
 # Randomise domain name at test runtime.
-DOMAIN_NAME = f"example-url-{uuid.uuid4().hex[::5]}.org"
+DOMAIN_NAME = f"example-url-{_any_str()}.org"
 ALLOWED_HOSTS = [
     DOMAIN_NAME,
 ]
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-SECRET_KEY = "some-test-key"
+SITE_ID = 1
+SECRET_KEY = _any_str()
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -22,6 +32,12 @@ INSTALLED_APPS = [
     "mentions",
     "tests",
 ]
+
+from importlib.util import find_spec
+
+is_wagtail_installed = find_spec("wagtail") is not None
+if is_wagtail_installed:
+    INSTALLED_APPS += wagtail_settings.INSTALLED_APPS
 
 MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
@@ -33,7 +49,6 @@ MIDDLEWARE = [
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.path.join(BASE_DIR, "django-wm-test.sqlite3"),
     }
 }
 
@@ -58,6 +73,14 @@ TEMPLATES = [
     },
 ]
 
+
+def _log_handler(level="DEBUG"):
+    return {
+        "handlers": ["console"],
+        "level": level,
+    }
+
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -68,18 +91,13 @@ LOGGING = {
         }
     },
     "loggers": {
-        "django": {
-            "handlers": ["console"],
-            "level": "WARNING",
-        },
-        "mentions": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-        },
+        "django": _log_handler("WARNING"),
+        "mentions": _log_handler(),
+        "tests": _log_handler(),
+        "wagtail": _log_handler(),
+        "wagtail.core": _log_handler(),
     },
 }
-
-DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 WEBMENTIONS_USE_CELERY = True
 WEBMENTIONS_AUTO_APPROVE = True

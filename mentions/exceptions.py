@@ -78,3 +78,9 @@ class NotEnoughData(WebmentionsException):
     """Attempted to build a model instance but did not have enough data to do so."""
 
     pass
+
+
+class OptionalDependency(WebmentionsException):
+    """Attempted to use an optional dependency which is not installed."""
+
+    pass

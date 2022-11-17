@@ -9,7 +9,7 @@ from django.test.utils import get_runner
 
 log = logging.getLogger(__name__)
 
-SETTINGS_PATH = "tests.config.test_settings"
+SETTINGS_PATH = "tests.config.settings"
 
 
 if __name__ == "__main__":

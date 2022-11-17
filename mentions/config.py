@@ -12,3 +12,10 @@ def base_url() -> str:
 def build_url(path: str) -> str:
     """Construct an absolute URL for the given path on this server."""
     return urljoin(base_url(), path)
+
+
+def is_wagtail_installed() -> bool:
+    from importlib.util import find_spec
+
+    wagtail_spec = find_spec("wagtail")
+    return wagtail_spec is not None

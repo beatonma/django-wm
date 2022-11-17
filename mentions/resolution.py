@@ -5,12 +5,18 @@ from django.apps import apps
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import HttpRequest
+from django.http import Http404, HttpRequest
 from django.urls import Resolver404, ResolverMatch, get_resolver
 
 from mentions import contract
-from mentions.exceptions import BadUrlConfig, NoModelForUrlPath, TargetDoesNotExist
+from mentions.exceptions import (
+    BadUrlConfig,
+    NoModelForUrlPath,
+    OptionalDependency,
+    TargetDoesNotExist,
+)
 from mentions.helpers.resolution import get_model_for_url_by_helper
+from mentions.helpers.thirdparty.wagtail import get_model_for_url_by_wagtail
 from mentions.models import SimpleMention, Webmention
 from mentions.models.mixins import MentionableMixin, QuotableMixin
 from mentions.util.url import get_urlpath
@@ -33,6 +39,7 @@ def get_urlpattern_match(url_path: str) -> ResolverMatch:
         TargetDoesNotExist: If a match cannot be found.
     """
     try:
+
         return get_resolver(settings.ROOT_URLCONF).resolve(url_path)
     except Resolver404:
         raise TargetDoesNotExist(
@@ -75,7 +82,18 @@ def get_model_for_url(url: str) -> MentionableMixin:
 
     try:
         model_name = urlpattern_kwargs.pop(contract.URLPATTERNS_MODEL_NAME)
+
     except KeyError:
+        try:
+            return get_model_for_url_by_wagtail(match)
+
+        except OptionalDependency:
+            # Wagtail is not installed
+            pass
+
+        except Http404:
+            raise TargetDoesNotExist(f"Could not resolve a wagtail page for url {url}")
+
         raise NoModelForUrlPath()
 
     try:
