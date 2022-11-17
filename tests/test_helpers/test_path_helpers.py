@@ -49,7 +49,7 @@ class HelperPathTests(SimpleTestCase):
             kwargs["model_name"],
             "tests.MentionableTestModel",
         )
-        self.assertEqual(kwargs["model_field_mapping"]["id"], "id")
+        self.assertEqual(kwargs["model_field_mapping"], {"id"})
         self.assertEqual(kwargs["something-else"], 4)
 
 
@@ -86,4 +86,4 @@ class HelperRegexPathTests(SimpleTestCase):
             model_class=MentionableTestModel,
         )
 
-        self.assertEqual(path_def.default_args["model_field_mapping"]["id"], "id")
+        self.assertEqual(path_def.default_args["model_field_mapping"], {"id"})

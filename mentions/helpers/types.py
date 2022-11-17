@@ -11,6 +11,8 @@ ModelFieldMappingItem = Tuple[str, str]
 
 ModelFieldMapping = Union[
     Dict[str, str],
+    Sequence[str],
+    Set[str],
     Sequence[ModelFieldMappingItem],
     Set[ModelFieldMappingItem],
 ]

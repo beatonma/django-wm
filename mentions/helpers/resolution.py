@@ -1,4 +1,4 @@
-from typing import Dict, Optional, Type
+from typing import Dict, Optional, Set, Tuple, Type, Union
 
 from mentions import contract
 from mentions.helpers.types import MentionableImpl, ModelFieldMapping
@@ -28,5 +28,13 @@ def get_model_for_url_by_helper(
     if isinstance(model_field_mapping, dict):
         model_field_mapping = set(model_field_mapping.items())
 
-    query = {value: urlpattern_kwargs[key] for key, value in model_field_mapping}
+    def unpack_mapping(obj: Union[str, Tuple[str, str]]) -> Tuple[str, str]:
+        # If mapping is a string, replace it with an 'identity' tuple of it: key == value.
+        if isinstance(obj, str):
+            return obj, obj
+        return obj
+
+    mapping: Set[Tuple[str, str]] = {unpack_mapping(x) for x in model_field_mapping}
+    query = {value: urlpattern_kwargs[key] for key, value in mapping}
+
     return model_class.objects.get(**query)

@@ -1,5 +1,5 @@
 from functools import partial
-from typing import Callable, Dict, Optional, Type
+from typing import Callable, Dict, Optional, Set, Type
 
 from django.urls import URLPattern, path, re_path
 
@@ -9,6 +9,8 @@ from mentions.helpers.types import MentionableImpl, ModelFieldMapping
 __all__ = [
     "mentions_path",
     "mentions_re_path",
+    "get_dotted_model_name",
+    "get_lookup_from_urlpattern",
 ]
 
 
@@ -54,7 +56,8 @@ def _path(
     )
 
     if model_field_mapping is None:
-        inject_default_mapping(urlpattern)
+        # Use captured params for object resolution if no custom mapping provided.
+        urlpattern.default_args.update(get_lookup_from_urlpattern(urlpattern))
 
     return urlpattern
 
@@ -83,8 +86,7 @@ def model_kwargs(
     }
 
 
-def inject_default_mapping(urlpattern: URLPattern):
+def get_lookup_from_urlpattern(urlpattern: URLPattern) -> Dict[str, Set[str]]:
+    """Create model_field_lookup from captured parameters."""
     default_mapping = urlpattern.pattern.converters.keys()
-    urlpattern.default_args.update(
-        {contract.URLPATTERNS_MODEL_LOOKUP: {name: name for name in default_mapping}}
-    )
+    return {contract.URLPATTERNS_MODEL_LOOKUP: set(default_mapping)}
