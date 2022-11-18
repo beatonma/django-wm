@@ -13,6 +13,10 @@ try:
     from wagtail.fields import RichTextField
     from wagtail.models import Page
 
+    class SimplePage(Page):
+        # Page without MentionableMixin
+        pass
+
     class MentionablePage(MentionableMixin, Page):
         body = RichTextField(blank=True)
         date = models.DateField(default=timezone.now)
