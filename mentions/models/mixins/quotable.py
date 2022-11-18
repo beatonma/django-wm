@@ -31,6 +31,15 @@ class IncomingMentionType(Enum):
     def choices(cls) -> List[Tuple[str, str]]:
         return [(x.lower(), x) for x in cls.__members__.keys()]
 
+    @classmethod
+    def get_microformat_from_name(cls, name: str) -> str:
+        """Get the microformat class name for the given mention type."""
+        return cls[name.capitalize()].get_microformat() if name else ""
+
+    def get_microformat(self) -> str:
+        """Get the microformat class name for this mention type."""
+        return self.value
+
     def serialized_name(self) -> str:
         """The value used in the database and API responses."""
         return self.name.lower()
