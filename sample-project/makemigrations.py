@@ -12,6 +12,10 @@ MIGRATION_SETTINGS = {
         "django.contrib.contenttypes",
         "mentions",
         "sample_app",
+        # wagtail
+        "wagtail.users",
+        "wagtail",
+        "sample_app_wagtail",
     ],
     "DEFAULT_AUTO_FIELD": "django.db.models.BigAutoField",
     "DOMAIN_NAME": "null.null",
@@ -27,5 +31,5 @@ if __name__ == "__main__":
     settings.configure(**MIGRATION_SETTINGS)
     django.setup()
 
-    args = sys.argv + ["makemigrations", "sample_app"]
+    args = sys.argv + ["makemigrations", "sample_app", "sample_app_wagtail"]
     execute_from_command_line(args)

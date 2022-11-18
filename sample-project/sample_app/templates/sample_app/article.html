@@ -9,17 +9,17 @@
   <title>{{ DOMAIN_NAME }}</title>
 
   <style>
-    {% include "style.css" %}
+    {% include "sample_app/style.css" %}
   </style>
 </head>
 <body>
-  {% include "header.html" %}
+  {% include "sample_app/header.html" %}
 
   <main>
     <section>
       <article class="h-entry">
         <h2 class="p-name">{{ article.title }}</h2>
-        <p>Published by {% maybe_link_hcard  article.author %}.</p>
+        <p><span>Published by {% maybe_link_hcard  article.author %}.</span></p>
 
         <div class="e-content">
           {{ article.content|safe }}
@@ -27,7 +27,7 @@
       </article>
     </section>
 
-    {% include "mentions.html" with mentions=article.mentions %}
+    {% include "sample_app/mentions.html" with mentions=article.get_mentions %}
   </main>
 </body>
 </html>

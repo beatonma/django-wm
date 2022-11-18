@@ -48,16 +48,13 @@ def create_article(
     mention_type: str,
     content: Optional[str] = None,
 ) -> BasePost:
-    try:
-        from mentions.models.mixins import IncomingMentionType
+    from mentions.models.mixins import IncomingMentionType
 
-        _type = IncomingMentionType[mention_type].value if mention_type else ""
-    except ImportError:
-        _type = ""
+    _type = IncomingMentionType.get_microformat_from_name(mention_type)
 
     content = (
         content
-        or f"""<p>This text mentions <a href="{target_url}" class="{_type}">this page</a></p>"""
+        or f"""<p><span>This text mentions <a href="{target_url}" class="{_type}">this page</a></span></p>"""
     )
 
     model_class = Article if random.random() > 0.5 else Blog

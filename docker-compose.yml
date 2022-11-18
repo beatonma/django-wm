@@ -9,11 +9,13 @@ version: "3"
 # Instance #2:
 # - Accessible at http://localhost:8002
 # - Uses `cron` to handle webmentions, scheduled to run every minute.
+# - Also uses Wagtail.
 #
 # Each instance can send mentions to the other one.
 
 
 services:
+  # This version uses Celery
   with-celery-db:
     image: postgres
     env_file:
@@ -44,7 +46,6 @@ services:
       - "8001:80"
     command: ["bash", "/usr/src/app/docker/wait-for-it.sh", "with-celery-db:5432", "--", "bash", "/usr/src/app/docker/with-celery/entrypoint.sh"]
 
-
   with-celery-cron:
     build:
       dockerfile: ./sample-project/docker/with-celery/Dockerfile
@@ -58,31 +59,33 @@ services:
     command: crond -l 2 -f
 
 
-  no-celery-db:
-    image: postgres
-    env_file: ./sample-project/docker/no-celery/.env
 
-  no-celery-web.org:
+# This version uses Wagtail and does not use Celery
+  with-wagtail-db:
+    image: postgres
+    env_file: ./sample-project/docker/with-wagtail/.env
+
+  with-wagtail-web.org:
     build:
-      dockerfile: ./sample-project/docker/no-celery/Dockerfile
+      dockerfile: ./sample-project/docker/with-wagtail/Dockerfile
       context: .
     depends_on:
-      - no-celery-db
+      - with-wagtail-db
     env_file:
       - ./sample-project/docker/.env
-      - ./sample-project/docker/no-celery/.env
+      - ./sample-project/docker/with-wagtail/.env
     ports:
       - "8002:80"
-    command: ["bash", "/usr/src/app/docker/wait-for-it.sh", "no-celery-db:5432", "--", "bash", "/usr/src/app/docker/no-celery/entrypoint.sh"]
+    command: ["bash", "/usr/src/app/docker/wait-for-it.sh", "with-wagtail-db:5432", "--", "bash", "/usr/src/app/docker/with-wagtail/entrypoint.sh"]
 
-  no-celery-cron:
+  with-wagtail-cron:
     build:
-      dockerfile: ./sample-project/docker/no-celery/Dockerfile
+      dockerfile: ./sample-project/docker/with-wagtail/Dockerfile
       context: .
     depends_on:
-      - no-celery-db
-      - no-celery-web.org
+      - with-wagtail-db
+      - with-wagtail-web.org
     env_file:
       - ./sample-project/docker/.env
-      - ./sample-project/docker/no-celery/.env
+      - ./sample-project/docker/with-wagtail/.env
     command: crond -l 2 -f
