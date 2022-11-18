@@ -24,15 +24,15 @@ class MentionableMixin(models.Model):
 
     allow_outgoing_webmentions = models.BooleanField(default=_outgoing_default)
 
-    def mentions(self) -> List["QuotableMixin"]:
+    def get_mentions(self) -> List[QuotableMixin]:
         from mentions.resolution import get_mentions_for_object
 
         return get_mentions_for_object(self)
 
-    def mentions_json(self):
+    def get_mentions_json(self) -> List[dict]:
         from mentions.serialize import serialize_mentions
 
-        return serialize_mentions(self.mentions())
+        return serialize_mentions(self.get_mentions())
 
     def get_absolute_url(self):
         raise ImplementationRequired(
@@ -61,14 +61,6 @@ class MentionableMixin(models.Model):
         )
 
         return self.all_text()
-
-    def all_text(self) -> str:
-        """Deprecated in 4.0: Replaced by `get_content_html()`.
-
-        Only the name has changed - purpose and signature are the same."""
-        raise ImplementationRequired(
-            f"{self.__class__.__name__} does not implement get_content_html()"
-        )
 
     @classmethod
     def resolve_from_url_kwargs(
@@ -115,3 +107,28 @@ class MentionableMixin(models.Model):
             handle_outgoing_webmentions(
                 self.get_absolute_url(), self.get_content_html()
             )
+
+    # Deprecated methods below this point
+    def mentions(self) -> List[QuotableMixin]:
+        """Deprecated in 4.0: Replaced by `get_mentions()`."""
+        log.warning(
+            "Method `MentionableMixin.mentions()` is deprecated, replaced by "
+            "`MentionableMixin.get_mentions()`."
+        )
+        return self.get_mentions()
+
+    def mentions_json(self):
+        """Deprecated in 4.0: Replaced by `get_mentions_json()`."""
+        log.warning(
+            "Method `MentionableMixin.mentions_json()` is deprecated, replaced by "
+            "`MentionableMixin.get_mentions_json()`."
+        )
+        return self.get_mentions_json()
+
+    def all_text(self) -> str:
+        """Deprecated in 4.0: Replaced by `get_content_html()`.
+
+        Only the name has changed - purpose and signature are the same."""
+        raise ImplementationRequired(
+            f"{self.__class__.__name__} does not implement get_content_html()"
+        )
