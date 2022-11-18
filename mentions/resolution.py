@@ -8,7 +8,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404, HttpRequest
 from django.urls import Resolver404, ResolverMatch, get_resolver
 
-from mentions import contract
+from mentions import config, contract
 from mentions.exceptions import (
     BadUrlConfig,
     NoModelForUrlPath,
@@ -127,10 +127,13 @@ def get_model_for_url(url: str) -> MentionableMixin:
 def get_mentions_for_url(url: str) -> List[QuotableMixin]:
     try:
         obj = get_model_for_url(url)
-        return obj.mentions()
+        return obj.get_mentions()
 
     except NoModelForUrlPath:
         pass
+
+    if "://" not in url:
+        url = config.build_url(url)
 
     return get_public_mentions(target_url=url)
 
