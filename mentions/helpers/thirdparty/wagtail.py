@@ -1,5 +1,4 @@
 import logging
-from functools import partial
 from typing import Callable, Optional, Type
 
 from django.urls import ResolverMatch
@@ -17,7 +16,9 @@ __all__ = [
 ]
 
 try:
-    from wagtail.contrib.routable_page.models import RoutablePageMixin, path, re_path
+    from wagtail.contrib.routable_page.models import RoutablePageMixin
+    from wagtail.contrib.routable_page.models import path as wagtail_path
+    from wagtail.contrib.routable_page.models import re_path as wagtail_re_path
 except ImportError:
 
     def config_error(name: str, *args, **kwargs):
@@ -27,14 +28,16 @@ except ImportError:
             f"helper instead?"
         )
 
-    path = lambda *args, **kwargs: config_error(
+    wagtail_path = lambda *args, **kwargs: config_error(
         "mentions_wagtail_path", *args, **kwargs
     )
-    re_path = lambda *args, **kwargs: config_error(
+    wagtail_re_path = lambda *args, **kwargs: config_error(
         "mentions_wagtail_re_path", *args, **kwargs
     )
 
 from django.apps import apps
+from django.urls import path as django_path
+from django.urls import re_path as django_re_path
 
 from mentions import contract, options
 from mentions.helpers.urls import get_dotted_model_name, get_lookup_from_urlpattern
@@ -93,22 +96,72 @@ def _path(
     return decorator
 
 
-from django.urls import path as django_path
-from django.urls import re_path as django_re_path
+def mentions_wagtail_path(
+    pattern: str,
+    model_class: Type[MentionableImpl],
+    model_field_mapping: Optional[ModelFieldMapping] = None,
+    name: str = None,
+):
+    """Drop-in replacement for the Wagtail routable @path decorator.
 
-mentions_wagtail_path = partial(
-    _path,
-    path,
-    django_path,
-)
-mentions_wagtail_re_path = partial(
-    _path,
-    re_path,
-    django_re_path,
-)
+    Attach model lookup metadata directly to the view func, allowing us to
+    resolve the correct Page instance.
+
+    Args:
+        pattern: A URL pattern [passed to view func].
+        model_class: The type of MentionableMixin model that this path represents.
+        model_field_mapping: A mapping of captured kwarg names to model field names, if they differ.
+            This may be a {captured_name: model_field_name} dictionary, or
+            a list of (captured_name, model_field_name) tuples.
+        name: Used for reverse lookup [passed to view func]
+    """
+    return _path(
+        wagtail_path,
+        django_path,
+        pattern,
+        model_class,
+        model_field_mapping,
+        name,
+    )
+
+
+def mentions_wagtail_re_path(
+    pattern: str,
+    model_class: Type[MentionableImpl],
+    model_field_mapping: Optional[ModelFieldMapping] = None,
+    name: str = None,
+):
+    """Drop-in replacement for the Wagtail routable @re_path decorator.
+
+    Attach model lookup metadata directly to the view func, allowing us to
+    resolve the correct Page instance.
+
+    Args:
+        pattern: A regex URL pattern [passed to view func].
+        model_class: The type of MentionableMixin model that this path represents.
+        model_field_mapping: A mapping of captured kwarg names to model field names, if they differ.
+            This may be a {captured_name: model_field_name} dictionary, or
+            a list of (captured_name, model_field_name) tuples.
+        name: Used for reverse lookup [passed to view func]
+    """
+    return _path(
+        wagtail_re_path,
+        django_re_path,
+        pattern,
+        model_class,
+        model_field_mapping,
+        name,
+    )
 
 
 def get_model_for_url_by_wagtail(match: ResolverMatch) -> MentionableMixin:
+    """Try to resolve a Wagtail Page instance, if Wagtail is installed.
+
+    If using RoutablePageMixin you must replace the Wagtail @path/@re_path
+    decorators with @mentions_wagtail_path/@mentions_wagtail_re_path to add
+    the metadata required to resolve the correct target Page.
+    """
+
     if not is_wagtail_installed():
         raise OptionalDependency("wagtail")
 
