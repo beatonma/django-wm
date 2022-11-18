@@ -7,14 +7,17 @@ from mentions import resolution
 from mentions.exceptions import TargetDoesNotExist
 from tests.test_wagtail import WagtailTestCase
 from tests.util import testfunc
-from wagtail_test_app.models import IndexPage, MentionablePage
 
 try:
     from wagtail import urls as wagtail_urls
     from wagtail.models import Page, Site
+
+    from wagtail_test_app.models import IndexPage, MentionablePage
 except ImportError:
     Page = None
     Site = None
+    IndexPage = None
+    MentionablePage = None
     wagtail_urls = {"urlpatterns": []}
 
 from tests.config.test_urls import urlpatterns as base_urlpatterns
