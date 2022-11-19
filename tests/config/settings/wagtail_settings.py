@@ -1,7 +1,7 @@
 INSTALLED_APPS = [
     "wagtail.users",
     "wagtail",
-    "wagtail_test_app",
+    "tests.test_wagtail_app",
     "django.contrib.messages",
     "django.contrib.staticfiles",
 ]
