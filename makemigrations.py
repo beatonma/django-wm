@@ -1,10 +1,16 @@
 """Generate migrations for mentions app without installing it in a project."""
 
 import sys
+from importlib.util import find_spec
 
 import django
 from django.conf import settings
 from django.core.management import execute_from_command_line
+
+extra_apps = []
+is_wagtail_installed = find_spec("wagtail") is not None
+if is_wagtail_installed:
+    extra_apps += ["wagtail"]
 
 MIGRATION_SETTINGS = {
     "DEBUG": False,
@@ -13,6 +19,7 @@ MIGRATION_SETTINGS = {
         "django.contrib.auth",
         "django.contrib.contenttypes",
         "mentions",
+        *extra_apps,
     ],
     "DEFAULT_AUTO_FIELD": "django.db.models.BigAutoField",
 }
