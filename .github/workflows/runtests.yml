@@ -1,6 +1,28 @@
 name: Tests
 on: [push, pull_request]
 jobs:
+  runtests_nocelery:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.7', '3.10']
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+
+    - name: Run tests
+      run: |
+        python runtests.py
+
   runtests_withcelery:
     runs-on: ubuntu-latest
     strategy:
@@ -24,7 +46,7 @@ jobs:
       run: |
         python runtests.py
 
-  runtests_nocelery:
+  runtests_withwagtail:
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -41,6 +63,7 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
+        pip install wagtail
 
     - name: Run tests
       run: |
