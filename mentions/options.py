@@ -40,6 +40,7 @@ __all__ = [
 
 
 NAMESPACE = "WEBMENTIONS"
+SETTING_ALLOW_OUTGOING_DEFAULT = f"{NAMESPACE}_ALLOW_OUTGOING_DEFAULT"
 SETTING_ALLOW_SELF_MENTIONS = f"{NAMESPACE}_ALLOW_SELF_MENTIONS"
 SETTING_AUTO_APPROVE = f"{NAMESPACE}_AUTO_APPROVE"
 SETTING_DASHBOARD_PUBLIC = f"{NAMESPACE}_DASHBOARD_PUBLIC"
@@ -57,6 +58,7 @@ no need to lock it to our namespace."""
 SETTING_DOMAIN_NAME = "DOMAIN_NAME"
 
 DEFAULTS = {
+    SETTING_ALLOW_OUTGOING_DEFAULT: False,
     SETTING_ALLOW_SELF_MENTIONS: True,
     SETTING_AUTO_APPROVE: False,
     SETTING_DASHBOARD_PUBLIC: False,
@@ -86,6 +88,14 @@ def _get_attr(key: str):
 
 def get_config() -> dict:
     return {key: _get_attr(key) for key in DEFAULTS.keys()}
+
+
+def allow_outgoing_default() -> bool:
+    """Return settings.WEBMENTIONS_ALLOW_OUTGOING_DEFAULT.
+
+    Sets the default value for `MentionableMixin.allow_outgoing_webmentions`."""
+
+    return _get_attr(SETTING_ALLOW_OUTGOING_DEFAULT)
 
 
 def allow_self_mentions() -> bool:

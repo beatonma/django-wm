@@ -14,11 +14,15 @@ __all__ = [
 log = logging.getLogger(__name__)
 
 
+def _outgoing_default():
+    return options.allow_outgoing_default()
+
+
 class MentionableMixin(models.Model):
     class Meta:
         abstract = True
 
-    allow_outgoing_webmentions = models.BooleanField(default=False)
+    allow_outgoing_webmentions = models.BooleanField(default=_outgoing_default)
 
     def mentions(self) -> List["QuotableMixin"]:
         from mentions.resolution import get_mentions_for_object
