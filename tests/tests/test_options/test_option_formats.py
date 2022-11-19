@@ -16,6 +16,7 @@ class FlatSettingsTests(OptionsTestCase):
         settings.WEBMENTIONS_INCOMING_TARGET_MODEL_REQUIRED = True
         settings.WEBMENTIONS_ALLOW_SELF_MENTIONS = False
         settings.WEBMENTIONS_DEFAULT_URL_PARAMETER_MAPPING = {"foo": "bar"}
+        settings.WEBMENTIONS_ALLOW_OUTGOING_DEFAULT = False
 
         self.assertFalse(options.use_celery())
         self.assertTrue(options.auto_approve())
@@ -26,6 +27,7 @@ class FlatSettingsTests(OptionsTestCase):
         self.assertTrue(options.dashboard_public())
         self.assertTrue(options.target_requires_model())
         self.assertFalse(options.allow_self_mentions())
+        self.assertFalse(options.allow_outgoing_default())
         self.assertDictEqual(options.default_url_parameter_mapping(), dict(foo="bar"))
 
     def test_namespaced_settings(self):
@@ -42,6 +44,7 @@ class FlatSettingsTests(OptionsTestCase):
             "INCOMING_TARGET_MODEL_REQUIRED": False,
             "ALLOW_SELF_MENTIONS": True,
             "DEFAULT_URL_PARAMETER_MAPPING": {"bar": "foo"},
+            "ALLOW_OUTGOING_DEFAULT": True,
         }
 
         self.assertTrue(options.use_celery())
@@ -53,4 +56,5 @@ class FlatSettingsTests(OptionsTestCase):
         self.assertFalse(options.dashboard_public())
         self.assertFalse(options.target_requires_model())
         self.assertTrue(options.allow_self_mentions())
+        self.assertTrue(options.allow_outgoing_default())
         self.assertDictEqual(options.default_url_parameter_mapping(), dict(bar="foo"))
