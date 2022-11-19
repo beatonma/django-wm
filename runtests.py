@@ -1,5 +1,4 @@
 #!env/bin/python
-import logging
 import os
 import sys
 
@@ -7,9 +6,18 @@ import django
 from django.conf import settings
 from django.test.utils import get_runner
 
-log = logging.getLogger(__name__)
-
 SETTINGS_PATH = "tests.config.settings"
+
+
+def _get_sys_args() -> list:
+    args_ = sys.argv
+    position = None
+    for index, x in enumerate(args_):
+        if x.endswith("runtests.py"):
+            position = index + 1
+            break
+
+    return args_[position:]
 
 
 if __name__ == "__main__":
@@ -19,9 +27,9 @@ if __name__ == "__main__":
 
     test_runner = get_runner(settings)()
 
-    # Detailed report fr any tests that are non-passing (failed, skipped...)
+    # Detailed report for any tests that are non-passing (failed, skipped...)
     default_args = "-r a".split(" ")
-    args = sys.argv or default_args
+    args = _get_sys_args() or default_args
     failures = test_runner.run_tests(["tests", *args])
 
     sys.exit(bool(failures))
