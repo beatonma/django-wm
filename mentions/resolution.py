@@ -73,8 +73,8 @@ def get_model_for_url(url: str) -> MentionableMixin:
 
     Raises:
         TargetDoesNotExist: Unable to resolve `url_path` to a `ResolverMatch`,
-            or a model instance cannot be resolved from ResolverMatch kwargs.
-        NoModelForUrlPath: The ResolverMatch does not have `model_name` kwarg.
+            or it tries to resolve to a model instance that does not exist.
+        NoModelForUrlPath: The ResolverMatch does not resolve to a model instance.
     """
     url_path = get_urlpath(url)
     match = get_urlpattern_match(url_path)
