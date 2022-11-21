@@ -13,7 +13,7 @@ class HelperPathTests(SimpleTestCase):
             "with_helper_config/<int:arbitrary_id>",
             viewfunc,
             model_class=MentionableTestModel,
-            model_field_mapping={
+            model_filter_map={
                 "arbitrary_id": "id",
             },
             kwargs={
@@ -27,14 +27,14 @@ class HelperPathTests(SimpleTestCase):
         )
 
         self.assertEqual(
-            path_def.default_args["model_field_mapping"]["arbitrary_id"],
+            path_def.default_args["model_filter_map"]["arbitrary_id"],
             "id",
         )
 
         self.assertEqual(path_def.default_args["something-else"], 3)
 
     def test_mentions_path_with_default_mapping(self):
-        """If `model_field_mapping` is not provided, assume names are same for both view and model."""
+        """If `model_filter_map` is not provided, assume names are same for both view and model."""
         path_def = mentions_path(
             "with_helper_config/<int:id>",
             viewfunc,
@@ -49,7 +49,7 @@ class HelperPathTests(SimpleTestCase):
             kwargs["model_name"],
             "test_app.MentionableTestModel",
         )
-        self.assertEqual(kwargs["model_field_mapping"], {"id"})
+        self.assertEqual(kwargs["model_filter_map"], {"id"})
         self.assertEqual(kwargs["something-else"], 4)
 
 
@@ -59,7 +59,7 @@ class HelperRegexPathTests(SimpleTestCase):
             r"with_helper_config/(?P<regex_id>[\w-]+)/",
             viewfunc,
             model_class=MentionableTestModel,
-            model_field_mapping={
+            model_filter_map={
                 "regex_id": "id",
             },
             kwargs={"another-thing": "blah"},
@@ -72,18 +72,18 @@ class HelperRegexPathTests(SimpleTestCase):
         )
 
         self.assertEqual(
-            kwargs["model_field_mapping"]["regex_id"],
+            kwargs["model_filter_map"]["regex_id"],
             "id",
         )
 
         self.assertEqual(kwargs["another-thing"], "blah")
 
     def test_mentions_re_path_with_default_mapping(self):
-        """If `model_field_mapping` is not provided, assume names are same for both view and model."""
+        """If `model_filter_map` is not provided, assume names are same for both view and model."""
         path_def = mentions_path(
             r"with_helper_config/(?P<id>[\d]+)",
             viewfunc,
             model_class=MentionableTestModel,
         )
 
-        self.assertEqual(path_def.default_args["model_field_mapping"], {"id"})
+        self.assertEqual(path_def.default_args["model_filter_map"], {"id"})

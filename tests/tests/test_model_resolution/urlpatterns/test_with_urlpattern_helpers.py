@@ -24,13 +24,13 @@ urlpatterns = [
         "with_helper_config/<int:arbitrary_name>/",
         viewfunc,
         model_class=MentionableTestModel,
-        model_field_mapping={"arbitrary_name": "id"},
+        model_filter_map={"arbitrary_name": "id"},
     ),
     mentions_path(
         "blogs/<slug:blog_slug>/<int:year>/<int:month>/<int:day>/<slug:post_slug>/",
         viewfunc,
         model_class=MentionableTestBlogPost,
-        model_field_mapping={
+        model_filter_map={
             "blog_slug": "blog__slug__exact",
             "year": "timestamp__year",
             "month": "timestamp__month",
@@ -42,12 +42,12 @@ urlpatterns = [
         "with_sequence_field_mapping/<int:mapping_as_sequence>",
         viewfunc,
         model_class=MentionableTestModel,
-        model_field_mapping=[
+        model_filter_map=[
             ("mapping_as_sequence", "id"),
         ],
     ),
     mentions_path(
-        "model_field_mapping_omitted/<int:id>",
+        "model_filter_map_omitted/<int:id>",
         viewfunc,
         model_class=MentionableTestModel,
     ),
@@ -55,7 +55,7 @@ urlpatterns = [
         r"regexpath/[0-9]+/(?P<regex_name>[\w-]+)/",
         viewfunc,
         model_class=MentionableTestModel,
-        model_field_mapping={
+        model_filter_map={
             "regex_name": "name",
         },
     ),
@@ -63,7 +63,7 @@ urlpatterns = [
         r"unnamed_re_path/([\w-]+)/[0-9]+/",
         viewfunc,
         model_class=MentionableTestModel,
-        model_fields=["name"],
+        model_filters=["name"],
     ),
     *core_urlpatterns,
 ]
@@ -125,7 +125,7 @@ class UrlpatternsHelperTests(WebmentionTestCase):
         obj = MentionableTestModel.objects.create(id=9861)
 
         retrieved_object = resolution.get_model_for_url(
-            "/model_field_mapping_omitted/9861"
+            "/model_filter_map_omitted/9861"
         )
         self.assertEqual(obj, retrieved_object)
 

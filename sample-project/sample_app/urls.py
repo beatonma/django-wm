@@ -15,7 +15,7 @@ urlpatterns = [
         "blog/<int:blog_id>/",
         BlogView.as_view(),
         model_class=Blog,
-        model_field_mapping={
+        model_filter_map={
             "blog_id": "id",
         },
         name="blog",

@@ -52,8 +52,8 @@ def _path(
     django_path_func: Callable,
     pattern: str,
     model_class: Type[MentionableImpl],
-    model_fields: Optional[Sequence[str]],
-    model_field_mapping: Optional[ModelFilterMap],
+    model_filters: Optional[Sequence[str]],
+    model_filter_map: Optional[ModelFilterMap],
     name: Optional[str],
 ):
     """Drop-in replacement for the Wagtail routable @path/@re_path decorators.
@@ -66,9 +66,9 @@ def _path(
         django_path_func: django.urls path, re_path
         pattern: A URL pattern [passed to view func].
         model_class: The type of MentionableMixin model that this path represents.
-        model_fields: (re_path only) An ordered list of model field names which
+        model_filters: (re_path only) An ordered list of model field names which
             are represented by unnamed groups in the regex pattern.
-        model_field_mapping: A mapping of captured kwarg names to model field names, if they differ.
+        model_filter_map: A mapping of captured kwarg names to model field names, if they differ.
             This may be a {captured_name: model_field_name} dictionary, or
             a list of (captured_name, model_field_name) tuples.
         name: Used for reverse lookup [passed to view func]
@@ -81,13 +81,13 @@ def _path(
         )
 
         lookup = (
-            {contract.URLPATTERNS_MODEL_FILTER_MAP: model_field_mapping}
-            if model_field_mapping
+            {contract.URLPATTERNS_MODEL_FILTER_MAP: model_filter_map}
+            if model_filter_map
             else get_lookup_from_urlpattern(urlpattern)
         )
 
-        if model_fields:
-            lookup[contract.URLPATTERNS_MODEL_FIELDS] = model_fields
+        if model_filters:
+            lookup[contract.URLPATTERNS_MODEL_FILTERS] = model_filters
 
         setattr(
             view_func,
@@ -108,7 +108,7 @@ def _path(
 def mentions_wagtail_path(
     pattern: str,
     model_class: Type[MentionableImpl],
-    model_field_mapping: Optional[ModelFilterMap] = None,
+    model_filter_map: Optional[ModelFilterMap] = None,
     name: str = None,
 ):
     """Drop-in replacement for the Wagtail routable @path decorator.
@@ -119,7 +119,7 @@ def mentions_wagtail_path(
     Args:
         pattern: A URL pattern [passed to view func].
         model_class: The type of MentionableMixin model that this path represents.
-        model_field_mapping: A mapping of captured kwarg names to model field names, if they differ.
+        model_filter_map: A mapping of captured kwarg names to model field names, if they differ.
             This may be a {captured_name: model_field_name} dictionary, or
             a list of (captured_name, model_field_name) tuples.
         name: Used for reverse lookup [passed to view func]
@@ -130,7 +130,7 @@ def mentions_wagtail_path(
         pattern,
         model_class,
         None,
-        model_field_mapping,
+        model_filter_map,
         name,
     )
 
@@ -138,8 +138,8 @@ def mentions_wagtail_path(
 def mentions_wagtail_re_path(
     pattern: str,
     model_class: Type[MentionableImpl],
-    model_fields: Optional[Sequence[ModelFilter]] = None,
-    model_field_mapping: Optional[ModelFilterMap] = None,
+    model_filters: Optional[Sequence[ModelFilter]] = None,
+    model_filter_map: Optional[ModelFilterMap] = None,
     name: str = None,
 ):
     """Drop-in replacement for the Wagtail routable @re_path decorator.
@@ -153,9 +153,9 @@ def mentions_wagtail_re_path(
     Args:
         pattern: A regex URL pattern [passed to view func].
         model_class: The type of MentionableMixin model that this path represents.
-        model_fields: An ordered list of model field names which are represented
+        model_filters: An ordered list of model field names which are represented
             by unnamed groups in the regex pattern.
-        model_field_mapping: A mapping of captured group names to model field
+        model_filter_map: A mapping of captured group names to model field
             names, if they differ. This may be a {captured_name: model_field_name}
             dictionary, or a sequence of (captured_name, model_field_name) tuples.
         name: Used for reverse lookup [passed to view func]
@@ -165,8 +165,8 @@ def mentions_wagtail_re_path(
         django_re_path,
         pattern,
         model_class,
-        model_fields,
-        model_field_mapping,
+        model_filters,
+        model_filter_map,
         name,
     )
 

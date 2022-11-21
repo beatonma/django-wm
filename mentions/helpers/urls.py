@@ -24,8 +24,8 @@ def _path(
     route: str,
     view: Callable,
     model_class: Type[MentionableImpl],
-    model_fields: Optional[Sequence[ModelFilter]],
-    model_field_mapping: Optional[ModelFilterMap],
+    model_filters: Optional[Sequence[ModelFilter]],
+    model_filter_map: Optional[ModelFilterMap],
     kwargs: Optional[Dict],
     name: Optional[str],
 ) -> URLPattern:
@@ -41,9 +41,9 @@ def _path(
         route: URL pattern [passed to func].
         view: A view function or the result of View.as_view() [passed to func].
         model_class: The type of MentionableMixin model that this path represents.
-        model_fields: (re_path only) An ordered list of model field names which
+        model_filters: (re_path only) An ordered list of model field names which
             are represented by unnamed groups in the regex pattern.
-        model_field_mapping: A mapping of captured kwarg names to model field names, if they differ.
+        model_filter_map: A mapping of captured kwarg names to model field names, if they differ.
             This may be a {captured_name: model_field_name} dictionary, or
             a list of (captured_name, model_field_name) tuples.
         kwargs: extras options for `view` [modified and passed to func]
@@ -58,14 +58,14 @@ def _path(
         view,
         kwargs=build_model_kwargs(
             model_class,
-            model_fields=model_fields,
-            model_field_mapping=model_field_mapping,
+            model_filters=model_filters,
+            model_filter_map=model_filter_map,
             kwargs=kwargs,
         ),
         name=name,
     )
 
-    if model_field_mapping is None:
+    if model_filter_map is None:
         # Use captured params for object resolution if no custom mapping provided.
         urlpattern.default_args.update(get_lookup_from_urlpattern(urlpattern))
 
@@ -76,7 +76,7 @@ def mentions_path(
     route: str,
     view: Callable,
     model_class: Type[MentionableImpl],
-    model_field_mapping: Optional[ModelFilterMap] = None,
+    model_filter_map: Optional[ModelFilterMap] = None,
     kwargs: Optional[Dict] = None,
     name: Optional[str] = None,
 ):
@@ -91,7 +91,7 @@ def mentions_path(
         route: URL pattern.
         view: A view function or the result of View.as_view() [passed to func].
         model_class: The type of MentionableMixin model that this path represents.
-        model_field_mapping: A mapping of captured kwarg names to model field names, if they differ.
+        model_filter_map: A mapping of captured kwarg names to model field names, if they differ.
             This may be a {captured_name: model_field_name} dictionary, or
             a list of (captured_name, model_field_name) tuples.
         kwargs: extras options for `view`.
@@ -106,8 +106,8 @@ def mentions_path(
         route=route,
         view=view,
         model_class=model_class,
-        model_fields=None,
-        model_field_mapping=model_field_mapping,
+        model_filters=None,
+        model_filter_map=model_filter_map,
         kwargs=kwargs,
         name=name,
     )
@@ -117,8 +117,8 @@ def mentions_re_path(
     route: str,
     view: Callable,
     model_class: Type[MentionableImpl],
-    model_fields: Optional[Sequence[ModelFilter]] = None,
-    model_field_mapping: Optional[ModelFilterMap] = None,
+    model_filters: Optional[Sequence[ModelFilter]] = None,
+    model_filter_map: Optional[ModelFilterMap] = None,
     kwargs: Optional[Dict] = None,
     name: Optional[str] = None,
 ):
@@ -133,9 +133,9 @@ def mentions_re_path(
         route: URL pattern.
         view: A view function or the result of View.as_view() [passed to func].
         model_class: The type of MentionableMixin model that this path represents.
-        model_fields: An ordered list of model field names which
+        model_filters: An ordered list of model field names which
             are represented by unnamed groups in the regex pattern.
-        model_field_mapping: A mapping of captured kwarg names to model field names, if they differ.
+        model_filter_map: A mapping of captured kwarg names to model field names, if they differ.
             This may be a {captured_name: model_field_name} dictionary, or
             a list of (captured_name, model_field_name) tuples.
         kwargs: extras options for `view`.
@@ -150,8 +150,8 @@ def mentions_re_path(
         route=route,
         view=view,
         model_class=model_class,
-        model_fields=model_fields,
-        model_field_mapping=model_field_mapping,
+        model_filters=model_filters,
+        model_filter_map=model_filter_map,
         kwargs=kwargs,
         name=name,
     )
@@ -166,17 +166,19 @@ def get_dotted_model_name(model_class: Type[MentionableImpl]) -> str:
 
 def build_model_kwargs(
     model_class: Type[MentionableImpl],
-    model_fields: Optional[Sequence[ModelFilter]],
-    model_field_mapping: Optional[Dict],
+    model_filters: Optional[Sequence[ModelFilter]],
+    model_filter_map: Optional[Dict],
     kwargs: Optional[Dict],
 ) -> Dict:
     """Merge kwargs"""
-    fields = {contract.URLPATTERNS_MODEL_FIELDS: model_fields} if model_fields else {}
+    fields = (
+        {contract.URLPATTERNS_MODEL_FILTERS: model_filters} if model_filters else {}
+    )
 
     return {
         **(kwargs or {}),
         contract.URLPATTERNS_MODEL_NAME: get_dotted_model_name(model_class),
-        contract.URLPATTERNS_MODEL_FILTER_MAP: model_field_mapping,
+        contract.URLPATTERNS_MODEL_FILTER_MAP: model_filter_map,
         **fields,
     }
 

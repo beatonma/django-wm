@@ -32,7 +32,7 @@ try:
         @mentions_wagtail_path(
             "<int:year>/<int:month>/<int:day>/",
             model_class=MentionablePage,
-            model_field_mapping={
+            model_filter_map={
                 "year": "date__year",
                 "month": "date__month",
                 "day": "date__day",
@@ -51,7 +51,7 @@ try:
         @mentions_wagtail_re_path(
             r"^named/(?P<year>\d{4})/(?P<month>\d{2})/(?P<slug>.+)/$",
             model_class=MentionablePage,
-            model_field_mapping={
+            model_filter_map={
                 "year": "date__year",
                 "month": "date__month",
                 "slug": "slug",
@@ -73,7 +73,7 @@ try:
         @mentions_wagtail_re_path(
             r"^unnamed/(\d{4})/(\d{2})/(.+)/$",
             model_class=MentionablePage,
-            model_fields=("date__year", "date__month", "slug"),
+            model_filters=("date__year", "date__month", "slug"),
         )
         def post_by_date_slug_regex_with_unnamed_groups(
             self, request, year, month, slug

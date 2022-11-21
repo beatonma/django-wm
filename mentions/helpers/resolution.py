@@ -31,23 +31,23 @@ def get_model_for_url_by_helper(
         KeyError: If the given urlpattern_kwargs does not contain helper values.
     """
 
-    model_field_mapping: ModelFilterMap = urlpattern_kwargs.pop(
+    model_filter_map: ModelFilterMap = urlpattern_kwargs.pop(
         contract.URLPATTERNS_MODEL_FILTER_MAP
     )
 
-    mapping = unpack_model_field_mapping(model_field_mapping)
+    mapping = unpack_model_filter_map(model_filter_map)
     query = {value: urlpattern_kwargs[key] for key, value in mapping}
 
-    model_fields: Sequence = urlpattern_kwargs.pop(
-        contract.URLPATTERNS_MODEL_FIELDS, []
+    model_filters: Sequence = urlpattern_kwargs.pop(
+        contract.URLPATTERNS_MODEL_FILTERS, []
     )
-    for key, value in zip(model_fields, urlpattern_args):
+    for key, value in zip(model_filters, urlpattern_args):
         query[key] = value
 
     return model_class.objects.get(**query)
 
 
-def unpack_model_field_mapping(mapping: ModelFilterMap) -> TypeSet:
+def unpack_model_filter_map(mapping: ModelFilterMap) -> TypeSet:
     if isinstance(mapping, dict):
         mapping = set(mapping.items())
 

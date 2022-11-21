@@ -100,7 +100,7 @@ class BlogIndexPage(RoutablePageMixin, Page):
     @mentions_wagtail_path(
         "<int:year>/<int:month>/<slug:slug>/",
         BlogPage,
-        model_field_mapping={
+        model_filter_map={
             "year": "date__year",
             "month": "date__month",
             "slug": "slug",
