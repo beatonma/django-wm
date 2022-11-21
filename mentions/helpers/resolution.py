@@ -1,11 +1,19 @@
-from typing import Dict, Optional, Set, Tuple, Type, Union
+from typing import Dict, List, Optional, Sequence, Set, Tuple, Type
 
 from mentions import contract
-from mentions.helpers.types import MentionableImpl, ModelFieldMapping
+from mentions.helpers.types import (
+    MentionableImpl,
+    ModelFilter,
+    ModelFilterMap,
+    UrlKwarg,
+)
+
+TypeSet = Set[Tuple[UrlKwarg, ModelFilter]]
 
 
 def get_model_for_url_by_helper(
     model_class: Type[MentionableImpl],
+    urlpattern_args: List,
     urlpattern_kwargs: Dict,
 ) -> Optional[MentionableImpl]:
     """Resolve a model instance from urlpattern kwargs, as configured by
@@ -13,6 +21,7 @@ def get_model_for_url_by_helper(
 
     Args:
         model_class: A class that inherits MentionableMixin.
+        urlpattern_args: args from a `ResolverMatch`.
         urlpattern_kwargs: kwargs from a `ResolverMatch`.
 
     Returns:
@@ -21,20 +30,33 @@ def get_model_for_url_by_helper(
     Raises:
         KeyError: If the given urlpattern_kwargs does not contain helper values.
     """
-    model_field_mapping: ModelFieldMapping = urlpattern_kwargs.pop(
-        contract.URLPATTERNS_MODEL_LOOKUP
+
+    model_field_mapping: ModelFilterMap = urlpattern_kwargs.pop(
+        contract.URLPATTERNS_MODEL_FILTER_MAP
     )
 
-    if isinstance(model_field_mapping, dict):
-        model_field_mapping = set(model_field_mapping.items())
-
-    def unpack_mapping(obj: Union[str, Tuple[str, str]]) -> Tuple[str, str]:
-        # If mapping is a string, replace it with an 'identity' tuple of it: key == value.
-        if isinstance(obj, str):
-            return obj, obj
-        return obj
-
-    mapping: Set[Tuple[str, str]] = {unpack_mapping(x) for x in model_field_mapping}
+    mapping = unpack_model_field_mapping(model_field_mapping)
     query = {value: urlpattern_kwargs[key] for key, value in mapping}
 
+    model_fields: Sequence = urlpattern_kwargs.pop(
+        contract.URLPATTERNS_MODEL_FIELDS, []
+    )
+    for key, value in zip(model_fields, urlpattern_args):
+        query[key] = value
+
     return model_class.objects.get(**query)
+
+
+def unpack_model_field_mapping(mapping: ModelFilterMap) -> TypeSet:
+    if isinstance(mapping, dict):
+        mapping = set(mapping.items())
+
+    def unpack(item):
+        # If mapping is a string, replace it with an 'identity' tuple of it: key == value.
+        if isinstance(item, str):
+            return item, item
+        return item
+
+    mapping = {unpack(x) for x in mapping}
+
+    return mapping

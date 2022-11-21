@@ -11,6 +11,7 @@ from tests.test_app.models import (
     MentionableTestModel,
     SampleBlog,
 )
+from tests.tests.util import testfunc
 from tests.tests.util.testcase import WebmentionTestCase
 
 
@@ -58,6 +59,12 @@ urlpatterns = [
             "regex_name": "name",
         },
     ),
+    mentions_re_path(
+        r"unnamed_re_path/([\w-]+)/[0-9]+/",
+        viewfunc,
+        model_class=MentionableTestModel,
+        model_fields=["name"],
+    ),
     *core_urlpatterns,
 ]
 
@@ -65,7 +72,7 @@ urlpatterns = [
 @override_settings(ROOT_URLCONF=__name__)
 class UrlpatternsHelperTests(WebmentionTestCase):
     def test_mentions_path_resolves_model(self):
-        obj = MentionableTestModel.objects.create()
+        obj = testfunc.create_mentionable_object()
 
         retrieved_obj = get_model_for_url(
             config.build_url(f"/with_helper_config/{obj.id}/")
@@ -123,9 +130,7 @@ class UrlpatternsHelperTests(WebmentionTestCase):
         self.assertEqual(obj, retrieved_object)
 
     def test_mentions_re_path(self):
-        MentionableTestModel.objects.create()
         obj = MentionableTestModel.objects.create(name="regex-model")
-        MentionableTestModel.objects.create()
 
         retrieved_object = resolution.get_model_for_url("/regexpath/1243/regex-model/")
 
@@ -133,3 +138,15 @@ class UrlpatternsHelperTests(WebmentionTestCase):
 
         with self.assertRaises(TargetDoesNotExist):
             resolution.get_model_for_url("/regexpath/abc/regex-model/")
+
+    def test_mentions_re_path_with_unnamed_groups(self):
+        obj = MentionableTestModel.objects.create(name="regex-model")
+
+        retrieved_object = resolution.get_model_for_url(
+            "/unnamed_re_path/regex-model/1243/"
+        )
+
+        self.assertEqual(obj, retrieved_object)
+
+        with self.assertRaises(TargetDoesNotExist):
+            resolution.get_model_for_url("/unnamed_re_path/regex-model/abc/")

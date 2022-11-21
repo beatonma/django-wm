@@ -12,8 +12,7 @@ try:
     from wagtail import urls as wagtail_urls
     from wagtail.models import Page, Site
 
-    from tests.test_wagtail_app.models import (IndexPage, MentionablePage,
-                                               SimplePage)
+    from tests.test_wagtail_app.models import IndexPage, MentionablePage, SimplePage
 except ImportError:
     Page = None
     Site = None
@@ -61,8 +60,16 @@ class WagtailTests(WagtailTestCase):
         result = resolution.get_model_for_url(url)
         self.assertEqual(self.target, result)
 
-    def test_page_lookup_by_regex_altpath(self):
-        url = "/wagtail/pages/2022/11/such-content/"
+    def test_page_lookup_by_regex_altpath_with_named_groups(self):
+        url = "/wagtail/pages/named/2022/11/such-content/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        result = resolution.get_model_for_url(url)
+        self.assertEqual(self.target, result)
+
+    def test_page_lookup_by_regex_altpath_with_unnamed_groups(self):
+        url = "/wagtail/pages/unnamed/2022/11/such-content/"
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
 

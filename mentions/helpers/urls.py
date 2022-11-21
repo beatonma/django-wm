@@ -1,10 +1,15 @@
-from functools import partial
-from typing import Callable, Dict, Optional, Set, Type
+from typing import Callable, Dict, Optional, Sequence, Set, Type
 
 from django.urls import URLPattern, path, re_path
 
 from mentions import contract
-from mentions.helpers.types import MentionableImpl, ModelFieldMapping
+from mentions.helpers.types import (
+    MentionableImpl,
+    ModelFilter,
+    ModelFilterMap,
+    SharedFieldName,
+    UrlKwarg,
+)
 
 __all__ = [
     "mentions_path",
@@ -15,13 +20,14 @@ __all__ = [
 
 
 def _path(
-    func: Callable,  # Either `django.urls.path` or `django.urls.re_path`.
+    func: Callable,
     route: str,
     view: Callable,
     model_class: Type[MentionableImpl],
-    model_field_mapping: Optional[ModelFieldMapping] = None,
-    kwargs: Optional[Dict] = None,
-    name: Optional[str] = None,
+    model_fields: Optional[Sequence[ModelFilter]],
+    model_field_mapping: Optional[ModelFilterMap],
+    kwargs: Optional[Dict],
+    name: Optional[str],
 ) -> URLPattern:
     """Proxy for `django.urls.path` and `django.urls.re_path` which enables simpler model resolution.
 
@@ -31,9 +37,12 @@ def _path(
     Removes the need to implement `resolve_from_url_kwargs` on `model_class`.
 
     Args:
-        route: A URL pattern [passed to func].
+        func: Either `django.urls.path` or `django.urls.re_path`.
+        route: URL pattern [passed to func].
         view: A view function or the result of View.as_view() [passed to func].
         model_class: The type of MentionableMixin model that this path represents.
+        model_fields: (re_path only) An ordered list of model field names which
+            are represented by unnamed groups in the regex pattern.
         model_field_mapping: A mapping of captured kwarg names to model field names, if they differ.
             This may be a {captured_name: model_field_name} dictionary, or
             a list of (captured_name, model_field_name) tuples.
@@ -47,8 +56,9 @@ def _path(
     urlpattern: URLPattern = func(
         route,
         view,
-        kwargs=model_kwargs(
+        kwargs=build_model_kwargs(
             model_class,
+            model_fields=model_fields,
             model_field_mapping=model_field_mapping,
             kwargs=kwargs,
         ),
@@ -62,8 +72,89 @@ def _path(
     return urlpattern
 
 
-mentions_path = partial(_path, path)
-mentions_re_path = partial(_path, re_path)
+def mentions_path(
+    route: str,
+    view: Callable,
+    model_class: Type[MentionableImpl],
+    model_field_mapping: Optional[ModelFilterMap] = None,
+    kwargs: Optional[Dict] = None,
+    name: Optional[str] = None,
+):
+    """Proxy for `django.urls.path` to enable MentionableMixin model resolution.
+
+    This will add extra entries to given `kwargs` which enables model resolution
+    via `get_model_for_url_by_helper`.
+
+    Removes the need to implement `resolve_from_url_kwargs` on `model_class`.
+
+    Args:
+        route: URL pattern.
+        view: A view function or the result of View.as_view() [passed to func].
+        model_class: The type of MentionableMixin model that this path represents.
+        model_field_mapping: A mapping of captured kwarg names to model field names, if they differ.
+            This may be a {captured_name: model_field_name} dictionary, or
+            a list of (captured_name, model_field_name) tuples.
+        kwargs: extras options for `view`.
+        name: Used for reverse lookup.
+
+    Returns:
+        A URLPattern with extra kwargs that enable resolving an instance of
+        `model_class` from arguments captured from `route`.
+    """
+    return _path(
+        path,
+        route=route,
+        view=view,
+        model_class=model_class,
+        model_fields=None,
+        model_field_mapping=model_field_mapping,
+        kwargs=kwargs,
+        name=name,
+    )
+
+
+def mentions_re_path(
+    route: str,
+    view: Callable,
+    model_class: Type[MentionableImpl],
+    model_fields: Optional[Sequence[ModelFilter]] = None,
+    model_field_mapping: Optional[ModelFilterMap] = None,
+    kwargs: Optional[Dict] = None,
+    name: Optional[str] = None,
+):
+    """Proxy for `django.urls.re_path` to enable MentionableMixin model resolution.
+
+    This will add extra entries to given `kwargs` which enables model resolution
+    via `get_model_for_url_by_helper`.
+
+    Removes the need to implement `resolve_from_url_kwargs` on `model_class`.
+
+    Args:
+        route: URL pattern.
+        view: A view function or the result of View.as_view() [passed to func].
+        model_class: The type of MentionableMixin model that this path represents.
+        model_fields: An ordered list of model field names which
+            are represented by unnamed groups in the regex pattern.
+        model_field_mapping: A mapping of captured kwarg names to model field names, if they differ.
+            This may be a {captured_name: model_field_name} dictionary, or
+            a list of (captured_name, model_field_name) tuples.
+        kwargs: extras options for `view`.
+        name: Used for reverse lookup.
+
+    Returns:
+        A URLPattern with extra kwargs that enable resolving an instance of
+        `model_class` from arguments captured from `route`.
+    """
+    return _path(
+        re_path,
+        route=route,
+        view=view,
+        model_class=model_class,
+        model_fields=model_fields,
+        model_field_mapping=model_field_mapping,
+        kwargs=kwargs,
+        name=name,
+    )
 
 
 def get_dotted_model_name(model_class: Type[MentionableImpl]) -> str:
@@ -73,20 +164,26 @@ def get_dotted_model_name(model_class: Type[MentionableImpl]) -> str:
     return f"{model_app}.{model_name}"
 
 
-def model_kwargs(
+def build_model_kwargs(
     model_class: Type[MentionableImpl],
+    model_fields: Optional[Sequence[ModelFilter]],
     model_field_mapping: Optional[Dict],
     kwargs: Optional[Dict],
 ) -> Dict:
     """Merge kwargs"""
+    fields = {contract.URLPATTERNS_MODEL_FIELDS: model_fields} if model_fields else {}
+
     return {
         **(kwargs or {}),
         contract.URLPATTERNS_MODEL_NAME: get_dotted_model_name(model_class),
-        contract.URLPATTERNS_MODEL_LOOKUP: model_field_mapping,
+        contract.URLPATTERNS_MODEL_FILTER_MAP: model_field_mapping,
+        **fields,
     }
 
 
-def get_lookup_from_urlpattern(urlpattern: URLPattern) -> Dict[str, Set[str]]:
+def get_lookup_from_urlpattern(
+    urlpattern: URLPattern,
+) -> Dict[UrlKwarg, Set[SharedFieldName]]:
     """Create model_field_lookup from captured parameters."""
     default_mapping = urlpattern.pattern.converters.keys()
-    return {contract.URLPATTERNS_MODEL_LOOKUP: set(default_mapping)}
+    return {contract.URLPATTERNS_MODEL_FILTER_MAP: set(default_mapping)}

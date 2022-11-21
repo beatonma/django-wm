@@ -78,6 +78,7 @@ def get_model_for_url(url: str) -> MentionableMixin:
     """
     url_path = get_urlpath(url)
     match = get_urlpattern_match(url_path)
+    urlpattern_args = [*match.args]
     urlpattern_kwargs = {**match.kwargs}
 
     try:
@@ -105,7 +106,11 @@ def get_model_for_url(url: str) -> MentionableMixin:
         )
 
     try:
-        return get_model_for_url_by_helper(model_class, urlpattern_kwargs)
+        return get_model_for_url_by_helper(
+            model_class,
+            urlpattern_args,
+            urlpattern_kwargs,
+        )
 
     except KeyError:
         # URL pattern was not created by helper functions.
