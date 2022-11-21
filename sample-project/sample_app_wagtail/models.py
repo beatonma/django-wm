@@ -33,7 +33,7 @@ class SimplePage(Page):
         return context
 
 
-class BlogPage(MentionableMixin, RoutablePageMixin, Page):
+class BlogPage(MentionableMixin, Page):
     author = models.CharField(max_length=64, blank=True)
     overview = RichTextField(blank=True)
     body = RichTextField()
