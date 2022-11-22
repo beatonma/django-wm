@@ -8,6 +8,10 @@ from mentions.helpers.types import (
     UrlKwarg,
 )
 
+__all__ = [
+    "get_model_for_url_by_helper",
+]
+
 TypeSet = Set[Tuple[UrlKwarg, ModelFilter]]
 
 
