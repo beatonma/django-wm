@@ -4,8 +4,10 @@ from django.conf import settings
 from django.db import models
 from django.db.models import QuerySet
 from django.test import TestCase
+from django.urls import reverse
 
 from mentions import options
+from mentions.views import view_names
 
 M = TypeVar("M", bound=models.Model)
 
@@ -14,7 +16,27 @@ class SimpleTestCase(TestCase):
     pass
 
 
-class WebmentionTestCase(SimpleTestCase):
+class ClientTestCase(TestCase):
+    def get_endpoint_dashboard(self):
+        return self.client.get(reverse(view_names.webmention_dashboard))
+
+    def get_endpoint_primary(self):
+        return self.client.get(reverse(view_names.webmention_api_incoming))
+
+    def get_endpoint_mentions(self, url: str):
+        return self.client.get(
+            reverse(view_names.webmention_api_get),
+            data={"url": url},
+        )
+
+    def get_endpoint_mentions_by_type(self, url: str):
+        return self.client.get(
+            reverse(view_names.webmention_api_get_by_type),
+            data={"url": url},
+        )
+
+
+class WebmentionTestCase(ClientTestCase, SimpleTestCase):
     def tearDown(self) -> None:
         super().tearDown()
         from mentions.models import (

@@ -23,11 +23,11 @@ class _BaseTestCase(WebmentionTestCase):
 
     def get_json_response(
         self,
+        url: str,
         expected_status: int = 200,
         expected_count: int = 2,
-        **data,
     ) -> List[Dict]:
-        response = self.client.get(self.endpoint, data=data)
+        response = self.get_endpoint_mentions(url)
 
         self.assertEqual(response.status_code, expected_status)
 
@@ -144,7 +144,7 @@ class GetWebmentionsBadRequestTests(_BaseTestCase):
     def test_get_webmentions_view__target_does_not_exist(self):
         """Unresolvable `url` parameter return 404 error code with empty mentions list."""
         self.get_json_response(
+            url="/does-not-exist",
             expected_status=404,
             expected_count=0,
-            url="/does-not-exist",
         )

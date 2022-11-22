@@ -19,10 +19,7 @@ class GetMentionsByTypeEndpointTests(WebmentionTestCase):
 
         testfunc.create_webmention(target_object=obj)
 
-        response = self.client.get(
-            testfunc.endpoint_get_webmentions_by_type(),
-            data={"url": obj.get_absolute_url()},
-        )
+        response = self.get_endpoint_mentions_by_type(obj.get_absolute_url())
 
         data = response.json()["mentions_by_type"]
         self.assertEqual(
@@ -38,8 +35,5 @@ class GetMentionsByTypeEndpointTests(WebmentionTestCase):
         url = obj.get_absolute_url()
         obj.delete()
 
-        response = self.client.get(
-            testfunc.endpoint_get_webmentions_by_type(),
-            data={"url": url},
-        )
+        response = self.get_endpoint_mentions_by_type(url)
         self.assertEqual(404, response.status_code)
