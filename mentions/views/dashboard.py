@@ -36,7 +36,7 @@ class WebmentionDashboardView(View):
 
         return render(
             request,
-            "mentions/webmentions-dashboard.html",
+            "mentions/webmention-dashboard.html",
             {
                 "webmentions": webmentions,
                 "pending_incoming": pending_incoming,
