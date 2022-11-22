@@ -68,3 +68,9 @@ class PrimaryEndpointTests(WebmentionTestCase):
 
         response_code = self._mock_post(data, accept=False)
         self.assertEqual(400, response_code)
+
+    def test_primary_endpoint_get(self):
+        response = self.client.get(testfunc.endpoint_submit_webmention())
+
+        self.assertEqual(200, response.status_code)
+        self.assertTemplateUsed(response, "mentions/webmention-submit-manual.html")
