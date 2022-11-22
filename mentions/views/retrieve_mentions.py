@@ -4,10 +4,11 @@ from django.core.exceptions import BadRequest
 from django.http import JsonResponse
 from django.views import View
 
-from mentions import config, contract
+from mentions import config
 from mentions.exceptions import TargetDoesNotExist
 from mentions.resolution import get_mentions_for_url
 from mentions.serialize import serialize_mentions, serialize_mentions_by_type
+from mentions.views import contract
 
 __all__ = [
     "GetMentionsView",

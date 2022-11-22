@@ -9,17 +9,19 @@ __all__ = [
     "serialize_mentions_by_type",
 ]
 
+from mentions.views import contract
+
 TYPE_DEFAULT = "webmention"
 TYPE_SIMPLE = "simple"
 
 
 def serialize_mention(mention: QuotableMixin) -> Dict:
     return {
-        "hcard": serialize_hcard(mention.hcard),
-        "quote": mention.quote,
-        "source_url": mention.source_url,
-        "published": mention.published,
-        "type": _typeof(mention),
+        contract.HCARD: serialize_hcard(mention.hcard),
+        contract.MENTION_QUOTE: mention.quote,
+        contract.SOURCE_URL: mention.source_url,
+        contract.MENTION_PUBLISHED: mention.published,
+        contract.MENTION_TYPE: _typeof(mention),
     }
 
 
@@ -44,9 +46,9 @@ def serialize_hcard(hcard: Optional[HCard]) -> Optional[Dict]:
         return None
 
     return {
-        "name": hcard.name,
-        "avatar": hcard.avatar,
-        "homepage": hcard.homepage,
+        contract.HCARD_NAME: hcard.name,
+        contract.HCARD_AVATAR: hcard.avatar,
+        contract.HCARD_HOMEPAGE: hcard.homepage,
     }
 
 
