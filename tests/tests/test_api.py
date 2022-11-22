@@ -1,5 +1,6 @@
 import inspect
 from importlib import import_module
+from types import ModuleType
 
 from tests.tests.util.testcase import WebmentionTestCase
 
@@ -15,8 +16,34 @@ class ApiTestCase(WebmentionTestCase):
 
     def setUp(self):
         super().setUp()
-        _module = import_module(self.module_name)
-        self.member_names = [x[0] for x in inspect.getmembers(_module)]
+        self.module = import_module(self.module_name)
+        self.member_names = [x[0] for x in inspect.getmembers(self.module)]
+        print(self.member_names)
+
+    def assertModuleApiEqual(self, *obj_names: str):
+        names = {x for x in self.member_names if "__" not in x}
+        for obj_name in obj_names:
+            self.assertTrue(
+                obj_name in self.member_names,
+                msg=f"Object '{obj_name}' not found in module '{self.module_name}'",
+            )
+            names.remove(obj_name)
+
+        # Remove submodules from set of names
+        module_names = set()
+        for obj_name in names:
+            obj = getattr(self.module, obj_name)
+            if isinstance(obj, ModuleType):
+                module_names.add(obj_name)
+
+        names -= module_names
+
+        # Remaining names (containing any exported classes, functions, etc) should be empty.
+        self.assertEqual(
+            0,
+            len(names),
+            msg=f"Unexpected exports from module '{self.module_name}': {names}",
+        )
 
     def assertExistsInModule(self, *obj_names: str):
         for obj_name in obj_names:
@@ -112,4 +139,14 @@ class ViewApiTests(ApiTestCase):
             "GetMentionsView",
             "WebmentionView",
             "WebmentionDashboardView",
+        )
+
+
+class WagtailApiTests(ApiTestCase):
+    module_name = "mentions.helpers.thirdparty.wagtail"
+
+    def test_expected_wagtail_helpers_are_accessible(self):
+        self.assertExistsInModule(
+            "mentions_wagtail_path",
+            "mentions_wagtail_re_path",
         )
