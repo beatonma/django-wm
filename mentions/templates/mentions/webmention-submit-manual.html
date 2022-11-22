@@ -6,7 +6,7 @@
     <title>Manual webmention submission</title>
 </head>
 <body>
-    <form id="webmention_manual_submit" name="webmention_manual_submit" method="POST" action="{% url 'incoming_webmention_api_view' %}">
+    <form id="webmention_manual_submit" name="webmention_manual_submit" method="POST" action="{% url 'webmention_api_incoming' %}">
         {% csrf_token %}
         {% for field in form %}<div>
             {{ field.errors }} {{ field.label_tag }} {{ field }}
