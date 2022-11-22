@@ -2,6 +2,7 @@ import logging
 from typing import List, Type
 
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from mentions import options
 from mentions.exceptions import ImplementationRequired
@@ -22,7 +23,10 @@ class MentionableMixin(models.Model):
     class Meta:
         abstract = True
 
-    allow_outgoing_webmentions = models.BooleanField(default=_outgoing_default)
+    allow_outgoing_webmentions = models.BooleanField(
+        _("allow outgoing webmentions"),
+        default=_outgoing_default,
+    )
 
     def get_mentions(self) -> List[QuotableMixin]:
         from mentions.resolution import get_mentions_for_object

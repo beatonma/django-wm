@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Tuple
 
 from django.contrib.auth.models import Permission
+from django.utils.translation import gettext_lazy as _
 
 from mentions.apps import MentionsConfig
 
@@ -36,5 +37,5 @@ class MentionsPermission:
 
 can_view_dashboard = MentionsPermission(
     "view_webmention_dashboard",
-    "Can view the webmention dashboard/status page.",
+    _("Can view the webmention dashboard/status page."),
 )

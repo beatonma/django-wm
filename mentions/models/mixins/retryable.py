@@ -1,5 +1,6 @@
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from mentions import options
 
@@ -15,22 +16,28 @@ class RetryableMixin(models.Model):
         abstract = True
 
     retry_attempt_count = models.PositiveSmallIntegerField(
+        _("retry attempt count"),
         default=0,
         editable=False,
-        help_text="How many times we have attempted to process this object.",
+        help_text=_("How many times we have attempted to process this object."),
     )
     last_retry_attempt = models.DateTimeField(
+        _("latest retry attempt"),
         null=True,
         blank=True,
-        help_text="When we last attempted to process this object.",
+        help_text=_("When we last attempted to process this object."),
     )
     is_awaiting_retry = models.BooleanField(
+        _("awaiting retry"),
         default=True,
-        help_text="Whether this object is eligible for another attempt at processing.",
+        help_text=_(
+            "Whether this object is eligible for another attempt at processing."
+        ),
     )
     is_retry_successful = models.BooleanField(
+        _("retry successful"),
         default=False,
-        help_text="Whether this object has been processed successfully.",
+        help_text=_("Whether this object has been processed successfully."),
         editable=False,
     )
 

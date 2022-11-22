@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import UniqueConstraint
+from django.utils.translation import gettext_lazy as _
 
 from mentions.models.base import MentionsBaseModel
 from mentions.models.mixins import RetryableMixin
@@ -17,24 +18,31 @@ class PendingIncomingWebmention(RetryableMixin, MentionsBaseModel):
     Use `manage.py pending_mentions` to process."""
 
     source_url = models.URLField(
-        help_text="The URL of the content that mentions your content."
+        _("source URL"),
+        help_text=_("The URL of the content that mentions your content."),
     )
     target_url = models.URLField(
-        help_text="The URL of the page on your server that is being mentioned."
+        _("target URL"),
+        help_text=_("The URL of the page on your server that is being mentioned."),
     )
-    sent_by = models.URLField(help_text="The origin of the webmention request.")
+    sent_by = models.URLField(
+        _("sent by"),
+        help_text=_("The origin of the webmention request."),
+    )
 
     def __str__(self):
         return f"PendingIncomingWebmention: {self.source_url} -> {self.target_url}"
 
     class Meta:
-        ordering = ["-created_at"]
         constraints = [
             UniqueConstraint(
                 fields=("source_url", "target_url"),
                 name="unique_source_url_per_target_url",
             ),
         ]
+        ordering = ["-created_at"]
+        verbose_name = _("pending incoming webmention")
+        verbose_name_plural = _("pending incoming webmentions")
 
 
 class PendingOutgoingContent(MentionsBaseModel):
@@ -43,11 +51,13 @@ class PendingOutgoingContent(MentionsBaseModel):
     Use `manage.py pending_mentions` to process."""
 
     absolute_url = models.URLField(
-        help_text="URL on our server where the content can be found.",
+        _("absolute URL"),
+        help_text=_("URL on our server where the content can be found."),
         unique=True,
     )
     text = models.TextField(
-        help_text="Text that may contain mentionable links. (retrieved via MentionableMixin.get_content_html())"
+        _("HTML content"),
+        help_text=_("HTML text that may contain mentionable links."),
     )
 
     def __str__(self):
@@ -55,3 +65,5 @@ class PendingOutgoingContent(MentionsBaseModel):
 
     class Meta:
         ordering = ["-created_at"]
+        verbose_name = _("pending outgoing content")
+        verbose_name_plural = _("pending outgoing content")

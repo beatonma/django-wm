@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
 from mentions.models.base import MentionsBaseModel
 from mentions.models.mixins import RetryableMixin
@@ -16,23 +17,34 @@ class OutgoingWebmentionStatus(RetryableMixin, MentionsBaseModel):
     """
 
     source_url = models.URLField(
-        help_text="The URL on your server where this mention originates",
+        _("source URL"),
+        help_text=_("The URL on your server where this mention originates."),
     )
     target_url = models.URLField(
-        help_text="The URL that you mentioned.",
+        _("target URL"),
+        help_text=_("The URL that you mentioned."),
     )
     target_webmention_endpoint = models.URLField(
+        _("target webmention endpoint"),
         null=True,
         blank=True,
-        help_text="The endpoint URL to which we sent the webmention",
+        help_text=_("The endpoint URL to which we sent the webmention."),
     )
     status_message = models.CharField(
+        _("status message"),
         max_length=1024,
-        help_text="Success, or an explanation of what went wrong.",
+        help_text=_("Success, or an explanation of what went wrong."),
     )
-    response_code = models.PositiveIntegerField(default=0)
+    response_code = models.PositiveIntegerField(
+        _("response code"),
+        default=0,
+        help_text=_("HTTP response code of the latest attempted submission."),
+    )
 
-    successful = models.BooleanField(default=False)
+    successful = models.BooleanField(
+        _("successful"),
+        default=False,
+    )
 
     def __str__(self):
         return (
@@ -42,7 +54,8 @@ class OutgoingWebmentionStatus(RetryableMixin, MentionsBaseModel):
 
     class Meta:
         ordering = ["-created_at"]
-        verbose_name_plural = "Outgoing Webmentions"
+        verbose_name = _("outgoing webmention")
+        verbose_name_plural = _("outgoing webmentions")
 
 
 def get_or_create_outgoing_webmention(
