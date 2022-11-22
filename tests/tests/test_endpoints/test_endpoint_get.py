@@ -2,7 +2,6 @@
 Make sure we can correctly retrieve Webmentions for a given url/object.
 """
 
-import json
 import logging
 from typing import Dict, List
 
@@ -32,7 +31,7 @@ class _BaseTestCase(WebmentionTestCase):
 
         self.assertEqual(response.status_code, expected_status)
 
-        mentions = json.loads(response.content).get("mentions")
+        mentions = response.json()["mentions"]
         self.assertEqual(expected_count, len(mentions))
         return mentions
 

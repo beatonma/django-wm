@@ -9,6 +9,9 @@ from tests.tests.util.testcase import OptionsTestCase
 class DashboardPermissionTests(OptionsTestCase):
     """Tests for mentions dashboard page."""
 
+    def get_dashboard(self):
+        return self.client.get(reverse(view_names.webmention_dashboard))
+
     def setUp(self) -> None:
         super().setUp()
         perm = perms.can_view_dashboard.get_from_db()
@@ -19,13 +22,13 @@ class DashboardPermissionTests(OptionsTestCase):
 
     def test_dashboard_denies_anonymous(self):
         self.set_dashboard_public(False)
-        response = self.client.get(reverse(view_names.webmention_dashboard))
+        response = self.get_dashboard()
 
         self.assertEqual(response.status_code, 403)
 
     def test_dashboard_allows_anonymous_when_public(self):
         self.set_dashboard_public(True)
-        response = self.client.get(reverse(view_names.webmention_dashboard))
+        response = self.get_dashboard()
 
         self.assertEqual(response.status_code, 200)
 
@@ -34,7 +37,7 @@ class DashboardPermissionTests(OptionsTestCase):
         self.assertTrue(user.has_perm(perms.can_view_dashboard.fqn()))
 
         self.client.force_login(user)
-        response = self.client.get(reverse(view_names.webmention_dashboard))
+        response = self.get_dashboard()
 
         self.assertEqual(response.status_code, 200)
 
@@ -42,6 +45,6 @@ class DashboardPermissionTests(OptionsTestCase):
         user = User.objects.get(username="not_allowed")
 
         self.client.force_login(user)
-        response = self.client.get(reverse(view_names.webmention_dashboard))
+        response = self.get_dashboard()
 
         self.assertEqual(response.status_code, 403)
