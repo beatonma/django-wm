@@ -55,6 +55,7 @@ def _path(
     model_filters: Optional[Sequence[str]],
     model_filter_map: Optional[ModelFilterMap],
     name: Optional[str],
+    autopage: bool,
 ):
     """Drop-in replacement for the Wagtail routable @path/@re_path decorators.
 
@@ -72,6 +73,13 @@ def _path(
             This may be a {captured_name: model_field_name} dictionary, or
             a list of (captured_name, model_field_name) tuples.
         name: Used for reverse lookup [passed to view func]
+        autopage: Use with care! Handy but likely controversial.
+            If True, automatically resolve the target page and pass it to the view_func.
+            - Reduces boilerplate when defining views as you don't have to define
+                the same query twice (decorator + view func).
+            - Completely replaces the args+kwargs of the view function which may be confusing.
+                The resulting view function will have the signature `def func(self, request, page)`.
+                This is an intentional restriction to make sure this is only used for simple cases.
     """
 
     def decorator(view_func, *args, **kwargs):
@@ -89,6 +97,11 @@ def _path(
         if model_filters:
             lookup[contract.URLPATTERNS_MODEL_FILTERS] = model_filters
 
+        wagtail_path = wagtail_path_func(pattern, name=name)
+
+        if autopage:
+            view_func = autopage_page_resolver(model_class, lookup, view_func)
+
         setattr(
             view_func,
             MENTIONS_KWARGS,
@@ -98,9 +111,9 @@ def _path(
             },
         )
 
-        wagtail_result = wagtail_path_func(pattern, name=name)
-        result = wagtail_result(view_func, *args, **kwargs)
-        return result
+        path = wagtail_path(view_func, *args, **kwargs)
+
+        return path
 
     return decorator
 
@@ -110,6 +123,7 @@ def mentions_wagtail_path(
     model_class: Type[MentionableImpl],
     model_filter_map: Optional[ModelFilterMap] = None,
     name: str = None,
+    autopage=False,
 ):
     """Drop-in replacement for the Wagtail routable @path decorator.
 
@@ -123,15 +137,24 @@ def mentions_wagtail_path(
             This may be a {captured_name: model_field_name} dictionary, or
             a list of (captured_name, model_field_name) tuples.
         name: Used for reverse lookup [passed to view func]
+        autopage: Use with care! Handy but likely controversial.
+            Default False.
+            If True, automatically resolve the target page and pass it to the view_func.
+            - Reduces boilerplate when defining views as you don't have to define
+                the same query twice (decorator + view func).
+            - Completely replaces the args+kwargs of the view function which may be confusing.
+                The resulting view function will have the signature `def func(self, request, page)`.
+                This is an intentional restriction to make sure this is only used for simple cases.
     """
     return _path(
-        wagtail_path,
-        django_path,
-        pattern,
-        model_class,
-        None,
-        model_filter_map,
-        name,
+        wagtail_path_func=wagtail_path,
+        django_path_func=django_path,
+        pattern=pattern,
+        model_class=model_class,
+        model_filters=None,
+        model_filter_map=model_filter_map,
+        name=name,
+        autopage=autopage,
     )
 
 
@@ -141,6 +164,7 @@ def mentions_wagtail_re_path(
     model_filters: Optional[Sequence[ModelFilter]] = None,
     model_filter_map: Optional[ModelFilterMap] = None,
     name: str = None,
+    autopage=False,
 ):
     """Drop-in replacement for the Wagtail routable @re_path decorator.
 
@@ -159,15 +183,24 @@ def mentions_wagtail_re_path(
             names, if they differ. This may be a {captured_name: model_field_name}
             dictionary, or a sequence of (captured_name, model_field_name) tuples.
         name: Used for reverse lookup [passed to view func]
+        autopage: Use with care! Handy but likely controversial.
+            Default False.
+            If True, automatically resolve the target page and pass it to the view_func.
+            - Reduces boilerplate when defining views as you don't have to define
+                the same query twice (decorator + view func).
+            - Completely replaces the args+kwargs of the view function which may be confusing.
+                The resulting view function will have the signature `def func(self, request, page)`.
+                This is an intentional restriction to make sure this is only used for simple cases.
     """
     return _path(
-        wagtail_re_path,
-        django_re_path,
-        pattern,
-        model_class,
-        model_filters,
-        model_filter_map,
-        name,
+        wagtail_path_func=wagtail_re_path,
+        django_path_func=django_re_path,
+        pattern=pattern,
+        model_class=model_class,
+        model_filters=model_filters,
+        model_filter_map=model_filter_map,
+        name=name,
+        autopage=autopage,
     )
 
 
@@ -215,3 +248,17 @@ def get_model_for_url_by_wagtail(match: ResolverMatch) -> MentionableMixin:
         raise BadUrlConfig(f"Cannot find model `{model_name}`!")
 
     return get_model_for_url_by_helper(model_class, view_args, view_kwargs)
+
+
+def autopage_page_resolver(
+    model_class: Type[MentionableImpl],
+    lookup: dict,
+    view_func: Callable,
+) -> Callable:
+    def wrapped_view_func(self, request, *args, **kwargs):
+        lookup_kwargs = {**lookup, **kwargs}
+        page = get_model_for_url_by_helper(model_class, args, lookup_kwargs)
+
+        return view_func(self, request, page)
+
+    return wrapped_view_func

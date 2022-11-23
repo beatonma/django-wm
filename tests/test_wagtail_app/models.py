@@ -99,6 +99,41 @@ try:
                 ),
             )
 
+        @mentions_wagtail_path(
+            "autopage/<int:year>/<int:month>/<int:day>/",
+            model_class=MentionablePage,
+            model_filter_map={
+                "year": "date__year",
+                "month": "date__month",
+                "day": "date__day",
+            },
+            autopage=True,
+        )
+        def autopage_post_by_date(self, request, page):
+            return self._serve(request, page)
+
+        @mentions_wagtail_re_path(
+            r"^autopage/named/(?P<year>\d{4})/(?P<month>\d{2})/(?P<slug>.+)/$",
+            model_class=MentionablePage,
+            model_filter_map={
+                "year": "date__year",
+                "month": "date__month",
+                "slug": "slug",
+            },
+            autopage=True,
+        )
+        def autopage_post_by_date_slug_regex_with_named_groups(self, request, page):
+            return self._serve(request, page)
+
+        @mentions_wagtail_re_path(
+            r"^autopage/unnamed/(\d{4})/(\d{2})/(.+)/$",
+            model_class=MentionablePage,
+            model_filters=("date__year", "date__month", "slug"),
+            autopage=True,
+        )
+        def autopage_post_by_date_slug_regex_with_unnamed_groups(self, request, page):
+            return self._serve(request, page)
+
         def _serve(self, request, page):
             if not page:
                 raise Http404

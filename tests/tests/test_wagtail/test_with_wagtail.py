@@ -29,6 +29,14 @@ urlpatterns = base_urlpatterns + [
 
 @override_settings(ROOT_URLCONF=__name__)
 class WagtailTests(WagtailTestCase):
+    def assert_resolves_target(self, url: str):
+        print(f"URL: {url}")
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+        result = resolution.get_model_for_url(url)
+        self.assertEqual(self.target, result)
+
     def setUp(self) -> None:
         super().setUp()
         testfunc.create_mentionable_object()
@@ -49,40 +57,24 @@ class WagtailTests(WagtailTestCase):
             blog_index.add_child(instance=page)
 
     def test_page_lookup(self):
-        result = resolution.get_model_for_url("/wagtail/pages/such-content/")
-        self.assertEqual(self.target, result)
+        url = "/wagtail/pages/such-content/"
+        self.assert_resolves_target(url)
 
     def test_page_lookup_by_altpath(self):
         url = "/wagtail/pages/2022/11/16/"
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-
-        result = resolution.get_model_for_url(url)
-        self.assertEqual(self.target, result)
+        self.assert_resolves_target(url)
 
     def test_page_lookup_by_regex_altpath_with_named_groups(self):
         url = "/wagtail/pages/named/2022/11/such-content/"
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-
-        result = resolution.get_model_for_url(url)
-        self.assertEqual(self.target, result)
+        self.assert_resolves_target(url)
 
     def test_page_lookup_by_regex_altpath_with_unnamed_groups(self):
         url = "/wagtail/pages/unnamed/2022/11/such-content/"
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-
-        result = resolution.get_model_for_url(url)
-        self.assertEqual(self.target, result)
+        self.assert_resolves_target(url)
 
     def test_page_lookup_by_altpath_default_lookup(self):
         url = f"/wagtail/pages/{self.target.pk}/"
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 200)
-
-        result = resolution.get_model_for_url(url)
-        self.assertEqual(self.target, result)
+        self.assert_resolves_target(url)
 
     def test_page_lookup_does_not_exist(self):
         with self.assertRaises(TargetDoesNotExist):
@@ -97,3 +89,17 @@ class WagtailTests(WagtailTestCase):
     def test_page_without_mentionablemixin(self):
         with self.assertRaises(NoModelForUrlPath):
             resolution.get_model_for_url("/wagtail/pages/simple-page/")
+
+
+class WagtailAutopageTests(WagtailTests):
+    def test_path_autopage(self):
+        url = "/wagtail/pages/autopage/2022/11/16/"
+        self.assert_resolves_target(url)
+
+    def test_re_path_autopage_unnamed_groups(self):
+        url = "/wagtail/pages/autopage/unnamed/2022/11/such-content/"
+        self.assert_resolves_target(url)
+
+    def test_re_path_autopage_named_groups(self):
+        url = "/wagtail/pages/autopage/named/2022/11/such-content/"
+        self.assert_resolves_target(url)

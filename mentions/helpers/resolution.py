@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Sequence, Set, Tuple, Type
+from typing import Dict, Optional, Sequence, Set, Tuple, Type
 
 from mentions import contract
 from mentions.helpers.types import (
@@ -17,7 +17,7 @@ TypeSet = Set[Tuple[UrlKwarg, ModelFilter]]
 
 def get_model_for_url_by_helper(
     model_class: Type[MentionableImpl],
-    urlpattern_args: List,
+    urlpattern_args: Sequence,
     urlpattern_kwargs: Dict,
 ) -> Optional[MentionableImpl]:
     """Resolve a model instance from urlpattern kwargs, as configured by
