@@ -25,7 +25,7 @@ urlpatterns = [
         GetMentionsView.as_view(),
         name=view_names.webmention_api_get,
     ),
-    path(
+    re_path(
         r"^get-by-type/?$",
         GetMentionsByTypeView.as_view(),
         name=view_names.webmention_api_get_by_type,
