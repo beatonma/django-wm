@@ -1,14 +1,14 @@
 # Changelog
 
-## 4.0.0 ( TODO )
+## 4.0.0 (2022-11-23)
 
-- Wiki pages are now [live](https://github.com/beatonma/django-wm/wiki/)!
+> This update alters fields on `MentionableMixin` so you will need to run `makemigrations` and `migrate` after upgrading!
 
 - `MentionableMixin`:
+  - `allow_outgoing_webmentions` default now configurable via `settings.WEBMENTIONS_ALLOW_OUTGOING_DEFAULT`.
   - Removed `slug` field. If you use this field you can restore the previous behaviour by adding the following to your model.
 
     ```python
-  
     class MyModel(MentionableMixin, models.Model):
         slug = models.SlugField(unique=True)
   
@@ -18,14 +18,39 @@
     ```
   - Deprecated method`all_text`, replaced by `get_content_html`. Overriding `all_text` still works for now but will log a warning asking you to rename the method.
 
+
 - Moved template files to `mentions` sub-directory. If you have custom overrides of these templates in your root `templates/` directory please move them to `templates/mentions/`.
 
-- Added `urlpatterns` helper functions `mentions_path`, `mentions_re_path` for simpler setup.
-  - More straightforward view-to-model mapping.
-  - Removes the need to implement `resolve_from_url_kwargs` on your MentionableMixin implementation.
 
 - Added user agent header to all network requests.
-  - Customisable via `settings.WEBMENTIONS_USER_AGENT`.
+  - Customisable via `settings.WEBMENTIONS_USER_AGENT: str`.
+
+
+- Admin-facing strings are now translatable.
+
+
+- Added `urlpatterns` helper functions `mentions_path`, `mentions_re_path` for (hopefully) simpler setup.
+  - More straightforward view-to-model mapping.
+  - Removes the need to implement `resolve_from_url_kwargs` on your MentionableMixin implementation.
+  - See [the wiki](https://github.com/beatonma/django-wm/wiki/Guide_Using-MentionableMixin#urlpatterns) for 
+
+  
+- Support for [Wagtail](https://wagtail.org/).
+  - `Page` models should implement `MentionableMixin` as usual.
+  - `RoutablePageMixin` should use the new `@mentions_wagtail_path`, `@mentions_wagtail_re_path` decorators in place of the Wagtail equivalents `@path`, `@re_path`.
+    - These work essentially the same `mentions_path` and `mentions_re_path`.
+  - If using RichTextField call `richtext` on any RichTextField values in `get_content_html`:
+  ```python
+  from wagtail.templatetags.wagtailcore_tags import richtext
+  
+  class MyModel(MentionableMixin, Page):
+      ...
+      def get_content_html(self) -> str:
+          return f"{richtext(self.overview)} {richtext(self.body)}"
+  ```
+
+
+- Wiki pages are now [live](https://github.com/beatonma/django-wm/wiki/)! These will be kept up-to-date going forwards but may not be useful for pre-4.0 versions.
 
 
 ## 3.1.1 (2022-10-26)
