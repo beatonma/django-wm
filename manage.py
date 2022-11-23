@@ -1,7 +1,8 @@
 """Generate migrations for mentions app without installing it in a project."""
-
+import argparse
 import sys
 from importlib.util import find_spec
+from typing import List, Tuple
 
 import django
 from django.conf import settings
@@ -24,9 +25,24 @@ MIGRATION_SETTINGS = {
     "DEFAULT_AUTO_FIELD": "django.db.models.BigAutoField",
 }
 
+
+def parse_args() -> Tuple[argparse.Namespace, List[str]]:
+    parser = argparse.ArgumentParser()
+
+    subs = parser.add_subparsers(dest="command")
+    subs.add_parser("makemigrations")
+
+    return parser.parse_known_args()
+
+
 if __name__ == "__main__":
+    program = [sys.argv[0]]
+    args_, remaining = parse_args()
+    sys.argv = program + remaining
+
     settings.configure(**MIGRATION_SETTINGS)
     django.setup()
 
-    args = sys.argv + ["makemigrations", "mentions"]
+    args = sys.argv + [args_.command]
+
     execute_from_command_line(args)
