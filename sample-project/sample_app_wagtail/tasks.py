@@ -34,6 +34,7 @@ def create_initial_pages():
 
 def automention():
     BlogPage.create(
+        author="automention",
         target_url=random.choice(settings.AUTOMENTION_URLS),
         mention_type=random.choice(list(IncomingMentionType.__members__.keys())),
     )

@@ -57,6 +57,11 @@ class BlogPage(MentionableMixin, Page):
         log.info(f"get_absolute_url: {self.url}")
         return self.url
 
+    def should_process_webmentions(self) -> bool:
+        """Return True if this instance should process webmentions when saved."""
+        log.warning(f"should_process_webmentions: {self.live} [{self}]")
+        return self.live
+
     def get_context(self, request, *args, **kwargs):
         context = super().get_context(request, *args, **kwargs)
         context["mentions"] = self.get_mentions()
