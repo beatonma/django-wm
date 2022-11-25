@@ -1,21 +1,14 @@
-from typing import Callable, Dict, Optional, Sequence, Set, Type
+from typing import Callable, Dict, Optional, Sequence, Type
 
 from django.urls import URLPattern, path, re_path
 
 from mentions import contract
-from mentions.helpers.types import (
-    MentionableImpl,
-    ModelFilter,
-    ModelFilterMap,
-    SharedFieldName,
-    UrlKwarg,
-)
+from mentions.helpers.types import MentionableImpl, ModelFilter, ModelFilterMap
+from mentions.helpers.util import get_captured_filters, get_dotted_model_name
 
 __all__ = [
     "mentions_path",
     "mentions_re_path",
-    "get_dotted_model_name",
-    "get_lookup_from_urlpattern",
 ]
 
 
@@ -67,7 +60,7 @@ def _path(
 
     if model_filter_map is None:
         # Use captured params for object resolution if no custom mapping provided.
-        urlpattern.default_args.update(get_lookup_from_urlpattern(urlpattern))
+        urlpattern.default_args.update(get_captured_filters(urlpattern))
 
     return urlpattern
 
@@ -157,13 +150,6 @@ def mentions_re_path(
     )
 
 
-def get_dotted_model_name(model_class: Type[MentionableImpl]) -> str:
-    model_app = model_class._meta.app_label
-    model_name = model_class.__name__
-
-    return f"{model_app}.{model_name}"
-
-
 def build_model_kwargs(
     model_class: Type[MentionableImpl],
     model_filters: Optional[Sequence[ModelFilter]],
@@ -181,11 +167,3 @@ def build_model_kwargs(
         contract.URLPATTERNS_MODEL_FILTER_MAP: model_filter_map,
         **fields,
     }
-
-
-def get_lookup_from_urlpattern(
-    urlpattern: URLPattern,
-) -> Dict[UrlKwarg, Set[SharedFieldName]]:
-    """Create model_field_lookup from captured parameters."""
-    default_mapping = urlpattern.pattern.converters.keys()
-    return {contract.URLPATTERNS_MODEL_FILTER_MAP: set(default_mapping)}

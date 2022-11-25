@@ -11,7 +11,7 @@ from mentions.config import is_wagtail_installed
 from mentions.exceptions import BadUrlConfig, NoModelForUrlPath, OptionalDependency
 from mentions.helpers.resolution import get_model_for_url_by_helper
 from mentions.helpers.types import MentionableImpl, ModelFilter, ModelFilterMap
-from mentions.helpers.urls import get_dotted_model_name, get_lookup_from_urlpattern
+from mentions.helpers.util import get_captured_filters, get_dotted_model_name
 from mentions.models.mixins import MentionableMixin
 
 try:
@@ -91,7 +91,7 @@ def _path(
         lookup = (
             {contract.URLPATTERNS_MODEL_FILTER_MAP: model_filter_map}
             if model_filter_map
-            else get_lookup_from_urlpattern(urlpattern)
+            else get_captured_filters(urlpattern)
         )
 
         if model_filters:
