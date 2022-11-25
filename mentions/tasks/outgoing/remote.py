@@ -5,10 +5,10 @@ from urllib.parse import urljoin
 from django.core.exceptions import ValidationError
 from requests import RequestException, Response
 
-from mentions import options
+from mentions import config
 from mentions.exceptions import TargetNotAccessible
 from mentions.models import OutgoingWebmentionStatus
-from mentions.resolution import get_or_create_outgoing_webmention
+from mentions.models.outgoing_status import get_or_create_outgoing_webmention
 from mentions.tasks.outgoing.parsing import (
     get_endpoint_in_html,
     get_endpoint_in_http_headers,
@@ -124,7 +124,7 @@ def _send_webmention(
 ) -> Tuple[bool, int]:
     payload = {
         "target": target,
-        "source": urljoin(options.base_url(), source_urlpath),
+        "source": config.build_url(source_urlpath),
     }
     response = http_post(endpoint, data=payload)
     status_code = response.status_code

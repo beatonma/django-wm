@@ -1,0 +1,13 @@
+{% load webmentions %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    {% webmentions_endpoint %}
+    <title>Title</title>
+</head>
+<body>
+  {% webmentions_dashboard %}
+  {% webmentions_dashboard "Custom dashboard title" %}
+</body>
+</html>

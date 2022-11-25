@@ -6,15 +6,14 @@
 
 
 ### Upgrading
-Please check the [changelog](CHANGELOG.md) before upgrading, especially between major versions.
 
-After upgrading remember to run the `makemigrations` and `migrate` management commands so that any changes in model/mixin definitions can be applied.
+Please check the [upgrade guide](https://github.com/beatonma/django-wm/wiki/Upgrading) for any breaking changes before upgrading. See the [changelog](./CHANGELOG.md) for full details.
 
 
 ### Getting started
-[Setup instructions](docs/getting_started.md).
+[Setup instructions](https://github.com/beatonma/django-wm/wiki/Guide_Getting-started).
 
-[Code for an example project](https://github.com/beatonma/django-wm-example).
+[Code for an example project](./sample-project).
 
 All done? You can use the [testing tool](https://beatonma.org/webmentions_tester/) to make sure it works.
 
@@ -43,7 +42,6 @@ All done? You can use the [testing tool](https://beatonma.org/webmentions_tester
       ]
     }
     ```
-  - `/webmention/dashboard/`: a simple overview of recent mentions (accessible with permission `mentions.view_webmention_dashboard` or publicly via `settings.WEBMENTIONS_DASHBOARD_PUBLIC`)
 
 - `WebmentionHeadMiddleware` adds your `/webmention` endpoint to the headers of your pages so that it can be discovered by other sites.
 

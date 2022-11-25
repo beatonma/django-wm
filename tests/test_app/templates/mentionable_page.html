@@ -1,0 +1,13 @@
+{% load webmentions %}
+{% load wagtailcore_tags %}
+<html lang="en">
+<head>
+  {% webmentions_endpoint %}
+  <title>{{ page.title }}</title>
+</head>
+<body>
+  <article>
+    {{ page.body|richtext }}
+  </article>
+</body>
+</html>

@@ -1,0 +1,33 @@
+{% load webmentions %}
+{% load sampleapp %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% webmentions_endpoint %}
+  <title>{{ DOMAIN_NAME }}</title>
+
+  <style>
+    {% include "sample_app/style.css" %}
+  </style>
+</head>
+<body>
+  {% include "sample_app/header.html" %}
+
+  <main>
+    <section>
+      <article class="h-entry">
+        <h2 class="p-name">{{ article.title }}</h2>
+        <p><span>Published by {% maybe_link_hcard  article.author %}.</span></p>
+
+        <div class="e-content">
+          {{ article.content|safe }}
+        </div>
+      </article>
+    </section>
+
+    {% include "sample_app/mentions.html" with mentions=article.get_mentions %}
+  </main>
+</body>
+</html>

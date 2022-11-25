@@ -1,0 +1,244 @@
+{% load webmention_dashboard %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Webmention Dashboard</title>
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+        a, a:visited {
+            color: #111111;
+            text-underline-offset: 0.25em;
+            text-decoration-thickness: 2px;
+            text-decoration-color: #11111177;
+            padding: .5ch;
+        }
+        a:hover {
+            background-color: #ffffff77;
+        }
+        section {
+            padding: 0 1ch 1ch;
+            border-radius: 1ch;
+            border: 2px solid #22222277;
+        }
+        h1 {
+            text-align: center;
+        }
+
+        #dashboard_overview {
+            display: grid;
+            justify-content: center;
+            grid-template-columns: repeat(auto-fit, 64ch);
+            gap: 2ch;
+        }
+
+        .item:nth-child(odd) {
+            background-color: #d4d4d4;
+        }
+        .item:nth-child(even) {
+            background-color: #e4e4e4;
+        }
+
+        .item-summary {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1ch .5ch;
+        }
+        .icon[data-icon="more"] {
+            cursor: pointer;
+        }
+        .item[data-expanded="true"] .icon[data-icon="more"] {
+            opacity: 0;
+            cursor: default;
+        }
+
+        .item-detail {
+            padding: 0 0 1ch;
+        }
+        .item .item-detail {
+            display: none;
+        }
+        .item[data-expanded="true"] .item-detail {
+            display: block;
+        }
+
+        span[data-successful="true"] {
+            cursor: default;
+            color: #33cc44;
+        }
+        span[data-successful="false"] {
+            cursor: default;
+            color: #cc3344;
+        }
+
+        .end {
+            font-size: smaller;
+        }
+
+        .icon {
+            font-size: large;
+            margin: 0 .5ch;
+            cursor: default;
+        }
+    </style>
+</head>
+
+<body>
+  <h1>Webmentions Dashboard</h1>
+
+  <div id="dashboard_overview">
+    <section>
+      <h2>Received webmentions</h2>
+      <div class="group">
+        {% for wm in webmentions %}
+          <div class="item">
+            <div class="item-summary webmention" title="Type: {{ wm.post_type|default:"Webmention" }} Created: {{ wm.created_at }}">
+              <span class="start">
+                {% success_icon wm.validated %}
+                <a href="{{ wm.source_url }}" title="Source URL">{% short_url wm.source_url %}</a>
+                {% arrow_icon %}
+                <a href="{{ wm.target_url }}" title="Target URL">{% short_url wm.target_url %}</a>
+              </span>
+
+              <span class="end">
+                {% more_icon %}
+                {% if perms.mentions.can_change_webmention %}
+                <a href="{% url "admin:mentions_webmention_change" wm.pk %}">admin</a>
+                {% endif %}
+              </span>
+            </div>
+
+            <div class="item-detail">
+              <ul>
+                <li><code>created_at</code>: {{ wm.created_at }}</li>
+                <li><code>h-card</code>: <code>{{ wm.hcard.name }}</code></li>
+                <li><code>type</code>: <code>{{ wm.post_type|default:"Webmention" }}</code></li>
+              </ul>
+            </div>
+          </div>
+        {% empty %}
+          <div class="webmention">No webmentions</div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section>
+      <h2>Sent webmentions</h2>
+      <div class="group">
+        {% for wm in outgoing_statuses %}
+          <div class="item">
+            <div class="item-summary outgoing" title="Created: {{ wm.created_at }}">
+              <span class="start">
+                {% success_icon wm.successful %}
+                <a href="{{ wm.source_url }}" title="Source URL">{% short_url wm.source_url %}</a>
+                {% arrow_icon %}
+                <a href="{{ wm.target_url }}" title="Target URL">{% short_url wm.target_url %}</a>
+              </span>
+
+              <span class="end">
+                {% more_icon %}
+                {% if perms.mentions.can_change_outgoingwebmentionstatus %}
+                <a href="{% url "admin:mentions_outgoingwebmentionstatus_change" wm.pk %}">admin</a>
+                {% endif %}
+              </span>
+            </div>
+            <div class="item-detail">
+              <ul>
+                <li><code>created_at</code>: {{ wm.created_at }}</li>
+                <li><code>retry_attempt_count</code>: <code>{{ wm.retry_attempt_count }}</code></li>
+                <li><code>is_awaiting_retry</code>: <code>{{ wm.is_awaiting_retry }}</code></li>
+                <li><code>last_retry_attempt</code>: <code>{{ wm.last_retry_attempt }}</code></li>
+              </ul>
+            </div>
+          </div>
+        {% empty %}
+          <div class="outgoing">No processed outgoing mentions</div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section>
+      <h2>Pending incoming</h2>
+      <div class="group">
+        {% for wm in pending_incoming %}
+          <div class="item">
+            <div class="item-summary incoming" title="Created: {{ wm.created_at }}">
+              <span class="start">
+                <a href="{{ wm.source_url }}" title="Source URL">{% short_url wm.source_url %}</a>
+                {% arrow_icon %}
+                <a href="{{ wm.target_url }}" title="Target URL">{% short_url wm.target_url %}</a>
+              </span>
+
+              <span class="end">
+                {% more_icon %}
+
+                {% if perms.mentions.can_change_pendingincomingwebmention %}
+                <a href="{% url "admin:mentions_pendingincomingwebmention_change" wm.pk %}">admin</a>
+                {% endif %}
+              </span>
+            </div>
+
+            <div class="item-detail">
+              <ul>
+                <li><code>created_at</code>: {{ wm.created_at }}</li>
+                <li><code>retry_attempt_count</code>: <code>{{ wm.retry_attempt_count }}</code></li>
+                <li><code>is_awaiting_retry</code>: <code>{{ wm.is_awaiting_retry }}</code></li>
+                <li><code>last_retry_attempt</code>: <code>{{ wm.last_retry_attempt }}</code></li>
+              </ul>
+            </div>
+          </div>
+        {% empty %}
+          <div class="pending webmention">No pending incoming mentions</div>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section>
+      <h2>Pending outgoing</h2>
+      <div class="group">
+        {% for wm in pending_outgoing %}
+          <div class="item">
+            <div class="item-summary outgoing" title="Created: {{ wm.created_at }}">
+              <span class="start">
+                <a href="{{ wm.absolute_url }}" title="Source URL">{% short_url wm.absolute_url %}</a>
+              </span>
+
+              <span class="end">
+                {% if perms.mentions.can_change_pendingoutgoingcontent %}
+                <a href="{% url "admin:mentions_pendingoutgoingcontent_change" wm.pk %}">admin</a>
+                {% endif %}
+              </span>
+            </div>
+          </div>
+        {% empty %}
+          <div class="pending outgoing">No pending outgoing content</div>
+        {% endfor %}
+      </div>
+    </section>
+  </div>
+
+
+  <script type="application/javascript">
+    const params = new URLSearchParams(window.location.search);
+    const defaultExpanded = params.has("expanded");
+
+    document.querySelectorAll(".item").forEach(item => {
+        // Click on received webmention summary to show more detail.
+        if (item.querySelector(".item-detail")) {
+            item.dataset.expanded = defaultExpanded;
+
+            const summary = item.querySelector(".item-summary");
+            summary.addEventListener("click", () => {
+                const isExpanded = item.dataset.expanded === "true";
+                item.dataset.expanded = !isExpanded;
+            });
+        }
+    });
+  </script>
+</body>
+</html>

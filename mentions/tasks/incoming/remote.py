@@ -11,13 +11,13 @@ from mentions.tasks.incoming.parsing import (
     parse_post_type,
 )
 from mentions.util import html_parser, http_get
+from mentions.util.html import find_links_in_soup
 
 __all__ = [
     "get_source_html",
     "get_metadata_from_source",
+    "WebmentionMetadata",
 ]
-
-from mentions.util.html import find_links_in_soup
 
 
 def get_source_html(source_url: str) -> str:
@@ -82,11 +82,29 @@ def get_metadata_from_source(
 
     post_type = parse_post_type(link)
 
-    hcard = find_related_hcard(link)
-    if not hcard:
-        hcard = parse_hcard(soup, recursive=False)
+    hcard = find_related_hcard(link) or parse_hcard(soup, recursive=False)
+    if hcard:
+        hcard = coerce_hcard_absolute_urls(hcard, source_url)
 
     return WebmentionMetadata(
-        post_type=post_type.name.lower() if post_type else None,
+        post_type=post_type.serialized_name() if post_type else None,
         hcard=hcard,
     )
+
+
+def coerce_hcard_absolute_urls(hcard: HCard, source_url: str) -> HCard:
+    """Convert any relative URLs to absolute URLs."""
+    updated_fields = []
+
+    if hcard.avatar:
+        hcard.avatar = urljoin(source_url, hcard.avatar)
+        updated_fields.append("avatar")
+
+    if hcard.homepage:
+        hcard.homepage = urljoin(source_url, hcard.homepage)
+        updated_fields.append("homepage")
+
+    if updated_fields:
+        hcard.save(update_fields=updated_fields)
+
+    return hcard

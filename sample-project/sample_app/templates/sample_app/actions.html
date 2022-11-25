@@ -1,0 +1,56 @@
+{% load webmentions %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  {% webmentions_endpoint %}
+  <title>{{ DOMAIN_NAME }}</title>
+  <style>
+    {% include "sample_app/style.css" %}
+  </style>
+
+  <script type="application/javascript">
+    const submitForm = () => {
+        const formData = new FormData(document.getElementById("create_article_form"));
+
+        fetch("?", {method: "POST", body: formData})
+            .then(response => {
+                if (response.status < 300) {
+                    window.location.reload();
+                }
+                else {
+                    console.error(response);
+                }
+            })
+    };
+  </script>
+
+</head>
+<body>
+  {% include "sample_app/header.html" %}
+
+  <main>
+    <section>
+      <h2>Create an article with a webmention:</h2>
+      <form id="create_article_form">
+        {% csrf_token %}
+        {{ action_form.as_p }}
+
+        <button type="button" onclick="submitForm()">Send</button>
+      </form>
+    </section>
+
+    <section id="articles">
+      <h2>Articles:</h2>
+      <ul>
+        {% for a in articles %}
+          <li><a href="{{ a.get_absolute_url }}">[{{ a.pk }}] {{ a.title }}</a></li>
+        {% endfor %}
+      </ul>
+    </section>
+
+    {% include "sample_app/mentions.html" %}
+  </main>
+</body>
+</html>

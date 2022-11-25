@@ -6,7 +6,7 @@ from django.core.management import BaseCommand
 from sample_app.models import Article
 from sample_app.tasks import create_initial_articles
 
-from mentions import options
+from mentions import config
 from mentions.models import HCard, OutgoingWebmentionStatus, Webmention
 
 """
@@ -44,7 +44,7 @@ def _create_webmentions():
 
         _create_webmention(
             source_url=_random_url(),
-            target_url=f"{options.base_url()}{Article.objects.first().get_absolute_url()}",
+            target_url=config.build_url(Article.objects.first().get_absolute_url()),
             hcard=hcard,
         )
 

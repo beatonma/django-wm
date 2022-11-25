@@ -4,8 +4,8 @@ from urllib.parse import urljoin
 
 from django.core.exceptions import ValidationError
 
-from mentions import options
-from mentions.util import find_links_in_html, get_url_validator, split_url
+from mentions import config, options
+from mentions.util import find_links_in_html, get_domain, get_url_validator
 
 __all__ = [
     "get_target_links_in_html",
@@ -77,12 +77,11 @@ def is_valid_target(url: str, allow_self_mention: bool) -> bool:
         return False
 
     if not allow_self_mention:
-        _, domain, _ = split_url(url)
-        if domain == options.domain_name():
+        if get_domain(url) == options.domain_name():
             return False
 
     return True
 
 
 def _path_to_absolute_url(relative_path: str, source_path: str) -> str:
-    return urljoin(urljoin(options.base_url(), source_path), relative_path)
+    return urljoin(urljoin(config.base_url(), source_path), relative_path)

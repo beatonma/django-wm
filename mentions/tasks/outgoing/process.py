@@ -1,4 +1,4 @@
-from mentions.resolution import get_or_create_outgoing_webmention
+from mentions.models.outgoing_status import get_or_create_outgoing_webmention
 from mentions.tasks.celeryproxy import get_logger, shared_task
 from mentions.tasks.outgoing.local import get_target_links_in_html
 from mentions.tasks.outgoing.remote import try_send_webmention

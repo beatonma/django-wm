@@ -1,0 +1,9 @@
+{% load webmentions %}
+<header>
+  <nav>
+    <a href="{% url 'admin:index' %}">Admin</a> |
+    {% webmentions_dashboard "Dashboard" %} |
+    <a href="{% url 'wagtailadmin_home' %}">Wagtail</a>
+  </nav>
+  <h1>{{ DOMAIN_NAME }}</h1>
+</header>

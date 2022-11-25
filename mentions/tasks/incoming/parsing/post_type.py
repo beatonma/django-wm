@@ -2,6 +2,7 @@ from typing import Optional
 
 from bs4 import Tag
 
+from mentions import microformats
 from mentions.models.mixins import IncomingMentionType
 
 __all__ = [
@@ -27,6 +28,6 @@ def parse_post_type(link: Tag) -> Optional[IncomingMentionType]:
     if link_type is not None:
         return link_type
 
-    hcite = link.find_parent(class_="h-cite")
+    hcite = link.find_parent(class_=microformats.H_CITE)
     if hcite:
         return find_mention_type_in_classlist(hcite)

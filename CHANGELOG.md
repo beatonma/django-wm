@@ -1,5 +1,66 @@
 # Changelog
 
+## 4.0.0 (2022-11-25)
+
+> This update alters fields on `MentionableMixin` so you will need to run `makemigrations` and `migrate` after upgrading!
+
+- `MentionableMixin`:
+  - `allow_outgoing_webmentions` default now configurable via `settings.WEBMENTIONS_ALLOW_OUTGOING_DEFAULT`.
+  - Removed `slug` field. If you use this field you can restore the previous behaviour by adding the following to your model.
+
+    ```python
+    class MyModel(MentionableMixin, models.Model):
+        slug = models.SlugField(unique=True)
+  
+        @classmethod
+        def resolve_from_url_kwargs(cls, slug, **url_kwargs):
+            return cls.objects.get(slug=slug)
+    ```
+  - Deprecated method`all_text`, replaced by `get_content_html`. Overriding `all_text` still works for now but will log a warning asking you to rename the method.
+
+
+- Moved template files to `mentions` sub-directory. If you have custom overrides of these templates in your root `templates/` directory please move them to `templates/mentions/`.
+
+
+- Added user agent header to all network requests.
+  - Customisable via `settings.WEBMENTIONS_USER_AGENT: str`.
+
+
+- Admin-facing strings are now translatable.
+
+
+- Added `urlpatterns` helper functions `mentions_path`, `mentions_re_path` for (hopefully) simpler setup.
+  - More straightforward view-to-model mapping.
+  - Removes the need to implement `resolve_from_url_kwargs` on your MentionableMixin implementation.
+  - See [the wiki](https://github.com/beatonma/django-wm/wiki/Guide_Using-MentionableMixin#urlpatterns) for 
+
+  
+- Support for [Wagtail](https://wagtail.org/).
+  - `Page` models should implement `MentionableMixin` as usual.
+  - `RoutablePageMixin` should use the new `@mentions_wagtail_path`, `@mentions_wagtail_re_path` decorators in place of the Wagtail equivalents `@path`, `@re_path`.
+    - These work essentially the same `mentions_path` and `mentions_re_path`.
+  - If using RichTextField call `richtext` on any RichTextField values in `get_content_html`:
+  ```python
+  from wagtail.templatetags.wagtailcore_tags import richtext
+  
+  class MyModel(MentionableMixin, Page):
+      ...
+      def get_content_html(self) -> str:
+          return f"{richtext(self.overview)} {richtext(self.body)}"
+  ```
+
+
+- Wiki pages are now [live](https://github.com/beatonma/django-wm/wiki/)! These will be kept up-to-date going forwards but may not be useful for pre-4.0 versions.
+
+
+- Fix: Relative URLs in `h-card` homepage or avatar are now resolved to absolute URLs.
+
+
+## 3.1.1 (2022-10-26)
+
+Fixes [#43](https://github.com/beatonma/django-wm/issues/43): outgoing webmention being resubmitted continuously.
+
+
 ## 3.1.0 (2022-10-06)
 
 - Resolves [#38](https://github.com/beatonma/django-wm/issues/38): Revalidate target URLs when handling pending mentions
@@ -197,7 +258,7 @@ Fix: Test view defined in main urlpatterns.
 
 ### Breaking Changes
 
-- Migrations are now included. If you are upgrading from any `1.x.x` version please follow [these instructions](docs/upgrading_to_2.0.md) to avoid data loss. Thanks to **@GriceTurrble for providing these instructions.
+- Migrations are now included. If you are upgrading from any `1.x.x` version please follow [these instructions](https://github.com/beatonma/django-wm/wiki/Guide_Upgrading-to-2.0) to avoid data loss. Thanks to **@GriceTurrble for providing these instructions.
 
 - `requirements.txt` `celery` version updated to `5.2.2` due to [CVE-2021-23727](https://github.com/advisories/GHSA-q4xr-rc97-m4xx). If you are upgrading from `4.x` please follow the [upgrade instructions](https://docs.celeryproject.org/en/stable/history/whatsnew-5.0.html#upgrading-from-celery-4-x) provided by Celery.
 

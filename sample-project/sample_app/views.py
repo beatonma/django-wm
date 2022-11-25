@@ -8,10 +8,10 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.views import View
-from sample_app.models import Article, create_article
+from sample_app.models import Article, Blog, create_article
 
-from mentions import options
-from mentions.resolution import get_mentions_for_absolute_url
+from mentions import config, options
+from mentions.resolution import get_mentions_for_url
 
 log = logging.getLogger(__name__)
 
@@ -21,15 +21,34 @@ default_context = {
 }
 
 
-class ArticleView(View):
+class BaseView(View):
+    def dispatch(self, request, *args, **kwargs):
+        log.info(f"{request} | {request.headers}")
+        return super().dispatch(request, *args, **kwargs)
+
+
+class ArticleView(BaseView):
     def get(self, request, article_id: int, *args, **kwargs):
         article = Article.objects.get(pk=article_id)
         return render(
             request,
-            "article.html",
+            "sample_app/article.html",
             context={
                 **default_context,
                 "article": article,
+            },
+        )
+
+
+class BlogView(BaseView):
+    def get(self, request, blog_id: int, *args, **kwargs):
+        blog = Blog.objects.get(pk=blog_id)
+        return render(
+            request,
+            "sample_app/article.html",
+            context={
+                **default_context,
+                "article": blog,
             },
         )
 
@@ -58,27 +77,25 @@ class ActionForm(forms.Form):
     )
 
 
-class ActionView(View):
+class ActionView(BaseView):
     def get(self, request):
-        articles = Article.objects.all()
+        articles = list(Article.objects.all()) + list(Blog.objects.all())
 
         form = ActionForm(
             initial={
-                "target": settings.DEFAULT_MENTION_TARGET,
+                "target": random.choice(settings.AUTOMENTION_URLS),
                 "author": "Author Authorson",
             }
         )
 
         return render(
             request,
-            "actions.html",
+            "sample_app/actions.html",
             context={
                 **default_context,
                 "articles": articles,
                 "action_form": form,
-                "mentions": get_mentions_for_absolute_url(
-                    f"{options.base_url()}{reverse('actions')}"
-                ),
+                "mentions": get_mentions_for_url(config.build_url(reverse("actions"))),
             },
         )
 
@@ -108,7 +125,7 @@ class ActionView(View):
             return HttpResponse(status=400)
 
 
-class TimeoutView(View):
+class TimeoutView(BaseView):
     """A view which takes too long to respond."""
 
     def get(self, request):
@@ -116,7 +133,7 @@ class TimeoutView(View):
         return HttpResponse("That took a while!", status=200)
 
 
-class MaybeTimeoutView(View):
+class MaybeTimeoutView(BaseView):
     def get(self, request):
         timed_out = random.random() > 0.4
 
