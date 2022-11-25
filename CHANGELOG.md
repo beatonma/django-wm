@@ -1,6 +1,6 @@
 # Changelog
 
-## 4.0.0 (2022-11-23)
+## 4.0.0 (2022-11-25)
 
 > This update alters fields on `MentionableMixin` so you will need to run `makemigrations` and `migrate` after upgrading!
 
@@ -51,6 +51,9 @@
 
 
 - Wiki pages are now [live](https://github.com/beatonma/django-wm/wiki/)! These will be kept up-to-date going forwards but may not be useful for pre-4.0 versions.
+
+
+- Fix: Relative URLs in `h-card` homepage or avatar are now resolved to absolute URLs.
 
 
 ## 3.1.1 (2022-10-26)
