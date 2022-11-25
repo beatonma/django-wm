@@ -32,7 +32,7 @@
 - Added `urlpatterns` helper functions `mentions_path`, `mentions_re_path` for (hopefully) simpler setup.
   - More straightforward view-to-model mapping.
   - Removes the need to implement `resolve_from_url_kwargs` on your MentionableMixin implementation.
-  - See [the wiki](https://github.com/beatonma/django-wm/wiki/Guide_Using-MentionableMixin#urlpatterns) for 
+  - See [the wiki](https://github.com/beatonma/django-wm/wiki/Guide_Using-MentionableMixin#urlpatterns) for example setup instructions.
 
   
 - Support for [Wagtail](https://wagtail.org/).
