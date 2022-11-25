@@ -82,11 +82,29 @@ def get_metadata_from_source(
 
     post_type = parse_post_type(link)
 
-    hcard = find_related_hcard(link)
-    if not hcard:
-        hcard = parse_hcard(soup, recursive=False)
+    hcard = find_related_hcard(link) or parse_hcard(soup, recursive=False)
+    if hcard:
+        hcard = coerce_hcard_absolute_urls(hcard, source_url)
 
     return WebmentionMetadata(
         post_type=post_type.serialized_name() if post_type else None,
         hcard=hcard,
     )
+
+
+def coerce_hcard_absolute_urls(hcard: HCard, source_url: str) -> HCard:
+    """Convert any relative URLs to absolute URLs."""
+    updated_fields = []
+
+    if hcard.avatar:
+        hcard.avatar = urljoin(source_url, hcard.avatar)
+        updated_fields.append("avatar")
+
+    if hcard.homepage:
+        hcard.homepage = urljoin(source_url, hcard.homepage)
+        updated_fields.append("homepage")
+
+    if updated_fields:
+        hcard.save(update_fields=updated_fields)
+
+    return hcard

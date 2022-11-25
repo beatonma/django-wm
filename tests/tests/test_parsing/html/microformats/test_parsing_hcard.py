@@ -2,7 +2,7 @@
 Ensure HCard objects are correctly built from HTML elements with the 'h-card' class.
 """
 import logging
-from typing import Optional
+from typing import Callable, Optional, Union
 
 from mentions.models import HCard
 from mentions.tasks.incoming.remote import get_metadata_from_source
@@ -15,11 +15,16 @@ MENTIONED_URL = testfunc.random_url()
 MENTION_ANCHOR = f"""<a href="{MENTIONED_URL}">Our content</a>"""
 
 
-def _hcard_from_soup(html) -> Optional[HCard]:
+def _hcard_from_soup(
+    html: str,
+    source_url: Union[Callable, str] = testfunc.random_url,
+) -> Optional[HCard]:
+    if callable(source_url):
+        source_url = source_url()
     return get_metadata_from_source(
         html,
         target_url=MENTIONED_URL,
-        source_url=testfunc.random_url(),
+        source_url=source_url,
     ).hcard
 
 
@@ -340,3 +345,21 @@ class EmbeddedHCardParsingTests(WebmentionTestCase):
 
         hcard = _hcard_from_soup(html)
         self.assertEqual(hcard.name, "Embedded in post")
+
+    def test_relative_urls_are_converted(self):
+        source_url = "https://my-hcard.org/"
+        html = f"""
+        Blah blah blah {MENTION_ANCHOR}
+        <p class="h-card">
+            <img class="u-photo" src="/photo.jpg" alt="" />
+            <a class="p-name u-url" href="/">Jane Bloggs</a>
+            <a class="u-email" href="mailto:janebloggs@janebloggs.com">janebloggs@janebloggs.com</a>,
+            <span class="p-street-address">17 Austerstræti</span>
+            <span class="p-locality">Reykjavík</span>
+            <span class="p-country-name">Iceland</span>
+        </p>
+        """
+
+        hcard = _hcard_from_soup(html, source_url=source_url)
+        self.assertEqual(hcard.avatar, "https://my-hcard.org/photo.jpg")
+        self.assertEqual(hcard.homepage, "https://my-hcard.org/")
