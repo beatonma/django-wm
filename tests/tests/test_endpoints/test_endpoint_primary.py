@@ -13,9 +13,7 @@ class PrimaryEndpointTests(WebmentionTestCase):
         )
 
     def _mock_post(self, data: dict, accept: bool) -> int:
-        with patch(
-            "mentions.views.submit_mentions.handle_incoming_webmention"
-        ) as mock_func:
+        with patch("mentions.views.submit.handle_incoming_webmention") as mock_func:
             response = self.client.post(
                 testfunc.endpoint_submit_webmention_absolute(),
                 data=data,

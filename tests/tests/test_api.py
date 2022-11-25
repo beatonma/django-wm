@@ -130,18 +130,6 @@ class TaskApiTests(ApiTestCase):
         )
 
 
-class ViewApiTests(ApiTestCase):
-    module_name = "mentions.views"
-
-    def test_expected_views_are_accessible(self):
-        self.assertExistsInModule(
-            "GetMentionsByTypeView",
-            "GetMentionsView",
-            "WebmentionView",
-            "WebmentionDashboardView",
-        )
-
-
 class WagtailApiTests(ApiTestCase):
     module_name = "mentions.helpers.thirdparty.wagtail"
 

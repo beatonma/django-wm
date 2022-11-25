@@ -1,3 +1,5 @@
+"""JSON serialization for web endpoints."""
+
 from typing import Dict, Iterable, List, Optional
 
 from mentions.models import HCard, SimpleMention, Webmention
@@ -5,14 +7,12 @@ from mentions.models.mixins import IncomingMentionType, QuotableMixin
 
 __all__ = [
     "serialize_hcard",
+    "serialize_mention",
     "serialize_mentions",
     "serialize_mentions_by_type",
 ]
 
 from mentions.views import contract
-
-TYPE_DEFAULT = "webmention"
-TYPE_SIMPLE = "simple"
 
 
 def serialize_mention(mention: QuotableMixin) -> Dict:
@@ -32,7 +32,10 @@ def serialize_mentions(mentions: Iterable[QuotableMixin]) -> List[Dict]:
 def serialize_mentions_by_type(
     mentions: Iterable[QuotableMixin],
 ) -> Dict[str, List[Dict]]:
-    type_names = IncomingMentionType.serialized_names() + [TYPE_DEFAULT, TYPE_SIMPLE]
+    type_names = IncomingMentionType.serialized_names() + [
+        contract.MENTION_TYPE_DEFAULT,
+        contract.MENTION_TYPE_SIMPLE,
+    ]
     types = {name: [] for name in type_names}
 
     for mention in mentions:
@@ -54,9 +57,9 @@ def serialize_hcard(hcard: Optional[HCard]) -> Optional[Dict]:
 
 def _typeof(mention) -> str:
     if isinstance(mention, Webmention):
-        return mention.post_type or TYPE_DEFAULT
+        return mention.post_type or contract.MENTION_TYPE_DEFAULT
 
     if isinstance(mention, SimpleMention):
-        return TYPE_SIMPLE
+        return contract.MENTION_TYPE_SIMPLE
 
     raise ValueError(f"Unhandled mention type: {mention}")

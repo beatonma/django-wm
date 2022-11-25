@@ -11,6 +11,9 @@ MENTION_QUOTE = "quote"
 MENTION_PUBLISHED = "published"
 MENTION_TYPE = "type"
 
+MENTION_TYPE_DEFAULT = "webmention"
+MENTION_TYPE_SIMPLE = "simple"
+
 # h-card
 HCARD = "hcard"
 HCARD_NAME = "name"

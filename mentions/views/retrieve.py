@@ -7,8 +7,8 @@ from django.views import View
 from mentions import config
 from mentions.exceptions import TargetDoesNotExist
 from mentions.resolution import get_mentions_for_url
-from mentions.serialize import serialize_mentions, serialize_mentions_by_type
 from mentions.views import contract
+from mentions.views.serialize import serialize_mentions, serialize_mentions_by_type
 
 __all__ = [
     "GetMentionsView",
