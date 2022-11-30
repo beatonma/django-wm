@@ -14,9 +14,9 @@ from tests.test_app.models import MentionableTestModel
 from tests.tests.util import viewname
 
 
-def create_mentionable_object(content: str = ""):
+def create_mentionable_object(content: str = "", **kwargs):
     """Create and return an instance of MentionableTestModel."""
-    return MentionableTestModel.objects.create(content=content)
+    return MentionableTestModel.objects.create(content=content, **kwargs)
 
 
 def create_webmention(

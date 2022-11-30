@@ -30,9 +30,15 @@ def parse_args() -> Tuple[argparse.Namespace, List[str]]:
     parser = argparse.ArgumentParser()
 
     subs = parser.add_subparsers(dest="command")
-    subs.add_parser("makemigrations")
+    makemigrations = subs.add_parser("makemigrations")
+    makemigrations.add_argument("migration_apps", nargs="*")
 
-    return parser.parse_known_args()
+    known_, remaining_ = parser.parse_known_args()
+
+    MIGRATION_SETTINGS["INSTALLED_APPS"] += known_.migration_apps
+    known_.migration_apps = [x.split(".")[-1] for x in known_.migration_apps]
+
+    return known_, remaining_
 
 
 if __name__ == "__main__":
@@ -43,6 +49,6 @@ if __name__ == "__main__":
     settings.configure(**MIGRATION_SETTINGS)
     django.setup()
 
-    args = sys.argv + [args_.command]
+    args = sys.argv + [args_.command] + args_.migration_apps
 
     execute_from_command_line(args)

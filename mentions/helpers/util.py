@@ -1,9 +1,9 @@
-from typing import Dict, Set, Type
+from typing import Dict, Set
 
 from django.urls import URLPattern
 
 from mentions import contract
-from mentions.helpers.types import MentionableImpl, SharedFieldName, UrlKwarg
+from mentions.helpers.types import ModelClass, SharedFieldName, UrlKwarg
 
 __all__ = [
     "get_captured_filters",
@@ -11,7 +11,10 @@ __all__ = [
 ]
 
 
-def get_dotted_model_name(model_class: Type[MentionableImpl]) -> str:
+def get_dotted_model_name(model_class: ModelClass) -> str:
+    if isinstance(model_class, str):
+        return model_class
+
     model_app = model_class._meta.app_label
     model_name = model_class.__name__
 

@@ -1,57 +1,31 @@
 import logging
-from typing import Callable, Optional, Sequence, Type
+from typing import Callable, Optional, Sequence
 
-from django.apps import apps
-from django.urls import ResolverMatch, URLPattern
+from django.urls import URLPattern
 from django.urls import path as django_path
 from django.urls import re_path as django_re_path
 
-from mentions import contract, options
-from mentions.config import is_wagtail_installed
-from mentions.exceptions import BadUrlConfig, NoModelForUrlPath, OptionalDependency
-from mentions.helpers.resolution import get_model_for_url_by_helper
-from mentions.helpers.types import MentionableImpl, ModelFilter, ModelFilterMap
-from mentions.helpers.util import get_captured_filters, get_dotted_model_name
-from mentions.models.mixins import MentionableMixin
-
-try:
-    from wagtail.contrib.routable_page.models import RoutablePageMixin
-    from wagtail.contrib.routable_page.models import path as wagtail_path
-    from wagtail.contrib.routable_page.models import re_path as wagtail_re_path
-except ImportError:
-
-    def config_error(name: str, *args, **kwargs):
-        raise OptionalDependency(
-            f"Helper '{name}' requires wagtail! "
-            f"Maybe you meant to use the '{name.replace('wagtail_', '')}' "
-            f"helper instead?"
-        )
-
-    wagtail_path = lambda *args, **kwargs: config_error(
-        "mentions_wagtail_path", *args, **kwargs
-    )
-    wagtail_re_path = lambda *args, **kwargs: config_error(
-        "mentions_wagtail_re_path", *args, **kwargs
-    )
-
+from mentions import contract
+from mentions.helpers.thirdparty.wagtail.proxy import wagtail_path, wagtail_re_path
+from mentions.helpers.thirdparty.wagtail.resolution import autopage_page_resolver
+from mentions.helpers.thirdparty.wagtail.util import annotate_viewfunc
+from mentions.helpers.types import ModelClass, ModelFilter, ModelFilterMap
+from mentions.helpers.util import get_captured_filters
 
 __all__ = [
     "mentions_wagtail_path",
     "mentions_wagtail_re_path",
-    "get_model_for_url_by_wagtail",
+    "mentions_wagtail_route",
 ]
 
 log = logging.getLogger(__name__)
-
-
-MENTIONS_KWARGS = "_mentions_kwargs"
 
 
 def _path(
     wagtail_path_func: Callable,
     django_path_func: Callable,
     pattern: str,
-    model_class: Type[MentionableImpl],
+    model_class: ModelClass,
     model_filters: Optional[Sequence[str]],
     model_filter_map: Optional[ModelFilterMap],
     name: Optional[str],
@@ -77,9 +51,9 @@ def _path(
             If True, automatically resolve the target page and pass it to the view_func.
             - Reduces boilerplate when defining views as you don't have to define
                 the same query twice (decorator + view func).
-            - Completely replaces the args+kwargs of the view function which may be confusing.
-                The resulting view function will have the signature `def func(self, request, page)`.
-                This is an intentional restriction to make sure this is only used for simple cases.
+            - The resulting view function will have the signature `def func(self, request, page)`,
+              with no additional args or kwargs allowed. This is an intentional restriction to make
+              sure this is only used for simple cases.
     """
 
     def decorator(view_func, *args, **kwargs):
@@ -102,15 +76,7 @@ def _path(
         if autopage:
             view_func = autopage_page_resolver(model_class, lookup, view_func)
 
-        setattr(
-            view_func,
-            MENTIONS_KWARGS,
-            {
-                contract.URLPATTERNS_MODEL_NAME: get_dotted_model_name(model_class),
-                **lookup,
-            },
-        )
-
+        view_func = annotate_viewfunc(view_func, model_class, lookup)
         path = wagtail_path(view_func, *args, **kwargs)
 
         return path
@@ -120,7 +86,7 @@ def _path(
 
 def mentions_wagtail_path(
     pattern: str,
-    model_class: Type[MentionableImpl],
+    model_class: ModelClass,
     model_filter_map: Optional[ModelFilterMap] = None,
     name: str = None,
     autopage=False,
@@ -142,9 +108,9 @@ def mentions_wagtail_path(
             If True, automatically resolve the target page and pass it to the view_func.
             - Reduces boilerplate when defining views as you don't have to define
                 the same query twice (decorator + view func).
-            - Completely replaces the args+kwargs of the view function which may be confusing.
-                The resulting view function will have the signature `def func(self, request, page)`.
-                This is an intentional restriction to make sure this is only used for simple cases.
+            - The resulting view function will have the signature `def func(self, request, page)`,
+              with no additional args or kwargs allowed. This is an intentional restriction to make
+              sure this is only used for simple cases.
     """
     return _path(
         wagtail_path_func=wagtail_path,
@@ -160,7 +126,7 @@ def mentions_wagtail_path(
 
 def mentions_wagtail_re_path(
     pattern: str,
-    model_class: Type[MentionableImpl],
+    model_class: ModelClass,
     model_filters: Optional[Sequence[ModelFilter]] = None,
     model_filter_map: Optional[ModelFilterMap] = None,
     name: str = None,
@@ -188,9 +154,9 @@ def mentions_wagtail_re_path(
             If True, automatically resolve the target page and pass it to the view_func.
             - Reduces boilerplate when defining views as you don't have to define
                 the same query twice (decorator + view func).
-            - Completely replaces the args+kwargs of the view function which may be confusing.
-                The resulting view function will have the signature `def func(self, request, page)`.
-                This is an intentional restriction to make sure this is only used for simple cases.
+            - The resulting view function will have the signature `def func(self, request, page)`,
+              with no additional args or kwargs allowed. This is an intentional restriction to make
+              sure this is only used for simple cases.
     """
     return _path(
         wagtail_path_func=wagtail_re_path,
@@ -204,61 +170,4 @@ def mentions_wagtail_re_path(
     )
 
 
-def get_model_for_url_by_wagtail(match: ResolverMatch) -> MentionableMixin:
-    """Try to resolve a Wagtail Page instance, if Wagtail is installed.
-
-    If using RoutablePageMixin you must replace the Wagtail @path/@re_path
-    decorators with @mentions_wagtail_path/@mentions_wagtail_re_path to add
-    the metadata required to resolve the correct target Page.
-    """
-
-    if not is_wagtail_installed():
-        raise OptionalDependency("wagtail")
-
-    import wagtail.views
-
-    if match.func != wagtail.views.serve:
-        raise OptionalDependency("wagtail")
-
-    from wagtail.models.sites import get_site_for_hostname
-
-    site = get_site_for_hostname(options.domain_name(), None)
-    path = match.args[0]
-    path_components = [component for component in path.split("/") if component]
-
-    page, args, kwargs = site.root_page.localized.specific.route(None, path_components)
-
-    if isinstance(page, MentionableMixin):
-        return page
-
-    if not isinstance(page, RoutablePageMixin):
-        raise NoModelForUrlPath()
-
-    view_func, view_args, view_kwargs = args
-
-    kwarg_mapping = getattr(view_func, MENTIONS_KWARGS, {})
-    view_kwargs.update(kwarg_mapping)
-
-    model_name = view_kwargs.get(contract.URLPATTERNS_MODEL_NAME)
-
-    try:
-        model_class: Type[MentionableMixin] = apps.get_model(model_name)
-
-    except LookupError:
-        raise BadUrlConfig(f"Cannot find model `{model_name}`!")
-
-    return get_model_for_url_by_helper(model_class, view_args, view_kwargs)
-
-
-def autopage_page_resolver(
-    model_class: Type[MentionableImpl],
-    lookup: dict,
-    view_func: Callable,
-) -> Callable:
-    def wrapped_view_func(self, request, *args, **kwargs):
-        lookup_kwargs = {**lookup, **kwargs}
-        page = get_model_for_url_by_helper(model_class, args, lookup_kwargs)
-
-        return view_func(self, request, page)
-
-    return wrapped_view_func
+mentions_wagtail_route = mentions_wagtail_re_path

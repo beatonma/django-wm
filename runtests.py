@@ -1,4 +1,5 @@
 #!env/bin/python
+import logging
 import os
 import sys
 from argparse import ArgumentParser
@@ -7,6 +8,10 @@ import django
 from django.conf import settings
 from django.core.management import execute_from_command_line
 from django.test.utils import get_runner
+
+log = logging.getLogger(__name__)
+log.addHandler(logging.StreamHandler())
+log.setLevel(logging.INFO)
 
 SETTINGS_PATH = "tests.config.settings"
 
@@ -79,14 +84,32 @@ def _runtests():
 
     django.setup()
 
+    log.info(get_version_info())
+
     test_runner = get_runner(settings)()
 
     # Detailed report for any tests that are non-passing (failed, skipped...)
     default_args = "-r a".split(" ")
     args = get_sys_args() or default_args
+
     failures = test_runner.run_tests(["tests", *args])
 
     sys.exit(bool(failures))
+
+
+def get_version_info():
+    import mentions
+
+    try:
+        import wagtail
+    except ImportError:
+        wagtail = lambda: 1
+        setattr(wagtail, "__version__", "not-installed")
+    return (
+        f"mentions=={mentions.__version__}, "
+        f"django=={django.__version__}, "
+        f"wagtail=={getattr(wagtail, '__version__')}"
+    )
 
 
 if __name__ == "__main__":
