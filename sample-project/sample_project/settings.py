@@ -1,5 +1,7 @@
 import os
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 WSGI_APPLICATION = "sample_project.wsgi.application"
 ROOT_URLCONF = "sample_project.urls"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
@@ -20,7 +22,6 @@ CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL")
 
 # Settings for sample_app.
 DEFAULT_MENTION_TARGET_DOMAIN = os.environ.get("DEFAULT_MENTION_TARGET_DOMAIN") or ""
-# DEFAULT_MENTION_TARGET = f"http://{DEFAULT_MENTION_TARGET_DOMAIN}{os.environ.get('DEFAULT_MENTION_TARGET') or ''}"
 AUTOMENTION_EMABLED = os.environ.get("AUTOMENTION_ENABLED", "True").lower() == "true"
 AUTOMENTION_URLS = [
     f"http://{DEFAULT_MENTION_TARGET_DOMAIN}{x}"
@@ -49,6 +50,7 @@ WEBMENTIONS_MAX_RETRIES = 5
 
 STATIC_URL = "/static/"
 STATIC_ROOT = "/var/www/static/"
+STATICFILES_DIRS = (os.path.join(BASE_DIR, "static/"),)
 
 db = os.environ.get("POSTGRES_DB")
 if db:
@@ -85,10 +87,7 @@ INSTALLED_APPS = [
 
 try:
     import wagtail
-except ImportError:
-    wagtail = None
 
-if wagtail is not None:
     INSTALLED_APPS += [
         "wagtail.contrib.forms",
         "wagtail.contrib.redirects",
@@ -108,6 +107,8 @@ if wagtail is not None:
     ]
     WAGTAIL_SITE_NAME = "sample_app_wagtail"
     WAGTAILADMIN_BASE_URL = f"http://{DOMAIN_NAME}"
+except ImportError:
+    pass
 
 
 MIDDLEWARE = [
