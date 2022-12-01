@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block head %}
+  <title>#47: Create article</title>
+{% endblock %}
+
+{% block body %}
+
+<h4>Article Meta</h4>
+
+<form method="post">
+  {% csrf_token %}
+
+  <div>
+    {{ form.allow_outgoing_webmentions }}
+    <label for="{{ form.allow_outgoing_webmentions.id_for_label }}">Send webmentions</label>
+  </div>
+
+  <div>
+    {{ form.rss_only }}
+    <label for="{{ form.rss_only.id_for_label }}">RSS only</label>
+  </div>
+
+  <div>
+    <label for="{{ form.text.id_for_label }}">Text:</label>
+    {{ form.text }}
+  </div>
+
+  <input type="submit" value="Save">
+</form>
+{% endblock %}

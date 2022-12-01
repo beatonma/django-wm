@@ -48,6 +48,7 @@ WEBMENTIONS_MAX_RETRIES = 5
 # End of settings for django-wm
 
 
+LOGIN_URL = "admin:login"
 STATIC_URL = "/static/"
 STATIC_ROOT = "/var/www/static/"
 STATICFILES_DIRS = (os.path.join(BASE_DIR, "static/"),)
@@ -82,6 +83,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.staticfiles",
     "mentions",
+    "issues_app",
     "sample_app",
 ]
 

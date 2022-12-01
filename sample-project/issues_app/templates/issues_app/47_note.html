@@ -1,0 +1,5 @@
+{% extends "base.html" %}
+{% block body %}
+  <div>Send webmentions: {{ note.allow_outgoing_webmentions }}</div>
+  <div>{{ note.text }}</div>
+{% endblock %}

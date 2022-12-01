@@ -5,7 +5,9 @@ from django.urls import include, path
 urlpatterns = [
     path("django-admin/", admin.site.urls),
     path("webmention/", include("mentions.urls")),
+    path("issues/", include("issues_app.urls")),
 ]
+
 
 try:
     from wagtail import urls as wagtail_urls
