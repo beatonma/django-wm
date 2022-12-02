@@ -1,6 +1,10 @@
 import os
+import random
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from .app_settings import *
+from .mentions_settings import *
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 WSGI_APPLICATION = "sample_project.wsgi.application"
 ROOT_URLCONF = "sample_project.urls"
@@ -18,40 +22,11 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL")
-
-
-# Settings for sample_app.
-DEFAULT_MENTION_TARGET_DOMAIN = os.environ.get("DEFAULT_MENTION_TARGET_DOMAIN") or ""
-AUTOMENTION_EMABLED = os.environ.get("AUTOMENTION_ENABLED", "True").lower() == "true"
-AUTOMENTION_URLS = [
-    f"http://{DEFAULT_MENTION_TARGET_DOMAIN}{x}"
-    for x in (os.environ.get("AUTOMENTION_URLS") or "").split(",")
-]
-# End of settings for sample_app
-
-
-# Settings for django-wm
-try:
-    import celery
-
-    # Enable celery depending on current docker configuration.
-    WEBMENTIONS_USE_CELERY = True
-except ImportError:
-    WEBMENTIONS_USE_CELERY = False
-
-WEBMENTIONS_URL_SCHEME = "http"
-WEBMENTIONS_AUTO_APPROVE = True
-WEBMENTIONS_TIMEOUT = 3
-WEBMENTIONS_DASHBOARD_PUBLIC = True
-WEBMENTIONS_RETRY_INTERVAL = 2 * 60
-WEBMENTIONS_MAX_RETRIES = 5
-# End of settings for django-wm
-
-
 LOGIN_URL = "admin:login"
 STATIC_URL = "/static/"
 STATIC_ROOT = "/var/www/static/"
 STATICFILES_DIRS = (os.path.join(BASE_DIR, "static/"),)
+
 
 db = os.environ.get("POSTGRES_DB")
 if db:
@@ -74,6 +49,7 @@ else:
             "NAME": _db_name,
         }
     }
+
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -172,3 +148,10 @@ TEMPLATES = [
         },
     }
 ]
+
+# Internationalisation
+USE_TZ = True
+USE_I18N = True  # Translation
+USE_L10N = True  # Localised date formatting
+languages = ["en-gb", "en-us", "fr-fr", "de-de"]
+LANGUAGE_CODE = random.choice(languages)
