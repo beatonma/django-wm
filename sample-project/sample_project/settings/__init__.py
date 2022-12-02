@@ -99,6 +99,11 @@ MIDDLEWARE = [
     "mentions.middleware.WebmentionHeadMiddleware",
 ]
 
+
+def _logger(level: str = "DEBUG"):
+    return {"handlers": ["console"], "level": level}
+
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -109,25 +114,17 @@ LOGGING = {
         }
     },
     "loggers": {
-        "django": {
-            "handlers": ["console"],
-            "level": "INFO",
-        },
-        "mentions": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-        },
-        "sample_app": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-        },
-        "celery": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-        },
-        "celery.task": {
-            "handlers": ["console"],
-            "level": "DEBUG",
+        "django": _logger("INFO"),
+        **{
+            app_name: _logger()
+            for app_name in [
+                "mentions",
+                "sample_app",
+                "sample_wagtail_app",
+                "issues_app",
+                "celery",
+                "celery.task",
+            ]
         },
     },
 }
