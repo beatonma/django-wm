@@ -1,7 +1,8 @@
-from typing import Optional, Union
+from typing import Optional, Tuple, Union
 
 from mentions import options
 from mentions.exceptions import (
+    RejectedByConfig,
     SourceDoesNotLink,
     SourceNotAccessible,
     TargetDoesNotExist,
@@ -19,7 +20,10 @@ from mentions.tasks.incoming.remote import (
 
 __all__ = [
     "process_incoming_webmention",
+    "verify_webmention",
 ]
+
+from mentions.tasks.incoming.status import Status
 
 log = get_logger(__name__)
 
@@ -31,13 +35,51 @@ def process_incoming_webmention(source_url: str, target_url: str, sent_by: str) 
     status = Status()
 
     try:
+        is_verified, target_object, metadata = verify_webmention(
+            source_url=source_url, target_url=target_url
+        )
+
+    except RejectedByConfig:
+        log.warning(
+            f"Ignoring received webmention [{source_url} -> {target_url}]: "
+            "target does not resolve to a mentionable model instance."
+        )
+        return
+
+    except SourceNotAccessible:
+        _save_for_retry(source_url, target_url, sent_by)
+        return
+
+    if not is_verified:
+        status.warning(f"Source does not contain a link to '{target_url}'")
+
+    _create_webmention(
+        source_url=source_url,
+        target_url=target_url,
+        sent_by=sent_by,
+        target_object=target_object,
+        verified=is_verified,
+        metadata=metadata,
+        notes=status,
+    )
+    _mark_complete(source_url, target_url)
+
+
+def verify_webmention(
+    source_url: str,
+    target_url: str,
+) -> Tuple[bool, Optional[MentionableMixin], Optional[WebmentionMetadata]]:
+    """If the returned metadata is None, verification"""
+    is_verified = False
+
+    try:
         target_object = get_target_object(target_url)
 
     except TargetWrongDomain:
         log.warning(
             f"Received webmention does not target our domain: {source_url} -> {target_url}"
         )
-        return
+        raise
 
     except TargetDoesNotExist:
         target_object = None
@@ -47,66 +89,28 @@ def process_incoming_webmention(source_url: str, target_url: str, sent_by: str) 
             f"Ignoring received webmention [{source_url} -> {target_url}]: "
             "target does not resolve to a mentionable model instance."
         )
-        return
+        raise RejectedByConfig(f"No target_object found for url={target_url}")
 
     try:
         response_html = get_source_html(source_url)
 
     except SourceNotAccessible:
-        return _save_for_retry(source_url, target_url, sent_by)
-
-    webmention_kwargs = {
-        "source_url": source_url,
-        "target_url": target_url,
-        "sent_by": sent_by,
-        "target_object": target_object,
-    }
+        raise
 
     try:
         metadata = get_metadata_from_source(response_html, target_url, source_url)
-        _create_webmention(
-            **webmention_kwargs,
-            validated=True,
-            metadata=metadata,
-            notes=status,
-        )
-
+        is_verified = True
     except SourceDoesNotLink:
-        _create_webmention(
-            **webmention_kwargs,
-            validated=False,
-            metadata=None,
-            notes=status.warning(f"Source does not contain a link to '{target_url}'"),
-        )
+        metadata = None
 
-    _mark_complete(source_url, target_url)
-
-
-class Status:
-    """Keep track of any issues that might need to be checked manually."""
-
-    def __init__(self):
-        self.notes = []
-        self.ok = True
-
-    def error(self, note: str):
-        self.ok = False
-        return self.warning(note)
-
-    def warning(self, note: str) -> "Status":
-        log.warning(note)
-        self.notes.append(note)
-        return self
-
-    def __str__(self):
-        return "\n".join(self.notes)[:1023]
+    return is_verified, target_object, metadata
 
 
 def _create_webmention(
     source_url: str,
     target_url: str,
     sent_by: str,
-    validated: bool,
+    verified: bool,
     target_object: Optional[MentionableMixin],
     metadata: Optional[WebmentionMetadata],
     notes: Union[Status, str] = "",
@@ -116,7 +120,7 @@ def _create_webmention(
         target_url=target_url,
         sent_by=sent_by,
         target_object=target_object,
-        validated=validated,
+        validated=verified,
         hcard=metadata.hcard if metadata else None,
         post_type=metadata.post_type if metadata else None,
         notes=str(notes),

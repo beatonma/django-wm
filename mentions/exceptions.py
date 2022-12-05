@@ -62,6 +62,10 @@ class SourceDoesNotLink(IncomingWebmentionException):
     pass
 
 
+class RejectedByConfig(IncomingWebmentionException):
+    """The mention is being rejected due to the current settings configuration."""
+
+
 class NoModelForUrlPath(IncomingWebmentionException):
     """URL resolved to a `urlpattern` which did not include `model_name` kwarg."""
 

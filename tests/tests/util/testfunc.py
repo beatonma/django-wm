@@ -28,6 +28,7 @@ def create_webmention(
     approved: bool = True,
     validated: bool = True,
     quote: Optional[str] = None,
+    notes: Optional[str] = "",
 ) -> Webmention:
     return Webmention.objects.create(
         source_url=source_url or random_url(),
@@ -38,6 +39,7 @@ def create_webmention(
         approved=approved,
         validated=validated,
         quote=quote,
+        notes=notes,
     )
 
 
