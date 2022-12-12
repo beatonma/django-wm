@@ -8,7 +8,11 @@ from mentions.tasks.incoming.status import Status
 log = logging.getLogger(__name__)
 
 
-def reverify_mention(mention: Webmention):
+def reverify_mention(mention: Webmention) -> bool:
+    """Redo the verification process for the given Webmention.
+
+    Returns True if the mention was modified, False otherwise."""
+
     source_url = mention.source_url
     target_url = mention.target_url
 
@@ -21,14 +25,12 @@ def reverify_mention(mention: Webmention):
         )
 
     except RejectedByConfig as e:
-        _mark_invalid(mention, status.warning(str(e)))
-        return
+        return _mark_invalid(mention, status.warning(str(e)))
 
     except SourceNotAccessible:
-        _mark_invalid(
+        return _mark_invalid(
             mention, status.warning(f"Source URL not accessible: '{source_url}'")
         )
-        return
 
     updated_fields = []
 
@@ -57,15 +59,18 @@ def reverify_mention(mention: Webmention):
         updated_fields.append("notes")
         _append_notes(mention, status.info(f"Updated fields: {updated_fields}"))
         mention.save(update_fields=updated_fields)
+        return True
 
-    else:
-        log.info("Webmention unchanged.")
+    log.info("Webmention unchanged.")
+    return False
 
 
-def _mark_invalid(mention: Webmention, status: Status):
+def _mark_invalid(mention: Webmention, status: Status) -> bool:
+    modified = mention.validated
     mention.validated = False
     _append_notes(mention, status)
     mention.save()
+    return modified
 
 
 def _append_notes(mention: Webmention, status: Status):
