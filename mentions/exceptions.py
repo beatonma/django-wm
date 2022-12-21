@@ -25,6 +25,8 @@ class OutgoingWebmentionException(WebmentionsException):
 class WebmentionsConfigurationException(WebmentionsException):
     """Base class for an error related to `django-wm` setup."""
 
+    pass
+
 
 class BadUrlConfig(WebmentionsConfigurationException):
     """URL resolution completed but did not include required data."""
@@ -64,6 +66,8 @@ class SourceDoesNotLink(IncomingWebmentionException):
 
 class RejectedByConfig(IncomingWebmentionException):
     """The mention is being rejected due to the current settings configuration."""
+
+    pass
 
 
 class NoModelForUrlPath(IncomingWebmentionException):
