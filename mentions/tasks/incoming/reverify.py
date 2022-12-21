@@ -37,7 +37,8 @@ def reverify_mention(mention: Webmention) -> bool:
     if mention.target_object != target_object:
         log.info(f"Update target_object: {mention.target_object} -> {target_object}")
         mention.target_object = target_object
-        updated_fields.append("target_object")
+        updated_fields.append("content_type")
+        updated_fields.append("object_id")
 
     if metadata:
         if mention.hcard != metadata.hcard:

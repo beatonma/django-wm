@@ -51,7 +51,8 @@ class MentionsReverifyTests(WebmentionTestCase):
             validated=True,
         )  # Should in un-validated
 
-        target_url = testfunc.get_absolute_url_for_object()
+        obj = testfunc.create_mentionable_object()
+        target_url = testfunc.get_absolute_url_for_object(obj)
         Webmention.objects.create(
             pk=201,
             target_url=target_url,
@@ -67,7 +68,9 @@ class MentionsReverifyTests(WebmentionTestCase):
         with patch_http_get(text=f"""<a href="{target_url}">link</a>"""):
             _call_command("--all")
 
-        self.assertTrue(Webmention.objects.get(pk=201).validated)
+        target = Webmention.objects.get(pk=201)
+        self.assertTrue(target.validated)
+        self.assertEqual(target.target_object, obj)
         self.assert_exists(Webmention, validated=False, count=2)
 
     def test_command_with_no_args(self):
