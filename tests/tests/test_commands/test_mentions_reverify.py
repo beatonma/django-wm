@@ -8,15 +8,24 @@ from tests.tests.util.mocking import patch_http_get
 from tests.tests.util.testcase import WebmentionTestCase
 
 
+def _call_command(*args):
+    return call_command(
+        "mentions_reverify",
+        *args,
+        stdout=StringIO(),
+        stderr=StringIO(),
+    )
+
+
 class MentionsReverifyTests(WebmentionTestCase):
-    def test_command(self):
+    def test_command_with_filter(self):
         Webmention.objects.create(
-            target_url=testfunc.get_simple_url(),
+            target_url=testfunc.get_absolute_url_for_object(),
             source_url=testfunc.random_url(),
             validated=False,
         )
 
-        target_url = testfunc.get_simple_url()
+        target_url = testfunc.get_absolute_url_for_object()
         Webmention.objects.create(
             pk=101,
             target_url=target_url,
@@ -24,18 +33,43 @@ class MentionsReverifyTests(WebmentionTestCase):
             validated=False,
         )
         Webmention.objects.create(
-            target_url=testfunc.get_simple_url(),
+            target_url=testfunc.get_absolute_url_for_object(),
             source_url=testfunc.random_url(),
             validated=False,
         )
 
         with patch_http_get(text=f"""<a href="{target_url}">link</a>"""):
-            call_command(
-                "mentions_reverify",
-                "pk=101",
-                stdout=StringIO(),
-                stderr=StringIO(),
-            )
+            _call_command("pk=101")
 
         self.assertTrue(Webmention.objects.get(pk=101).validated)
-        self.assertEqual(Webmention.objects.filter(validated=False).count(), 2)
+        self.assert_exists(Webmention, validated=False, count=2)
+
+    def test_command_all(self):
+        Webmention.objects.create(
+            target_url=testfunc.get_absolute_url_for_object(),
+            source_url=testfunc.random_url(),
+            validated=True,
+        )  # Should in un-validated
+
+        target_url = testfunc.get_absolute_url_for_object()
+        Webmention.objects.create(
+            pk=201,
+            target_url=target_url,
+            source_url=testfunc.random_url(),
+            validated=False,
+        )  # Should be validated
+        Webmention.objects.create(
+            target_url=testfunc.get_absolute_url_for_object(),
+            source_url=testfunc.random_url(),
+            validated=True,
+        )  # Should in un-validated
+
+        with patch_http_get(text=f"""<a href="{target_url}">link</a>"""):
+            _call_command("--all")
+
+        self.assertTrue(Webmention.objects.get(pk=201).validated)
+        self.assert_exists(Webmention, validated=False, count=2)
+
+    def test_command_with_no_args(self):
+        with self.assertRaises(ValueError):
+            _call_command()
