@@ -1,15 +1,12 @@
 """A management command to reprocess an existing Webmention."""
-import logging
 from argparse import ArgumentParser
-from typing import List
+from typing import List, Union
 
 from django.core.management import BaseCommand
 from django.db.models import QuerySet
 
 from mentions.models import Webmention
 from mentions.tasks.incoming.reverify import reverify_mention
-
-log = logging.getLogger(__name__)
 
 
 class Command(BaseCommand):
@@ -37,9 +34,9 @@ class Command(BaseCommand):
             if reverify_mention(mention):
                 changed.append(mention)
 
-        log.info(f"Updated {len(changed)} mention(s):")
+        self.stdout.write(f"Updated {len(changed)} mention(s):")
         for mention in changed:
-            log.info(f"- {mention}")
+            self.stdout.write(f"- {mention}")
 
 
 def get_target_mentions(filters: List[str], all_mentions: bool) -> QuerySet[Webmention]:
@@ -55,6 +52,25 @@ def get_target_mentions(filters: List[str], all_mentions: bool) -> QuerySet[Webm
     query = {}
     for filter_str in filters:
         filter_, value = filter_str.split("=")
-        query[filter_] = value
+        query[filter_] = parse_filter_value(value)
 
     return Webmention.objects.filter(**query)
+
+
+def parse_filter_value(filter_value: str) -> Union[bool, int, float, str]:
+    if filter_value == "True":
+        return True
+    if filter_value == "False":
+        return False
+
+    try:
+        return int(filter_value)
+    except ValueError:
+        pass
+
+    try:
+        return float(filter_value)
+    except ValueError:
+        pass
+
+    return filter_value
