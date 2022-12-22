@@ -1,5 +1,18 @@
 # Changelog
 
+## 4.0.1 (2022-12-22)
+
+- Added management command `mentions_reverify [filters ...] [--all]`
+  - Allows you to reprocess received Webmentions to see if they are still 'live'.
+  - Accepts a space-separated list of `field=value` queryset filters, or `--all` to reprocess all of them.
+
+- Added management command `mentions_pending` to replace `pending_mentions` for naming consistency with other commands.
+  - `pending_mentions` still works though.
+
+- Now compatible with `Wagtail>=3.0.3` (previously `>=4.0`).
+  - `mentions_wagtail_path` still requires `>=4.0`: use `mentions_wagtail_route` or `mentions_wagtail_re_path`.
+
+
 ## 4.0.0 (2022-11-25)
 
 > This update alters fields on `MentionableMixin` so you will need to run `makemigrations` and `migrate` after upgrading!
@@ -32,7 +45,7 @@
 - Added `urlpatterns` helper functions `mentions_path`, `mentions_re_path` for (hopefully) simpler setup.
   - More straightforward view-to-model mapping.
   - Removes the need to implement `resolve_from_url_kwargs` on your MentionableMixin implementation.
-  - See [the wiki](https://github.com/beatonma/django-wm/wiki/Guide_Using-MentionableMixin#urlpatterns) for 
+  - See [the wiki](https://github.com/beatonma/django-wm/wiki/Guide_Using-MentionableMixin#urlpatterns) for example setup instructions.
 
   
 - Support for [Wagtail](https://wagtail.org/).

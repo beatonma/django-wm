@@ -1,4 +1,10 @@
 import os
+import random
+
+from .app_settings import *
+from .mentions_settings import *
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 WSGI_APPLICATION = "sample_project.wsgi.application"
 ROOT_URLCONF = "sample_project.urls"
@@ -16,39 +22,11 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 
 CELERY_BROKER_URL = os.environ.get("CELERY_BROKER_URL")
-
-
-# Settings for sample_app.
-DEFAULT_MENTION_TARGET_DOMAIN = os.environ.get("DEFAULT_MENTION_TARGET_DOMAIN") or ""
-# DEFAULT_MENTION_TARGET = f"http://{DEFAULT_MENTION_TARGET_DOMAIN}{os.environ.get('DEFAULT_MENTION_TARGET') or ''}"
-AUTOMENTION_EMABLED = os.environ.get("AUTOMENTION_ENABLED", "True").lower() == "true"
-AUTOMENTION_URLS = [
-    f"http://{DEFAULT_MENTION_TARGET_DOMAIN}{x}"
-    for x in (os.environ.get("AUTOMENTION_URLS") or "").split(",")
-]
-# End of settings for sample_app
-
-
-# Settings for django-wm
-try:
-    import celery
-
-    # Enable celery depending on current docker configuration.
-    WEBMENTIONS_USE_CELERY = True
-except ImportError:
-    WEBMENTIONS_USE_CELERY = False
-
-WEBMENTIONS_URL_SCHEME = "http"
-WEBMENTIONS_AUTO_APPROVE = True
-WEBMENTIONS_TIMEOUT = 3
-WEBMENTIONS_DASHBOARD_PUBLIC = True
-WEBMENTIONS_RETRY_INTERVAL = 2 * 60
-WEBMENTIONS_MAX_RETRIES = 5
-# End of settings for django-wm
-
-
+LOGIN_URL = "admin:login"
 STATIC_URL = "/static/"
 STATIC_ROOT = "/var/www/static/"
+STATICFILES_DIRS = (os.path.join(BASE_DIR, "static/"),)
+
 
 db = os.environ.get("POSTGRES_DB")
 if db:
@@ -72,6 +50,7 @@ else:
         }
     }
 
+
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -80,15 +59,13 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.staticfiles",
     "mentions",
+    "issues_app",
     "sample_app",
 ]
 
 try:
     import wagtail
-except ImportError:
-    wagtail = None
 
-if wagtail is not None:
     INSTALLED_APPS += [
         "wagtail.contrib.forms",
         "wagtail.contrib.redirects",
@@ -108,6 +85,8 @@ if wagtail is not None:
     ]
     WAGTAIL_SITE_NAME = "sample_app_wagtail"
     WAGTAILADMIN_BASE_URL = f"http://{DOMAIN_NAME}"
+except ImportError:
+    pass
 
 
 MIDDLEWARE = [
@@ -120,6 +99,11 @@ MIDDLEWARE = [
     "mentions.middleware.WebmentionHeadMiddleware",
 ]
 
+
+def _logger(level: str = "DEBUG"):
+    return {"handlers": ["console"], "level": level}
+
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
@@ -130,25 +114,17 @@ LOGGING = {
         }
     },
     "loggers": {
-        "django": {
-            "handlers": ["console"],
-            "level": "INFO",
-        },
-        "mentions": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-        },
-        "sample_app": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-        },
-        "celery": {
-            "handlers": ["console"],
-            "level": "DEBUG",
-        },
-        "celery.task": {
-            "handlers": ["console"],
-            "level": "DEBUG",
+        "django": _logger("INFO"),
+        **{
+            app_name: _logger()
+            for app_name in [
+                "mentions",
+                "sample_app",
+                "sample_wagtail_app",
+                "issues_app",
+                "celery",
+                "celery.task",
+            ]
         },
     },
 }
@@ -169,3 +145,10 @@ TEMPLATES = [
         },
     }
 ]
+
+# Internationalisation
+USE_TZ = True
+USE_I18N = True  # Translation
+USE_L10N = True  # Localised date formatting
+languages = ["en-gb", "en-us", "fr-fr", "de-de"]
+LANGUAGE_CODE = random.choice(languages)

@@ -95,6 +95,11 @@ def get_model_for_url(url: str) -> MentionableMixin:
         except Http404:
             raise TargetDoesNotExist(f"Could not resolve a wagtail page for url {url}")
 
+        except KeyError:
+            log.debug(
+                f"Wagtail match is not mentionable: {url_path} | args={match.args} | kwargs={match.kwargs}"
+            )
+
         raise NoModelForUrlPath()
 
     try:

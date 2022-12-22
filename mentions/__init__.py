@@ -1,2 +1,2 @@
-__version__ = "4.0.0"
+__version__ = "4.0.1"
 __url__ = "https://github.com/beatonma/django-wm/"

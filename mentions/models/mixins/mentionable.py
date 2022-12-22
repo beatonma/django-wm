@@ -34,7 +34,7 @@ class MentionableMixin(models.Model):
         return get_mentions_for_object(self)
 
     def get_mentions_json(self) -> List[dict]:
-        from mentions.serialize import serialize_mentions
+        from mentions.views.serialize import serialize_mentions
 
         return serialize_mentions(self.get_mentions())
 

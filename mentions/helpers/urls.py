@@ -1,9 +1,9 @@
-from typing import Callable, Dict, Optional, Sequence, Type
+from typing import Callable, Dict, Optional, Sequence
 
 from django.urls import URLPattern, path, re_path
 
 from mentions import contract
-from mentions.helpers.types import MentionableImpl, ModelFilter, ModelFilterMap
+from mentions.helpers.types import ModelClass, ModelFilter, ModelFilterMap
 from mentions.helpers.util import get_captured_filters, get_dotted_model_name
 
 __all__ = [
@@ -16,7 +16,7 @@ def _path(
     func: Callable,
     route: str,
     view: Callable,
-    model_class: Type[MentionableImpl],
+    model_class: ModelClass,
     model_filters: Optional[Sequence[ModelFilter]],
     model_filter_map: Optional[ModelFilterMap],
     kwargs: Optional[Dict],
@@ -68,7 +68,7 @@ def _path(
 def mentions_path(
     route: str,
     view: Callable,
-    model_class: Type[MentionableImpl],
+    model_class: ModelClass,
     model_filter_map: Optional[ModelFilterMap] = None,
     kwargs: Optional[Dict] = None,
     name: Optional[str] = None,
@@ -109,7 +109,7 @@ def mentions_path(
 def mentions_re_path(
     route: str,
     view: Callable,
-    model_class: Type[MentionableImpl],
+    model_class: ModelClass,
     model_filters: Optional[Sequence[ModelFilter]] = None,
     model_filter_map: Optional[ModelFilterMap] = None,
     kwargs: Optional[Dict] = None,
@@ -151,7 +151,7 @@ def mentions_re_path(
 
 
 def build_model_kwargs(
-    model_class: Type[MentionableImpl],
+    model_class: ModelClass,
     model_filters: Optional[Sequence[ModelFilter]],
     model_filter_map: Optional[Dict],
     kwargs: Optional[Dict],

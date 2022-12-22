@@ -2,6 +2,7 @@
 build/
 dist/
 env/
+env-*/
 *.egg-info/
 __pycache__/
 .coverage

@@ -1,4 +1,4 @@
-from typing import Dict, Sequence, Tuple, TypeVar, Union
+from typing import Dict, Sequence, Tuple, Type, TypeVar, Union
 
 from mentions.models.mixins import MentionableMixin
 
@@ -24,3 +24,4 @@ ModelFilterMap = Union[
 ]
 
 MentionableImpl = TypeVar("MentionableImpl", bound=MentionableMixin)
+ModelClass = Union[Type[MentionableImpl], str]

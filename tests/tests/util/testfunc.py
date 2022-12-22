@@ -14,9 +14,9 @@ from tests.test_app.models import MentionableTestModel
 from tests.tests.util import viewname
 
 
-def create_mentionable_object(content: str = ""):
+def create_mentionable_object(content: str = "", **kwargs):
     """Create and return an instance of MentionableTestModel."""
-    return MentionableTestModel.objects.create(content=content)
+    return MentionableTestModel.objects.create(content=content, **kwargs)
 
 
 def create_webmention(
@@ -28,6 +28,7 @@ def create_webmention(
     approved: bool = True,
     validated: bool = True,
     quote: Optional[str] = None,
+    notes: Optional[str] = "",
 ) -> Webmention:
     return Webmention.objects.create(
         source_url=source_url or random_url(),
@@ -38,6 +39,7 @@ def create_webmention(
         approved=approved,
         validated=validated,
         quote=quote,
+        notes=notes,
     )
 
 

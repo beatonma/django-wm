@@ -1,56 +1,18 @@
 import logging
 import random
-import time
 
 from django import forms
 from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.urls import reverse
-from django.views import View
 from sample_app.models import Article, Blog, create_article
+from sample_app.views import BaseView, default_context
 
-from mentions import config, options
+from mentions import config
 from mentions.resolution import get_mentions_for_url
 
 log = logging.getLogger(__name__)
-
-
-default_context = {
-    "DOMAIN_NAME": options.domain_name(),
-}
-
-
-class BaseView(View):
-    def dispatch(self, request, *args, **kwargs):
-        log.info(f"{request} | {request.headers}")
-        return super().dispatch(request, *args, **kwargs)
-
-
-class ArticleView(BaseView):
-    def get(self, request, article_id: int, *args, **kwargs):
-        article = Article.objects.get(pk=article_id)
-        return render(
-            request,
-            "sample_app/article.html",
-            context={
-                **default_context,
-                "article": article,
-            },
-        )
-
-
-class BlogView(BaseView):
-    def get(self, request, blog_id: int, *args, **kwargs):
-        blog = Blog.objects.get(pk=blog_id)
-        return render(
-            request,
-            "sample_app/article.html",
-            context={
-                **default_context,
-                "article": blog,
-            },
-        )
 
 
 class ActionForm(forms.Form):
@@ -123,22 +85,3 @@ class ActionView(BaseView):
             for field in form:
                 log.warning(f"- {field.name}: {field.errors}")
             return HttpResponse(status=400)
-
-
-class TimeoutView(BaseView):
-    """A view which takes too long to respond."""
-
-    def get(self, request):
-        time.sleep(options.timeout() + 1)
-        return HttpResponse("That took a while!", status=200)
-
-
-class MaybeTimeoutView(BaseView):
-    def get(self, request):
-        timed_out = random.random() > 0.4
-
-        if timed_out:
-            log.info("MaybeTimeoutView timed out!")
-            time.sleep(options.timeout() + 1)
-
-        return HttpResponse(f"timed_out={timed_out}", status=200)

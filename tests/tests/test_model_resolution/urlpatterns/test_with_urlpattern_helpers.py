@@ -65,8 +65,12 @@ urlpatterns = [
         model_class=MentionableTestModel,
         model_filters=["name"],
     ),
-    *core_urlpatterns,
-]
+    mentions_path(
+        "fqn_string_class/<int:id>/",
+        viewfunc,
+        model_class="test_app.MentionableTestModel",
+    ),
+] + core_urlpatterns
 
 
 @override_settings(ROOT_URLCONF=__name__)
@@ -114,7 +118,7 @@ class UrlpatternsHelperTests(WebmentionTestCase):
             )
 
     def test_mentions_path_with_mapping_as_sequence(self):
-        obj = MentionableTestModel.objects.create(id=1432)
+        obj = testfunc.create_mentionable_object(id=1432)
 
         retrieved_object = resolution.get_model_for_url(
             "/with_sequence_field_mapping/1432"
@@ -122,7 +126,7 @@ class UrlpatternsHelperTests(WebmentionTestCase):
         self.assertEqual(obj, retrieved_object)
 
     def test_mentions_path_with_mapping_omitted(self):
-        obj = MentionableTestModel.objects.create(id=9861)
+        obj = testfunc.create_mentionable_object(id=9861)
 
         retrieved_object = resolution.get_model_for_url(
             "/model_filter_map_omitted/9861"
@@ -130,7 +134,7 @@ class UrlpatternsHelperTests(WebmentionTestCase):
         self.assertEqual(obj, retrieved_object)
 
     def test_mentions_re_path(self):
-        obj = MentionableTestModel.objects.create(name="regex-model")
+        obj = testfunc.create_mentionable_object(name="regex-model")
 
         retrieved_object = resolution.get_model_for_url("/regexpath/1243/regex-model/")
 
@@ -140,7 +144,7 @@ class UrlpatternsHelperTests(WebmentionTestCase):
             resolution.get_model_for_url("/regexpath/abc/regex-model/")
 
     def test_mentions_re_path_with_unnamed_groups(self):
-        obj = MentionableTestModel.objects.create(name="regex-model")
+        obj = testfunc.create_mentionable_object(name="regex-model")
 
         retrieved_object = resolution.get_model_for_url(
             "/unnamed_re_path/regex-model/1243/"
@@ -150,3 +154,9 @@ class UrlpatternsHelperTests(WebmentionTestCase):
 
         with self.assertRaises(TargetDoesNotExist):
             resolution.get_model_for_url("/unnamed_re_path/regex-model/abc/")
+
+    def test_mentions_path_with_fqn_string_model_class(self):
+        obj = testfunc.create_mentionable_object(id=37)
+
+        retrieved_object = resolution.get_model_for_url("/fqn_string_class/37/")
+        self.assertEqual(obj, retrieved_object)

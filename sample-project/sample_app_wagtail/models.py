@@ -76,7 +76,7 @@ class BlogPage(MentionableMixin, Page):
         mention_type: Union[str, IncomingMentionType],
         content: Optional[str] = None,
     ):
-        title = f"blogpost-{uuid.uuid4().hex}"
+        title = f"blogpost-{uuid.uuid4().hex[:5]}"
         _type = IncomingMentionType.get_microformat_from_name(mention_type)
 
         content = (

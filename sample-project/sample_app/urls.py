@@ -1,12 +1,8 @@
-from django.urls import path
+from django.urls import include, path
 from sample_app.models import Blog
-from sample_app.views import (
-    ActionView,
-    ArticleView,
-    BlogView,
-    MaybeTimeoutView,
-    TimeoutView,
-)
+from sample_app.views.actions import ActionView
+from sample_app.views.content import ArticleView, BlogView
+from sample_app.views.unreliable import MaybeTimeoutView, TimeoutView
 
 from mentions.helpers.urls import mentions_path
 
