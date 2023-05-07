@@ -7,6 +7,7 @@ from django.utils.translation import gettext_lazy as _
 from mentions.apps import MentionsConfig
 
 __all__ = [
+    "can_change_webmention",
     "can_view_dashboard",
 ]
 
@@ -38,4 +39,10 @@ class MentionsPermission:
 can_view_dashboard = MentionsPermission(
     "view_webmention_dashboard",
     _("Can view the webmention dashboard/status page."),
+)
+
+
+# The following permissions are created automatically by Django.
+can_change_webmention = MentionsPermission(
+    "change_webmention", _("Default 'change' permission for Webmention model.")
 )

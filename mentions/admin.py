@@ -11,6 +11,7 @@ from mentions.models import (
     SimpleMention,
     Webmention,
 )
+from mentions.models.managers.webmention import WebmentionQuerySet
 
 RETRYABLEMIXIN_FIELDS = [
     "is_awaiting_retry",
@@ -20,13 +21,23 @@ RETRYABLEMIXIN_FIELDS = [
 
 
 @admin.action(permissions=["change"])
-def approve_webmention(modeladmin, request, queryset):
-    queryset.update(approved=True)
+def mark_webmention_approved(modeladmin, request, queryset: WebmentionQuerySet):
+    queryset.mark_as_approved()
 
 
 @admin.action(permissions=["change"])
-def disapprove_webmention(modeladmin, request, queryset):
-    queryset.update(approved=False)
+def mark_webmention_unapproved(modeladmin, request, queryset: WebmentionQuerySet):
+    queryset.mark_as_unapproved()
+
+
+@admin.action(permissions=["change"])
+def mark_webmention_read(modeladmin, request, queryset: WebmentionQuerySet):
+    queryset.mark_as_read()
+
+
+@admin.action(permissions=["change"])
+def mark_webmention_unread(modeladmin, request, queryset: WebmentionQuerySet):
+    queryset.mark_as_unread()
 
 
 class BaseAdmin(admin.ModelAdmin):
@@ -89,8 +100,10 @@ class QuotableAdmin(BaseAdmin):
 class WebmentionAdmin(ClickableUrlMixin, QuotableAdmin):
     form = TextAreaForm
     actions = [
-        approve_webmention,
-        disapprove_webmention,
+        mark_webmention_approved,
+        mark_webmention_unapproved,
+        mark_webmention_read,
+        mark_webmention_unread,
     ]
     list_display = [
         "source_url",

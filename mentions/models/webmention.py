@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 from mentions import options
 from mentions.models.base import MentionsBaseModel
+from mentions.models.managers.webmention import WebmentionQuerySet
 from mentions.models.mixins import QuotableMixin
 
 __all__ = [
@@ -16,6 +17,8 @@ def _approve_default():
 
 class Webmention(QuotableMixin, MentionsBaseModel):
     """An incoming webmention that is received by your server."""
+
+    objects = WebmentionQuerySet.as_manager()
 
     sent_by = models.URLField(
         _("sent by"),
@@ -35,6 +38,10 @@ class Webmention(QuotableMixin, MentionsBaseModel):
             "True if both source and target have been validated, "
             "confirmed to exist, and source really does link to target."
         ),
+    )
+    has_been_read = models.BooleanField(
+        _("Read"),
+        default=False,
     )
 
     notes = models.CharField(
