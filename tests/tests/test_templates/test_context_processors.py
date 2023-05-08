@@ -1,4 +1,4 @@
-from django.contrib.auth.models import Permission, User
+from django.contrib.auth.models import User
 from django.test.utils import override_settings
 from django.urls import reverse
 
