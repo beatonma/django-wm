@@ -135,15 +135,15 @@ def get_model_for_url(url: str) -> MentionableMixin:
 
 
 def get_mentions_for_url(url: str) -> List[QuotableMixin]:
+    if "://" not in url:
+        url = config.build_url(url)
+
     try:
         obj = get_model_for_url(url)
         return obj.get_mentions()
 
     except NoModelForUrlPath:
         pass
-
-    if "://" not in url:
-        url = config.build_url(url)
 
     return get_public_mentions(target_url=url)
 
@@ -158,12 +158,14 @@ def get_mentions_for_object(obj: MentionableMixin) -> List[QuotableMixin]:
     return get_public_mentions(content_type=ctype, object_id=obj.id)
 
 
-def get_public_mentions(**filter) -> List[QuotableMixin]:
-    webmentions = Webmention.objects.filter(
-        **filter,
-        approved=True,
-        validated=True,
-    )
-    simple_mentions = SimpleMention.objects.filter(**filter)
+def get_public_mentions(**filter_kwargs) -> List[QuotableMixin]:
+    webmentions = Webmention.objects.filter_public().filter(**filter_kwargs)
+    simple_mentions = SimpleMention.objects.filter(**filter_kwargs)
 
-    return list(webmentions) + list(simple_mentions)
+    return list(
+        sorted(
+            list(webmentions) + list(simple_mentions),
+            key=lambda x: x.created_at,
+            reverse=True,
+        )
+    )
