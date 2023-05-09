@@ -18,8 +18,8 @@ try:
     import wagtail
 
     wagtail_version = wagtail.__version__
-    major, minor, patch = wagtail_version.split(".")
-    wagtail_version_four = int(major) >= 4
+    major, *rest = wagtail_version.split(".")
+    wagtail_has_path_decorator = int(major) >= 4
 
     from wagtail import urls as wagtail_urls
     from wagtail.models import Page, Site
@@ -31,7 +31,7 @@ except ImportError:
     IndexPage = None
     MentionablePage = None
     wagtail_urls = {"urlpatterns": []}
-    wagtail_version_four = False
+    wagtail_has_path_decorator = False
 
 
 urlpatterns = base_urlpatterns + [
@@ -81,7 +81,7 @@ class WagtailTestCase(WebmentionTestCase):
         self.assertEqual(self.target, result)
 
 
-@skipIf(not wagtail_version_four, "@path decorator not available until v4")
+@skipIf(not wagtail_has_path_decorator, "@path decorator not available until v4")
 class PathWagtailTests(WagtailTestCase):
     def test_page_lookup(self):
         url = "such-content/"
@@ -149,7 +149,7 @@ class MiscWagtailTests(WagtailTestCase):
         with self.assertRaises(NoModelForUrlPath):
             resolution.get_model_for_url(self.build_url("simple-page/"))
 
-    @skipIf(wagtail_version_four, "@path decorator not available until v4")
+    @skipIf(wagtail_has_path_decorator, "Only applies to wagtail version 3")
     def test_page_lookup_by_altpath_wagtail_v3(self):
         url = "2022/11/16/"
         with self.assertRaises(OptionalDependency):
