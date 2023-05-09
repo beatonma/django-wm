@@ -1,4 +1,4 @@
-version: "3"
+version: "3.9"
 
 # Run two instances of `sample-project`
 #
@@ -11,81 +11,88 @@ version: "3"
 # - Uses `cron` to handle webmentions, scheduled to run every minute.
 # - Also uses Wagtail.
 #
-# Each instance can send mentions to the other one.
+# - Each instance can send mentions to the other one
+# - Each instance has a cron job which has a chance of sending a mention to the
+#   other each minute.
+
+
+x-database: &database
+  image: postgres
+  healthcheck:
+    test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
+    interval: 6s
+    timeout: 3s
+    retries: 5
+
+x-app-volumes: &app-volumes
+  volumes:
+    - ./sample-project:/project/
+
+x-with-celery: &with-celery
+  env_file:
+    - ./sample-project/docker/.env
+    - ./sample-project/docker/with-celery/.env
+
+x-with-wagtail: &with-wagtail
+  env_file:
+    - ./sample-project/docker/.env
+    - ./sample-project/docker/with-wagtail/.env
 
 
 services:
   # This version uses Celery
   with-celery-db:
-    image: postgres
-    env_file:
-      - ./sample-project/docker/.env
-      - ./sample-project/docker/with-celery/.env
-    ports:
-      - "5432"
+    <<: [*with-celery, *database]
 
   with-celery-rabbitmq:
     image: rabbitmq:3-alpine
-    env_file:
-      - ./sample-project/docker/.env
-      - ./sample-project/docker/with-celery/.env
+    <<: *with-celery
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+      start_period: 20s
     ports:
       - "5672"
 
   with-celery-web.org:
+    <<: [*with-celery, *app-volumes]
     build:
-      dockerfile: ./sample-project/docker/with-celery/Dockerfile
-      context: .
+      target: with_celery
     depends_on:
       - with-celery-db
-      - with-celery-rabbitmq
-    env_file:
-      - ./sample-project/docker/.env
-      - ./sample-project/docker/with-celery/.env
     ports:
       - "8001:80"
-    command: ["bash", "/usr/src/app/docker/wait-for-it.sh", "with-celery-db:5432", "--", "bash", "/usr/src/app/docker/with-celery/entrypoint.sh"]
+
+  with-celery-celery:
+    <<: [*with-celery, *app-volumes]
+    build:
+      target: with_celery_celery
+    depends_on:
+      with-celery-rabbitmq:
+        condition: service_healthy
 
   with-celery-cron:
+    <<: [*with-celery, *app-volumes]
     build:
-      dockerfile: ./sample-project/docker/with-celery/Dockerfile
-      context: .
-    depends_on:
-      - with-celery-db
-      - with-celery-web.org
-    env_file:
-      - ./sample-project/docker/.env
-      - ./sample-project/docker/with-celery/.env
-    command: crond -l 2 -f
-
+      target: with_celery_cron
 
 
 # This version uses Wagtail and does not use Celery
   with-wagtail-db:
-    image: postgres
-    env_file: ./sample-project/docker/with-wagtail/.env
+    <<: [*with-wagtail, *database]
 
   with-wagtail-web.org:
+    <<: [*with-wagtail, *app-volumes]
     build:
-      dockerfile: ./sample-project/docker/with-wagtail/Dockerfile
-      context: .
+      target: with_wagtail
     depends_on:
       - with-wagtail-db
-    env_file:
-      - ./sample-project/docker/.env
-      - ./sample-project/docker/with-wagtail/.env
     ports:
       - "8002:80"
-    command: ["bash", "/usr/src/app/docker/wait-for-it.sh", "with-wagtail-db:5432", "--", "bash", "/usr/src/app/docker/with-wagtail/entrypoint.sh"]
-
+#
   with-wagtail-cron:
+    <<: [*with-wagtail, *app-volumes]
     build:
-      dockerfile: ./sample-project/docker/with-wagtail/Dockerfile
-      context: .
-    depends_on:
-      - with-wagtail-db
-      - with-wagtail-web.org
-    env_file:
-      - ./sample-project/docker/.env
-      - ./sample-project/docker/with-wagtail/.env
-    command: crond -l 2 -f
+      target: with_wagtail_cron

@@ -1,3 +1,4 @@
+#!/bin/ash
 echo "Setting up server..."
 
 python manage.py migrate
@@ -6,6 +7,8 @@ python manage.py createsuperuser --noinput || true
 echo "- Superuser ready"
 python manage.py collectstatic --noinput
 echo "- Static files collected"
+
+python manage.py wagtail_app_init
 
 echo "Starting server..."
 python manage.py runserver 0.0.0.0:80 --noreload

@@ -1,3 +1,4 @@
+#!/bin/ash
 echo "Setting up server..."
 
 python manage.py migrate
@@ -7,9 +8,7 @@ echo "- Superuser ready"
 python manage.py collectstatic --noinput
 echo "- Static files collected"
 
-echo "Starting celery worker..."
-celery -A sample_project worker -E &
-echo "- Celery started"
+python manage.py sample_app_init
 
 echo "Starting server..."
 python manage.py runserver 0.0.0.0:80 --noreload

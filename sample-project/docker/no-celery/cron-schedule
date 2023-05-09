@@ -1,3 +1,8 @@
 # Check for pending incoming/outgoing mentions every minute.
 * * * * * python /usr/src/app/manage.py pending_mentions
+
+# Maybe send a webmention every minute.
 * * * * * python /usr/src/app/manage.py automention
+
+# Show that cron is working.
+* * * * * echo "cron heartbeat"
