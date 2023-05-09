@@ -37,6 +37,8 @@ def parse_clargs():
         help="Run makemigrations for the given test-specific app.",
     )
 
+    parser.add_argument("--path", type=str, default="tests")
+
     parsed, remaining_ = parser.parse_known_args()
 
     if parsed.makemigrations:
@@ -69,7 +71,7 @@ def _make_migrations(app_name: str):
     sys.exit()
 
 
-def _runtests():
+def _runtests(path: str):
     def get_sys_args() -> list:
         args_ = sys.argv
         position = None
@@ -92,7 +94,7 @@ def _runtests():
     default_args = "-r a".split(" ")
     args = get_sys_args() or default_args
 
-    failures = test_runner.run_tests(["tests", *args])
+    failures = test_runner.run_tests([path, *args])
 
     sys.exit(bool(failures))
 
@@ -120,4 +122,4 @@ if __name__ == "__main__":
     if clargs.makemigrations:
         _make_migrations(clargs.app_name)
     else:
-        _runtests()
+        _runtests(clargs.path)
