@@ -109,12 +109,17 @@ class WebmentionAdmin(ClickableUrlMixin, QuotableAdmin):
         "source_url",
         "target_url",
         "get_hcard_name",
+        "has_been_read",
         "validated",
         "approved",
         "published",
         "target_object",
     ]
-    list_filter = ["validated", "approved"] + QuotableAdmin.list_filter
+    list_filter = [
+        "has_been_read",
+        "validated",
+        "approved",
+    ] + QuotableAdmin.list_filter
     fieldsets = (
         (
             "Remote source",
@@ -144,6 +149,7 @@ class WebmentionAdmin(ClickableUrlMixin, QuotableAdmin):
             {
                 "fields": (
                     "published",
+                    "has_been_read",
                     "approved",
                     "validated",
                     "notes",
