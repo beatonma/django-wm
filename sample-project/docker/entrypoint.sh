@@ -8,7 +8,8 @@ echo "- Superuser ready"
 python manage.py collectstatic --noinput
 echo "- Static files collected"
 
-python manage.py sample_app_init
+echo "Running init CMD '$@'"
+"$@"
 
 echo "Starting server..."
-python manage.py runserver 0.0.0.0:80 --noreload
+python manage.py runserver 0.0.0.0:80

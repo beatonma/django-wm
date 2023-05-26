@@ -15,18 +15,21 @@ version: "3.9"
 # - Each instance has a cron job which has a chance of sending a mention to the
 #   other each minute.
 
+x-healthy: &healthy
+  interval: 10s
+  timeout: 2s
+  retries: 3
+  start_period: 20s
 
 x-database: &database
   image: postgres
   healthcheck:
     test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
-    interval: 6s
-    timeout: 3s
-    retries: 5
+    <<: *healthy
 
 x-app-volumes: &app-volumes
   volumes:
-    - ./sample-project:/project/
+    - ./sample-project:/project
 
 x-with-celery: &with-celery
   env_file:
@@ -49,10 +52,7 @@ services:
     <<: *with-celery
     healthcheck:
       test: rabbitmq-diagnostics -q ping
-      interval: 30s
-      timeout: 30s
-      retries: 3
-      start_period: 20s
+      <<: *healthy
     ports:
       - "5672"
 
@@ -61,7 +61,10 @@ services:
     build:
       target: with_celery
     depends_on:
-      - with-celery-db
+      with-celery-db:
+        condition: service_healthy
+    healthcheck:
+      test: "curl --fail http://localhost"
     ports:
       - "8001:80"
 
@@ -72,12 +75,16 @@ services:
     depends_on:
       with-celery-rabbitmq:
         condition: service_healthy
+      with-celery-web.org:
+        condition: service_healthy
 
   with-celery-cron:
     <<: [*with-celery, *app-volumes]
     build:
       target: with_celery_cron
-
+    depends_on:
+      with-celery-web.org:
+        condition: service_healthy
 
 # This version uses Wagtail and does not use Celery
   with-wagtail-db:
@@ -88,11 +95,17 @@ services:
     build:
       target: with_wagtail
     depends_on:
-      - with-wagtail-db
+      with-wagtail-db:
+        condition: service_healthy
+    healthcheck:
+      test: "curl --fail http://localhost"
     ports:
       - "8002:80"
-#
+
   with-wagtail-cron:
     <<: [*with-wagtail, *app-volumes]
     build:
       target: with_wagtail_cron
+    depends_on:
+      with-wagtail-web.org:
+        condition: service_healthy

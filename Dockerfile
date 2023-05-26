@@ -26,30 +26,31 @@ RUN echo "CACHEBUST: $CACHEBUST"
 
 WORKDIR /project
 
+COPY ./sample-project/docker/entrypoint.sh /
+
+ENTRYPOINT ["/entrypoint.sh"]
+
 
 ################################################################################
 FROM common AS with_celery
 
 RUN --mount=type=cache,target=/root/.cache/pip pip install -e /tmp/src[celery,test]
-COPY ./sample-project/docker/with-celery/entrypoint.sh /
 
-ENTRYPOINT ["/entrypoint.sh"]
+CMD ["python", "manage.py", "sample_app_init"]
 
 
 ################################################################################
 FROM common AS with_wagtail
 
 RUN --mount=type=cache,target=/root/.cache/pip pip install -e /tmp/src[wagtail,test]
-COPY ./sample-project/docker/with-wagtail/entrypoint.sh /
 
-ENTRYPOINT ["/entrypoint.sh"]
+CMD ["python", "manage.py", "wagtail_app_init"]
 
 
 ################################################################################
 FROM with_celery AS with_celery_celery
 
-ENTRYPOINT []
-CMD celery -A sample_project worker -l info
+ENTRYPOINT celery -A sample_project worker -l info
 
 
 ################################################################################
@@ -58,8 +59,7 @@ FROM with_celery AS with_celery_cron
 COPY ./sample-project/docker/with-celery/cron-schedule /
 RUN crontab /cron-schedule
 
-ENTRYPOINT []
-CMD crond -l 2 -f
+ENTRYPOINT crond -l 2 -f
 
 
 ################################################################################
@@ -68,5 +68,4 @@ FROM with_wagtail AS with_wagtail_cron
 COPY ./sample-project/docker/with-wagtail/cron-schedule /
 RUN crontab /cron-schedule
 
-ENTRYPOINT []
-CMD crond -l 2 -f
+ENTRYPOINT crond -l 2 -f
