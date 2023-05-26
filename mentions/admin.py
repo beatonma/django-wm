@@ -41,7 +41,7 @@ class QuotableAdmin(BaseAdmin):
     search_fields = [
         "source_url",
         "target_url",
-        "hcard",
+        "hcard__name",
     ]
     readonly_fields = [
         "target_object",
