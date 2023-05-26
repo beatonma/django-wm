@@ -1,5 +1,18 @@
 # Changelog
 
+
+## 4.1.0 (   NOT YET RELEASED   )
+
+> `migrate` required for new fields.
+
+- Added `Webmention.has_been_read: bool` field.
+  - New context processor `mentions.context_processors.unread_webmentions`
+    adds `unread_webmentions` field to template context.
+  - Added admin actions for marking as read/unread.
+
+- New `objects` manager for Webmention with some common filters.
+
+
 ## 4.0.2 (2023-05-27)
 - Resolves [#50](https://github.com/beatonma/django-wm/issues/50): broken search field on QuotableAdmin.
 - Added tests for admin pages to avoid that sort of thing happening again.
@@ -7,6 +20,7 @@
   - Source and target URL fields are now read-only.
   - Added appropriate search fields and list filters for each model.
   - `quote` field now uses a textarea widget for comfier editing.
+
 
 
 ## 4.0.1 (2022-12-22)
