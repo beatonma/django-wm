@@ -33,21 +33,27 @@ class BaseAdmin(admin.ModelAdmin):
 
 @admin.register(SimpleMention)
 class QuotableAdmin(BaseAdmin):
+    date_hierarchy = "published"
     list_display = [
         "source_url",
         "target_url",
+        "published",
         "hcard",
     ]
-    search_fields = [
-        "source_url",
-        "target_url",
-        "hcard__name",
+    list_filter = [
+        "post_type",
     ]
     readonly_fields = [
         "target_object",
         "published",
     ]
-    date_hierarchy = "published"
+    search_fields = [
+        "quote",
+        "source_url",
+        "target_url",
+        "hcard__name",
+        "hcard__homepage",
+    ]
 
 
 class WebmentionModelForm(forms.ModelForm):
@@ -62,10 +68,6 @@ class WebmentionModelForm(forms.ModelForm):
 @admin.register(Webmention)
 class WebmentionAdmin(QuotableAdmin):
     form = WebmentionModelForm
-    readonly_fields = QuotableAdmin.readonly_fields + [
-        "content_type",
-        "object_id",
-    ]
     actions = [
         approve_webmention,
         disapprove_webmention,
@@ -73,11 +75,13 @@ class WebmentionAdmin(QuotableAdmin):
     list_display = [
         "source_url",
         "target_url",
+        "hcard",
         "published",
         "validated",
         "approved",
         "target_object",
     ]
+    list_filter = ["validated", "approved", "post_type"]
     fieldsets = (
         (
             "Remote source",
@@ -114,10 +118,29 @@ class WebmentionAdmin(QuotableAdmin):
             },
         ),
     )
+    readonly_fields = QuotableAdmin.readonly_fields + [
+        "content_type",
+        "object_id",
+    ]
 
 
 @admin.register(OutgoingWebmentionStatus)
 class OutgoingWebmentionStatusAdmin(BaseAdmin):
+    date_hierarchy = "created_at"
+    list_display = [
+        "source_url",
+        "target_url",
+        "successful",
+        "created_at",
+    ]
+    list_filter = [
+        "successful",
+        "is_awaiting_retry",
+    ]
+    search_fields = [
+        "source_url",
+        "target_url",
+    ]
     readonly_fields = [
         "created_at",
         "source_url",
@@ -128,13 +151,6 @@ class OutgoingWebmentionStatusAdmin(BaseAdmin):
         "successful",
         *RETRYABLEMIXIN_FIELDS,
     ]
-    list_display = [
-        "source_url",
-        "target_url",
-        "successful",
-        "created_at",
-    ]
-    date_hierarchy = "created_at"
 
 
 @admin.register(HCard)
@@ -145,6 +161,9 @@ class HCardAdmin(BaseAdmin):
 
 @admin.register(PendingIncomingWebmention)
 class PendingIncomingAdmin(BaseAdmin):
+    list_filter = [
+        "is_awaiting_retry",
+    ]
     readonly_fields = [
         "created_at",
         "source_url",
@@ -152,12 +171,20 @@ class PendingIncomingAdmin(BaseAdmin):
         "sent_by",
         *RETRYABLEMIXIN_FIELDS,
     ]
+    search_fields = [
+        "source_url",
+        "target_url",
+    ]
 
 
 @admin.register(PendingOutgoingContent)
 class PendingOutgoingAdmin(BaseAdmin):
     readonly_fields = [
         "created_at",
+        "absolute_url",
+        "text",
+    ]
+    search_fields = [
         "absolute_url",
         "text",
     ]
