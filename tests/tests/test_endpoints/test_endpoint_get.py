@@ -5,7 +5,7 @@ Make sure we can correctly retrieve Webmentions for a given url/object.
 import logging
 from typing import Dict, List
 
-from mentions.models import SimpleMention, Webmention
+from mentions.models import Webmention
 from tests.tests.util import testfunc
 from tests.tests.util.testcase import WebmentionTestCase
 
@@ -44,14 +44,12 @@ class GetWebmentionsForModelTests(_BaseTestCase):
         self.webmention_source_url = testfunc.random_url()
         self.simplemention_source_url = testfunc.random_url()
 
-        Webmention.objects.create(
+        testfunc.create_webmention(
             source_url=self.webmention_source_url,
             target_object=self.target_object,
-            validated=True,
-            approved=True,
         )
 
-        SimpleMention.objects.create(
+        testfunc.create_simple_mention(
             source_url=self.simplemention_source_url,
             target_object=self.target_object,
         )
@@ -83,14 +81,11 @@ class GetWebmentionsNoModelTests(_BaseTestCase):
         self.webmention_source_url = testfunc.random_url()
         self.simplemention_source_url = testfunc.random_url()
 
-        Webmention.objects.create(
+        testfunc.create_webmention(
             source_url=self.webmention_source_url,
             target_url=self.target_url,
-            validated=True,
-            approved=True,
         )
-
-        SimpleMention.objects.create(
+        testfunc.create_simple_mention(
             source_url=self.simplemention_source_url,
             target_url=self.target_url,
         )
