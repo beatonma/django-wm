@@ -45,8 +45,17 @@ class ClickableUrlMixin:
     clickable_target_url.short_description = _("target URL")
 
 
+class TextAreaForm(forms.ModelForm):
+    class Meta:
+        widgets = {
+            "quote": forms.Textarea(attrs={"rows": 3}),
+            "notes": forms.Textarea(attrs={"rows": 3}),
+        }
+
+
 @admin.register(SimpleMention)
 class QuotableAdmin(BaseAdmin):
+    form = TextAreaForm
     date_hierarchy = "published"
     list_display = [
         "source_url",
@@ -70,18 +79,9 @@ class QuotableAdmin(BaseAdmin):
     ]
 
 
-class WebmentionModelForm(forms.ModelForm):
-    class Meta:
-        model = Webmention
-        widgets = {
-            "notes": forms.Textarea(attrs={"rows": 3}),
-        }
-        fields = "__all__"
-
-
 @admin.register(Webmention)
 class WebmentionAdmin(ClickableUrlMixin, QuotableAdmin):
-    form = WebmentionModelForm
+    form = TextAreaForm
     actions = [
         approve_webmention,
         disapprove_webmention,
