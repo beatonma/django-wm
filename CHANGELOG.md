@@ -1,5 +1,14 @@
 # Changelog
 
+## 4.0.2 (2023-05-27)
+- Resolves [#50](https://github.com/beatonma/django-wm/issues/50): broken search field on QuotableAdmin.
+- Added tests for admin pages to avoid that sort of thing happening again.
+- Minor touch-ups for the admin pages.
+  - Source and target URL fields are now read-only.
+  - Added appropriate search fields and list filters for each model.
+  - `quote` field now uses a textarea widget for comfier editing.
+
+
 ## 4.0.1 (2022-12-22)
 
 - Added management command `mentions_reverify [filters ...] [--all]`
