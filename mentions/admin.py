@@ -1,5 +1,7 @@
 from django import forms
 from django.contrib import admin
+from django.utils.html import format_html
+from django.utils.translation import gettext_lazy as _
 
 from mentions.models import (
     HCard,
@@ -29,6 +31,18 @@ def disapprove_webmention(modeladmin, request, queryset):
 
 class BaseAdmin(admin.ModelAdmin):
     save_on_top = True
+
+
+class ClickableUrlMixin:
+    def clickable_source_url(self, obj):
+        return clickable_link(obj.source_url)
+
+    clickable_source_url.short_description = _("source URL")
+
+    def clickable_target_url(self, obj):
+        return clickable_link(obj.target_url)
+
+    clickable_target_url.short_description = _("target URL")
 
 
 @admin.register(SimpleMention)
@@ -66,7 +80,7 @@ class WebmentionModelForm(forms.ModelForm):
 
 
 @admin.register(Webmention)
-class WebmentionAdmin(QuotableAdmin):
+class WebmentionAdmin(ClickableUrlMixin, QuotableAdmin):
     form = WebmentionModelForm
     actions = [
         approve_webmention,
@@ -87,7 +101,7 @@ class WebmentionAdmin(QuotableAdmin):
             "Remote source",
             {
                 "fields": (
-                    "source_url",
+                    "clickable_source_url",
                     "sent_by",
                     "hcard",
                     "quote",
@@ -99,7 +113,7 @@ class WebmentionAdmin(QuotableAdmin):
             "Local target",
             {
                 "fields": (
-                    "target_url",
+                    "clickable_target_url",
                     "content_type",
                     "object_id",
                     "target_object",
@@ -121,11 +135,14 @@ class WebmentionAdmin(QuotableAdmin):
     readonly_fields = QuotableAdmin.readonly_fields + [
         "content_type",
         "object_id",
+        "clickable_source_url",
+        "clickable_target_url",
+        "sent_by",
     ]
 
 
 @admin.register(OutgoingWebmentionStatus)
-class OutgoingWebmentionStatusAdmin(BaseAdmin):
+class OutgoingWebmentionStatusAdmin(ClickableUrlMixin, BaseAdmin):
     date_hierarchy = "created_at"
     list_display = [
         "source_url",
@@ -141,10 +158,14 @@ class OutgoingWebmentionStatusAdmin(BaseAdmin):
         "source_url",
         "target_url",
     ]
-    readonly_fields = [
-        "created_at",
+    exclude = [
         "source_url",
         "target_url",
+    ]
+    readonly_fields = [
+        "created_at",
+        "clickable_source_url",
+        "clickable_target_url",
         "target_webmention_endpoint",
         "status_message",
         "response_code",
@@ -188,3 +209,7 @@ class PendingOutgoingAdmin(BaseAdmin):
         "absolute_url",
         "text",
     ]
+
+
+def clickable_link(url: str) -> str:
+    return format_html(f"<a href={url}>{url}</a>")
