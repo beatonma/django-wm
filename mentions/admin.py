@@ -60,8 +60,8 @@ class QuotableAdmin(BaseAdmin):
     list_display = [
         "source_url",
         "target_url",
+        "get_hcard_name",
         "published",
-        "hcard",
     ]
     list_filter = [
         "post_type",
@@ -78,6 +78,12 @@ class QuotableAdmin(BaseAdmin):
         "hcard__homepage",
     ]
 
+    def get_hcard_name(self, obj):
+        if obj.hcard:
+            return obj.hcard.name
+
+    get_hcard_name.short_description = _("h-card name")
+
 
 @admin.register(Webmention)
 class WebmentionAdmin(ClickableUrlMixin, QuotableAdmin):
@@ -90,12 +96,12 @@ class WebmentionAdmin(ClickableUrlMixin, QuotableAdmin):
         "source_url",
         "target_url",
         "get_hcard_name",
-        "published",
         "validated",
         "approved",
+        "published",
         "target_object",
     ]
-    list_filter = ["validated", "approved", "post_type"]
+    list_filter = ["validated", "approved"] + QuotableAdmin.list_filter
     fieldsets = (
         (
             "Remote source",
@@ -139,12 +145,6 @@ class WebmentionAdmin(ClickableUrlMixin, QuotableAdmin):
         "clickable_target_url",
         "sent_by",
     ]
-
-    def get_hcard_name(self, obj):
-        if obj.hcard:
-            return obj.hcard.name
-
-    get_hcard_name.short_description = _("h-card name")
 
 
 @admin.register(OutgoingWebmentionStatus)
