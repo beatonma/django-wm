@@ -7,7 +7,14 @@ from django.db import models
 from django.urls import reverse
 
 from mentions import config
-from mentions.models import Webmention
+from mentions.models import (
+    HCard,
+    OutgoingWebmentionStatus,
+    PendingIncomingWebmention,
+    PendingOutgoingContent,
+    SimpleMention,
+    Webmention,
+)
 from mentions.models.mixins import IncomingMentionType, MentionableMixin
 from mentions.views import view_names
 from tests.test_app.models import MentionableTestModel
@@ -28,7 +35,8 @@ def create_webmention(
     approved: bool = True,
     validated: bool = True,
     quote: Optional[str] = None,
-    notes: Optional[str] = "",
+    notes: Optional[str] = None,
+    hcard: Optional[HCard] = None,
 ) -> Webmention:
     return Webmention.objects.create(
         source_url=source_url or random_url(),
@@ -38,8 +46,75 @@ def create_webmention(
         sent_by=sent_by or random_url(),
         approved=approved,
         validated=validated,
-        quote=quote,
-        notes=notes,
+        quote=quote or random_str(),
+        notes=notes or random_url(),
+        hcard=hcard,
+    )
+
+
+def create_simple_mention(
+    source_url: Optional[str] = None,
+    target_url: Optional[str] = None,
+    target_object: Optional[MentionableMixin] = None,
+    quote: Optional[str] = None,
+) -> SimpleMention:
+    return SimpleMention.objects.create(
+        target_url=target_url or random_url(),
+        source_url=source_url or random_url(),
+        target_object=target_object,
+        quote=quote or random_str(),
+    )
+
+
+def create_hcard(
+    name: Optional[str] = None,
+    homepage: Optional[str] = None,
+    avatar: Optional[str] = None,
+) -> HCard:
+    return HCard.objects.create(
+        name=name or random_str(),
+        homepage=homepage or random_url(),
+        avatar=avatar or random_url(),
+    )
+
+
+def create_outgoing_status(
+    source_url: Optional[str] = None,
+    target_url: Optional[str] = None,
+    target_webmention_endpoint: Optional[str] = None,
+    status_message: Optional[str] = None,
+    response_code: Optional[int] = 200,
+    successful: Optional[bool] = True,
+) -> OutgoingWebmentionStatus:
+    return OutgoingWebmentionStatus.objects.create(
+        source_url=source_url or random_url(),
+        target_url=target_url or random_url(),
+        target_webmention_endpoint=target_webmention_endpoint or random_url(),
+        status_message=status_message or random_str(),
+        response_code=response_code,
+        successful=successful,
+    )
+
+
+def create_pending_incoming(
+    source_url: Optional[str] = None,
+    target_url: Optional[str] = None,
+    sent_by: Optional[str] = None,
+) -> PendingIncomingWebmention:
+    return PendingIncomingWebmention.objects.create(
+        source_url=source_url or random_url(),
+        target_url=target_url or get_simple_url(),
+        sent_by=sent_by or random_url(),
+    )
+
+
+def create_pending_outgoing(
+    absolute_url: Optional[str] = None,
+    text: Optional[str] = None,
+) -> PendingOutgoingContent:
+    return PendingOutgoingContent.objects.create(
+        absolute_url=absolute_url or random_url(),
+        text=text or random_str(),
     )
 
 
@@ -95,3 +170,14 @@ def random_url() -> str:
 def random_str(length: int = 5) -> str:
     """Generate a short string of random characters."""
     return uuid.uuid4().hex[:length]
+
+
+def mentions_model_classes():
+    return [
+        Webmention,
+        OutgoingWebmentionStatus,
+        PendingIncomingWebmention,
+        PendingOutgoingContent,
+        HCard,
+        SimpleMention,
+    ]

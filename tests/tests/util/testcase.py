@@ -8,6 +8,7 @@ from django.urls import reverse
 
 from mentions import options
 from mentions.views import view_names
+from tests.tests.util import testfunc
 
 M = TypeVar("M", bound=models.Model)
 
@@ -39,14 +40,6 @@ class ClientTestCase(TestCase):
 class WebmentionTestCase(ClientTestCase, SimpleTestCase):
     def tearDown(self) -> None:
         super().tearDown()
-        from mentions.models import (
-            HCard,
-            OutgoingWebmentionStatus,
-            PendingIncomingWebmention,
-            PendingOutgoingContent,
-            SimpleMention,
-            Webmention,
-        )
         from tests.test_app.models import (
             BadTestModelMissingAllText,
             BadTestModelMissingGetAbsoluteUrl,
@@ -55,14 +48,8 @@ class WebmentionTestCase(ClientTestCase, SimpleTestCase):
             SampleBlog,
         )
 
-        app_models = [
-            Webmention,
-            OutgoingWebmentionStatus,
-            PendingIncomingWebmention,
-            PendingOutgoingContent,
-            HCard,
-            SimpleMention,
-        ]
+        app_models = testfunc.mentions_model_classes()
+
         test_models = [
             MentionableTestModel,
             BadTestModelMissingAllText,

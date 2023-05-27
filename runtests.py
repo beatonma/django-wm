@@ -34,7 +34,7 @@ def parse_clargs():
     parser.add_argument(
         "--makemigrations",
         nargs=1,
-        help="Run makemigrations for the given app.",
+        help="Run makemigrations for the given test-specific app.",
     )
 
     parsed, remaining_ = parser.parse_known_args()
