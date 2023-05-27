@@ -7,12 +7,12 @@ RUN apk add curl
 WORKDIR /var/www/static
 
 WORKDIR /tmp/src/
-COPY ./mentions /tmp/src/mentions
-COPY ./tests /tmp/src/tests
-COPY ./pyproject.toml /tmp/src/
-COPY ./requirements.txt /tmp/src/
-COPY ./setup.cfg /tmp/src/
-COPY ./runtests.py /tmp/src/
+COPY ./mentions ./mentions
+COPY ./tests ./tests
+COPY ./pyproject.toml .
+COPY ./requirements.txt .
+COPY ./setup.cfg .
+COPY ./runtests.py .
 RUN --mount=type=cache,target=/root/.cache/pip pip install -r /tmp/src/requirements.txt
 RUN python /tmp/src/runtests.py
 
@@ -34,7 +34,11 @@ ENTRYPOINT ["/entrypoint.sh"]
 ################################################################################
 FROM common AS with_celery
 
+# Install extra dependencies but remove our package - will be mounted in compose
+# to allow Django runserver to reload on code changes.
 RUN --mount=type=cache,target=/root/.cache/pip pip install -e /tmp/src[celery,test]
+RUN pip uninstall -y django-wm
+RUN rm -r /tmp/src
 
 CMD ["python", "manage.py", "sample_app_init"]
 
@@ -42,7 +46,11 @@ CMD ["python", "manage.py", "sample_app_init"]
 ################################################################################
 FROM common AS with_wagtail
 
+# Install extra dependencies but remove our package - will be mounted in compose
+# to allow Django runserver to reload on code changes.
 RUN --mount=type=cache,target=/root/.cache/pip pip install -e /tmp/src[wagtail,test]
+RUN pip uninstall -y django-wm
+RUN rm -r /tmp/src
 
 CMD ["python", "manage.py", "wagtail_app_init"]
 

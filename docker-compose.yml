@@ -30,6 +30,7 @@ x-database: &database
 x-app-volumes: &app-volumes
   volumes:
     - ./sample-project:/project
+    - ./mentions:/project/mentions
 
 x-with-celery: &with-celery
   env_file:
@@ -86,7 +87,7 @@ services:
       with-celery-web.org:
         condition: service_healthy
 
-# This version uses Wagtail and does not use Celery
+  # This version uses Wagtail and does not use Celery
   with-wagtail-db:
     <<: [*with-wagtail, *database]
 
