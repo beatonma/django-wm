@@ -89,7 +89,7 @@ class WebmentionAdmin(ClickableUrlMixin, QuotableAdmin):
     list_display = [
         "source_url",
         "target_url",
-        "hcard",
+        "get_hcard_name",
         "published",
         "validated",
         "approved",
@@ -139,6 +139,12 @@ class WebmentionAdmin(ClickableUrlMixin, QuotableAdmin):
         "clickable_target_url",
         "sent_by",
     ]
+
+    def get_hcard_name(self, obj):
+        if obj.hcard:
+            return obj.hcard.name
+
+    get_hcard_name.short_description = _("h-card name")
 
 
 @admin.register(OutgoingWebmentionStatus)
