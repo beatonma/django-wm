@@ -30,7 +30,9 @@ def parse_hcard(
     soup: Tag,
     recursive: bool = False,
 ) -> Optional[HCard]:
-    """Create or update HCard(s) using data from a BeautifulSoup document.
+    """Create or update HCard using data from a BeautifulSoup document.
+
+    Top-down search to find an h-card on the document.
 
     See https://github.com/microformats/mf2py"""
 
@@ -41,7 +43,9 @@ def parse_hcard(
 
 
 def find_related_hcard(link: Tag) -> Optional[HCard]:
-    """Try to find a post-specific h-card from a parent `h-entry` or `h-feed`."""
+    """Try to find a post-specific h-card from a parent `h-entry` or `h-feed`.
+
+    Bottom-up search for the nearest related h-card."""
     hentry = link.find_parent(class_=H_ENTRY)
     if hentry:
         hcard = parse_hcard(hentry, recursive=True)

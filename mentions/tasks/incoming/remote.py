@@ -84,7 +84,7 @@ def get_metadata_from_source(
 
     hcard = find_related_hcard(link) or parse_hcard(soup, recursive=False)
     if hcard:
-        hcard = coerce_hcard_absolute_urls(hcard, source_url)
+        hcard = _coerce_hcard_absolute_urls(hcard, source_url)
 
     return WebmentionMetadata(
         post_type=post_type.serialized_name() if post_type else None,
@@ -92,7 +92,7 @@ def get_metadata_from_source(
     )
 
 
-def coerce_hcard_absolute_urls(hcard: HCard, source_url: str) -> HCard:
+def _coerce_hcard_absolute_urls(hcard: HCard, source_url: str) -> HCard:
     """Convert any relative URLs to absolute URLs."""
     updated_fields = []
 
