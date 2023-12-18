@@ -69,6 +69,29 @@ class TopLevelHCardParsingTests(WebmentionTestCase):
         self.assertEqual(hcard.homepage, "http://joebloggs.com")
         self.assertFalse(hcard.avatar)  # Empty str
 
+    def test_with_logo_avatar(self):
+        html = f"""
+            Blah blah blah {MENTION_ANCHOR}
+            <div class="h-card">
+                <span class="p-name">Jane Bloggs</span>
+                <img loading="lazy" class="u-logo" src="https://beatonma.org/static/images/logo.png"/>
+            </div>
+        """
+        hcard = _hcard_from_soup(html)
+        self.assertEqual(hcard.avatar, "https://beatonma.org/static/images/logo.png")
+
+    def test_photo_preferred_over_logo(self):
+        html = f"""
+            Blah blah blah {MENTION_ANCHOR}
+            <div class="h-card">
+                <span class="p-name">Jane Bloggs</span>
+                <img loading="lazy" class="u-photo" src="https://beatonma.org/static/images/photo.png"/>
+                <img loading="lazy" class="u-logo" src="https://beatonma.org/static/images/logo.png"/>
+            </div>
+        """
+        hcard = _hcard_from_soup(html)
+        self.assertEqual(hcard.avatar, "https://beatonma.org/static/images/photo.png")
+
     def test_with_only_homepage(self):
         """Parse an h-card element with a homepage URL but no name."""
 

@@ -24,6 +24,7 @@ PROPERTIES = "properties"
 NAME = "name"
 URL = "url"
 PHOTO = "photo"
+LOGO = "logo"
 
 
 def parse_hcard(
@@ -114,7 +115,7 @@ def _create_hcard(data: dict) -> HCard:
     props = data.get(PROPERTIES)
     homepage = props.get(URL, [None])[0]
     name = props.get(NAME, [""])[0]
-    avatar = props.get(PHOTO, [""])[0]
+    avatar = props.get(PHOTO, [""])[0] or props.get(LOGO, [""])[0]
 
     if isinstance(avatar, dict):
         avatar = avatar.get("value", "")
