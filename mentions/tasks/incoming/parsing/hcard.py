@@ -111,6 +111,10 @@ def _create_hcard(data: dict) -> HCard:
     homepage = props.get(URL, [None])[0]
     name = props.get(NAME, [""])[0]
     avatar = props.get(PHOTO, [""])[0]
+
+    if isinstance(avatar, dict):
+        avatar = avatar.get("value", "")
+
     _json = json.dumps(data, sort_keys=True)
 
     _require_any_of([name, homepage])
