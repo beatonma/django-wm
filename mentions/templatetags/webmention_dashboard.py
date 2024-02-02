@@ -18,7 +18,7 @@ __all__ = [
 
 @register.simple_tag
 def success_icon(successful: bool) -> str:
-    successful_str = format_html(str(successful).lower())
+    successful_str = mark_safe(str(successful).lower())
 
     if successful:
         title = "Success"
@@ -60,7 +60,7 @@ def short_url(url: str) -> str:
         # Replace own domain with 'home' icon for brevity.
         return format_html("""<span class="icon">&#127968;</span>{url}""", url=url)
 
-    return format_html(url)
+    return mark_safe(url)
 
 
 @register.simple_tag
