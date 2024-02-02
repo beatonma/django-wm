@@ -84,14 +84,14 @@ class UrlpatternsHelperTests(WebmentionTestCase):
         self.assertEqual(obj, retrieved_obj)
 
     def test_mentions_path_with_complex_mapping_resolves_model(self):
-        published = timezone.datetime(2022, 3, 28, 9, 3, 2)
+        published = timezone.datetime(2022, 3, 28, 9, 3, 2, tzinfo=timezone.get_current_timezone())
 
         blog = SampleBlog.objects.create(slug="blog-slug")
         MentionableTestBlogPost.objects.create(
             blog=blog,
             content="hello am decoy",
             slug="testpostslug",
-            timestamp=timezone.datetime(2022, 3, 27, 9, 3, 2),
+            timestamp=timezone.datetime(2022, 3, 27, 9, 3, 2, tzinfo=timezone.get_current_timezone()),
         )
         MentionableTestBlogPost.objects.create(
             blog=blog,

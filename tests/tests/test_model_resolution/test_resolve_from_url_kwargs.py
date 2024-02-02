@@ -73,7 +73,7 @@ class GetModelForUrlWithCustomObjectResolution(WebmentionTestCase):
 
     def setUp(self) -> None:
         super().setUp()
-        self.published = timezone.datetime(2022, 3, 28, 9, 3, 2)
+        self.published = timezone.datetime(2022, 3, 28, 9, 3, 2, tzinfo=timezone.get_current_timezone())
 
         blog = SampleBlog.objects.create(slug="blogslug")
         MentionableTestBlogPost.objects.create(
@@ -92,7 +92,7 @@ class GetModelForUrlWithCustomObjectResolution(WebmentionTestCase):
             blog=blog,
             content="hello am decoy",
             slug="testpostslug",
-            timestamp=timezone.datetime(2022, 3, 27, 9, 3, 2),
+            timestamp=timezone.datetime(2022, 3, 27, 9, 3, 2, tzinfo=timezone.get_current_timezone()),
         )
 
     def test_get_model_for_url__with_custom_lookup(self):
