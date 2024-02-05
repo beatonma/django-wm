@@ -123,6 +123,3 @@ class OptionsTestCase(WebmentionTestCase):
             options.SETTING_INCOMING_TARGET_MODEL_REQUIRED,
             requires_model,
         )
-
-    def set_allow_self_mentions(self, allow: bool):
-        setattr(settings, options.SETTING_ALLOW_SELF_MENTIONS, allow)

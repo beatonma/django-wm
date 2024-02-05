@@ -1,6 +1,6 @@
-from typing import Set
+from typing import List, Set
 
-from bs4 import BeautifulSoup, ResultSet
+from bs4 import BeautifulSoup, ResultSet, Tag
 
 __all__ = [
     "html_parser",
@@ -13,10 +13,9 @@ def html_parser(content) -> BeautifulSoup:
     return BeautifulSoup(content, features="html5lib")
 
 
-def find_links_in_html(html: str) -> Set[str]:
-    """Get the raw target href of any links in the html."""
+def find_links_in_html(html: str) -> List[Tag]:
     soup = html_parser(html)
-    return {a["href"] for a in find_links_in_soup(soup)}
+    return find_links_in_soup(soup)
 
 
 def find_links_in_soup(soup: BeautifulSoup) -> ResultSet:

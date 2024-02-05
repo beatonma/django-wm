@@ -18,9 +18,10 @@ WEBMENTIONS_USE_CELERY = True
 """
 
 import logging
-from typing import Dict
+from typing import Dict, Iterable
 
 from django.conf import settings
+from django.core.exceptions import ImproperlyConfigured
 
 import mentions
 
@@ -28,6 +29,9 @@ __all__ = [
     "auto_approve",
     "dashboard_public",
     "domain_name",
+    "excluded_domains",
+    "included_domains",
+    "domains_override_attr",
     "get_config",
     "max_retries",
     "retry_interval",
@@ -45,6 +49,8 @@ SETTING_ALLOW_SELF_MENTIONS = f"{NAMESPACE}_ALLOW_SELF_MENTIONS"
 SETTING_AUTO_APPROVE = f"{NAMESPACE}_AUTO_APPROVE"
 SETTING_DASHBOARD_PUBLIC = f"{NAMESPACE}_DASHBOARD_PUBLIC"
 SETTING_DEFAULT_URL_PARAMETER_MAPPING = f"{NAMESPACE}_DEFAULT_URL_PARAMETER_MAPPING"
+SETTING_EXCLUDE_DOMAINS = f"{NAMESPACE}_EXCLUDE_DOMAINS"
+SETTING_INCLUDE_DOMAINS = f"{NAMESPACE}_INCLUDE_DOMAINS"
 SETTING_INCOMING_TARGET_MODEL_REQUIRED = f"{NAMESPACE}_INCOMING_TARGET_MODEL_REQUIRED"
 SETTING_MAX_RETRIES = f"{NAMESPACE}_MAX_RETRIES"
 SETTING_RETRY_INTERVAL = f"{NAMESPACE}_RETRY_INTERVAL"
@@ -64,6 +70,8 @@ DEFAULTS = {
     SETTING_DASHBOARD_PUBLIC: False,
     SETTING_DEFAULT_URL_PARAMETER_MAPPING: {"object_id": "id"},
     SETTING_DOMAIN_NAME: None,
+    SETTING_EXCLUDE_DOMAINS: None,
+    SETTING_INCLUDE_DOMAINS: None,
     SETTING_INCOMING_TARGET_MODEL_REQUIRED: False,
     SETTING_MAX_RETRIES: 5,
     SETTING_RETRY_INTERVAL: 60 * 10,
@@ -150,6 +158,20 @@ def domain_name() -> str:
     return _get_attr(SETTING_DOMAIN_NAME)
 
 
+def excluded_domains() -> Iterable[str]:
+    """Return settings.SETTING_EXCLUDE_DOMAINS.
+
+    A list of domain names to which we should never try to send webmentions."""
+    return _get_attr(SETTING_EXCLUDE_DOMAINS)
+
+
+def included_domains() -> Iterable[str]:
+    """Return settings.SETTING_INCLUDE_DOMAINS.
+
+    A list of domains to which we can try to send webmentions."""
+    return _get_attr(SETTING_INCLUDE_DOMAINS)
+
+
 def max_retries() -> int:
     """Return settings.WEBMENTIONS_MAX_RETRIES.
 
@@ -213,3 +235,10 @@ def user_agent() -> str:
 
     This is included with all network requests made by `django-wm`."""
     return _get_attr(SETTING_USER_AGENT)
+
+
+if included_domains() is not None and excluded_domains() is not None:
+    raise ImproperlyConfigured(
+        f"settings.{SETTING_EXCLUDE_DOMAINS} and settings.{SETTING_INCLUDE_DOMAINS} "
+        f"are mutually exclusive: please use one or the other."
+    )
