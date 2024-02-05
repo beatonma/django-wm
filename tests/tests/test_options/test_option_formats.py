@@ -13,19 +13,21 @@ class FlatSettingsTests(OptionsTestCase):
     def test_flat_settings(self):
         from django.conf import settings
 
-        settings.WEBMENTIONS_USE_CELERY = False
+        settings.WEBMENTIONS_ALLOW_OUTGOING_DEFAULT = False
+        settings.WEBMENTIONS_ALLOW_SELF_MENTIONS = False
         settings.WEBMENTIONS_AUTO_APPROVE = True
-        settings.WEBMENTIONS_URL_SCHEME = "http"
-        settings.WEBMENTIONS_TIMEOUT = 20
+        settings.WEBMENTIONS_DASHBOARD_PUBLIC = True
+        settings.WEBMENTIONS_DEFAULT_URL_PARAMETER_MAPPING = {"foo": "bar"}
+        settings.WEBMENTIONS_DOMAINS_OUTGOING_ALLOW = {"include"}
+        settings.WEBMENTIONS_DOMAINS_OUTGOING_DENY = {"exclude"}
+        settings.WEBMENTIONS_DOMAINS_OUTGOING_OVERRIDE = "wm-override"
+        settings.WEBMENTIONS_INCOMING_TARGET_MODEL_REQUIRED = True
         settings.WEBMENTIONS_MAX_RETRIES = 25
         settings.WEBMENTIONS_RETRY_INTERVAL = 30
-        settings.WEBMENTIONS_DASHBOARD_PUBLIC = True
-        settings.WEBMENTIONS_INCOMING_TARGET_MODEL_REQUIRED = True
-        settings.WEBMENTIONS_ALLOW_SELF_MENTIONS = False
-        settings.WEBMENTIONS_DEFAULT_URL_PARAMETER_MAPPING = {"foo": "bar"}
-        settings.WEBMENTIONS_ALLOW_OUTGOING_DEFAULT = False
-        settings.WEBMENTIONS_INCLUDE_DOMAINS = {"include"}
-        settings.WEBMENTIONS_EXCLUDE_DOMAINS = {"exclude"}
+        settings.WEBMENTIONS_TIMEOUT = 20
+        settings.WEBMENTIONS_URL_SCHEME = "http"
+        settings.WEBMENTIONS_USE_CELERY = False
+        settings.WEBMENTIONS_USER_AGENT = "empty"
 
         self.assertFalse(options.use_celery())
         self.assertTrue(options.auto_approve())
@@ -38,26 +40,30 @@ class FlatSettingsTests(OptionsTestCase):
         self.assertFalse(options.allow_self_mentions())
         self.assertFalse(options.allow_outgoing_default())
         self.assertDictEqual(options.default_url_parameter_mapping(), dict(foo="bar"))
-        self.assertSetEqual(options.included_domains(), {"include"})
-        self.assertSetEqual(options.excluded_domains(), {"exclude"})
+        self.assertSetEqual(options.outgoing_domains_allow(), {"include"})
+        self.assertSetEqual(options.outgoing_domains_deny(), {"exclude"})
+        self.assertEqual(options.outgoing_domains_override_attr(), "wm-override")
+        self.assertEqual(options.user_agent(), "empty")
 
     def test_namespaced_settings(self):
         from django.conf import settings
 
         settings.WEBMENTIONS = {
-            "USE_CELERY": True,
+            "ALLOW_OUTGOING_DEFAULT": True,
+            "ALLOW_SELF_MENTIONS": True,
             "AUTO_APPROVE": False,
-            "URL_SCHEME": "https",
-            "TIMEOUT": 21,
+            "DASHBOARD_PUBLIC": False,
+            "DEFAULT_URL_PARAMETER_MAPPING": {"bar": "foo"},
+            "DOMAINS_OUTGOING_ALLOW": ("included",),
+            "DOMAINS_OUTGOING_DENY": ["excluded"],
+            "DOMAINS_OUTGOING_OVERRIDE": "override-wm",
+            "INCOMING_TARGET_MODEL_REQUIRED": False,
             "MAX_RETRIES": 26,
             "RETRY_INTERVAL": 31,
-            "DASHBOARD_PUBLIC": False,
-            "INCOMING_TARGET_MODEL_REQUIRED": False,
-            "ALLOW_SELF_MENTIONS": True,
-            "DEFAULT_URL_PARAMETER_MAPPING": {"bar": "foo"},
-            "ALLOW_OUTGOING_DEFAULT": True,
-            "INCLUDE_DOMAINS": ("included",),
-            "EXCLUDE_DOMAINS": ["excluded"],
+            "TIMEOUT": 21,
+            "URL_SCHEME": "https",
+            "USE_CELERY": True,
+            "USER_AGENT": "nope",
         }
 
         self.assertTrue(options.use_celery())
@@ -71,5 +77,7 @@ class FlatSettingsTests(OptionsTestCase):
         self.assertTrue(options.allow_self_mentions())
         self.assertTrue(options.allow_outgoing_default())
         self.assertDictEqual(options.default_url_parameter_mapping(), dict(bar="foo"))
-        self.assertTupleEqual(options.included_domains(), ("included",))
-        self.assertListEqual(options.excluded_domains(), ["excluded"])
+        self.assertSetEqual(options.outgoing_domains_allow(), {"included"})
+        self.assertSetEqual(options.outgoing_domains_deny(), {"excluded"})
+        self.assertEqual(options.outgoing_domains_override_attr(), "override-wm")
+        self.assertEqual(options.user_agent(), "nope")

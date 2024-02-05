@@ -116,8 +116,8 @@ def _handle_pending_incoming():
 
 def _handle_pending_outgoing():
     allow_self_mentions = options.allow_self_mentions()
-    included_domains = options.included_domains()
-    excluded_domains = options.excluded_domains()
+    allow_domains = options.outgoing_domains_allow()
+    deny_domains = options.outgoing_domains_deny()
 
     for outgoing_retry in OutgoingWebmentionStatus.objects.filter(
         is_awaiting_retry=True,
@@ -125,8 +125,8 @@ def _handle_pending_outgoing():
         if not is_valid_target(
             outgoing_retry.target_url,
             allow_self_mention=allow_self_mentions,
-            included_domains=included_domains,
-            excluded_domains=excluded_domains,
+            allow_domains=allow_domains,
+            deny_domains=deny_domains,
         ):
             log.warning(f"Target URL is invalid: {outgoing_retry.target_url}")
             outgoing_retry.delete()
