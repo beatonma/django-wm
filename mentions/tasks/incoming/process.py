@@ -1,4 +1,4 @@
-from typing import Optional, Tuple, Union
+from typing import Optional, Set, Tuple, Union
 
 from mentions import options
 from mentions.exceptions import (
@@ -19,24 +19,46 @@ from mentions.tasks.incoming.remote import (
 )
 
 __all__ = [
+    "is_source_domain_acceptable",
     "process_incoming_webmention",
     "verify_webmention",
 ]
 
 from mentions.tasks.incoming.status import Status
+from mentions.util import get_domain
 
 log = get_logger(__name__)
 
 
 @shared_task
-def process_incoming_webmention(source_url: str, target_url: str, sent_by: str) -> None:
+def process_incoming_webmention(
+    source_url: str,
+    target_url: str,
+    sent_by: str,
+    domains_allow: Optional[Set[str]] = None,
+    domains_deny: Optional[Set[str]] = None,
+) -> Optional[Webmention]:
     log.info(f"Processing webmention '{source_url}' -> '{target_url}'")
 
-    status = Status()
+    domains_allow = domains_allow or options.incoming_domains_allow()
+    domains_deny = domains_deny or options.incoming_domains_deny()
+
+    allow_source_domain = is_source_domain_acceptable(
+        source_url,
+        domains_allow=domains_allow,
+        domains_deny=domains_deny,
+    )
+    if not allow_source_domain:
+        log.warning(
+            f"Ignoring received webmention [{source_url} -> {target_url}]: "
+            "Source domain is blocked by settings."
+        )
+        return
 
     try:
         is_verified, target_object, metadata = verify_webmention(
-            source_url=source_url, target_url=target_url
+            source_url=source_url,
+            target_url=target_url,
         )
 
     except RejectedByConfig:
@@ -50,10 +72,12 @@ def process_incoming_webmention(source_url: str, target_url: str, sent_by: str) 
         _save_for_retry(source_url, target_url, sent_by)
         return
 
+    status = Status()
     if not is_verified:
         status.warning(f"Source does not contain a link to '{target_url}'")
 
-    _create_webmention(
+    _mark_complete(source_url, target_url)
+    return _create_webmention(
         source_url=source_url,
         target_url=target_url,
         sent_by=sent_by,
@@ -62,7 +86,25 @@ def process_incoming_webmention(source_url: str, target_url: str, sent_by: str) 
         metadata=metadata,
         notes=status,
     )
-    _mark_complete(source_url, target_url)
+
+
+def is_source_domain_acceptable(
+    source_url: str,
+    domains_allow: Optional[Set[str]],
+    domains_deny: Optional[Set[str]],
+) -> bool:
+    if domains_allow is None and domains_deny is None:
+        return True
+
+    domain = get_domain(source_url)
+
+    if domains_allow:
+        return domain in domains_allow
+
+    if domains_deny:
+        return domain not in domains_deny
+
+    return True
 
 
 def verify_webmention(

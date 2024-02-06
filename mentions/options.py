@@ -49,6 +49,8 @@ SETTING_ALLOW_SELF_MENTIONS = f"{NAMESPACE}_ALLOW_SELF_MENTIONS"
 SETTING_AUTO_APPROVE = f"{NAMESPACE}_AUTO_APPROVE"
 SETTING_DASHBOARD_PUBLIC = f"{NAMESPACE}_DASHBOARD_PUBLIC"
 SETTING_DEFAULT_URL_PARAMETER_MAPPING = f"{NAMESPACE}_DEFAULT_URL_PARAMETER_MAPPING"
+SETTING_DOMAINS_INCOMING_ALLOW = f"{NAMESPACE}_DOMAINS_INCOMING_ALLOW"
+SETTING_DOMAINS_INCOMING_DENY = f"{NAMESPACE}_DOMAINS_INCOMING_DENY"
 SETTING_DOMAINS_OUTGOING_ALLOW = f"{NAMESPACE}_DOMAINS_OUTGOING_ALLOW"
 SETTING_DOMAINS_OUTGOING_DENY = f"{NAMESPACE}_DOMAINS_OUTGOING_DENY"
 SETTING_DOMAINS_OUTGOING_OVERRIDE = f"{NAMESPACE}_DOMAINS_OUTGOING_OVERRIDE"
@@ -71,6 +73,8 @@ DEFAULTS = {
     SETTING_DASHBOARD_PUBLIC: False,
     SETTING_DEFAULT_URL_PARAMETER_MAPPING: {"object_id": "id"},
     SETTING_DOMAIN_NAME: None,
+    SETTING_DOMAINS_INCOMING_ALLOW: None,
+    SETTING_DOMAINS_INCOMING_DENY: None,
     SETTING_DOMAINS_OUTGOING_ALLOW: None,
     SETTING_DOMAINS_OUTGOING_DENY: None,
     SETTING_DOMAINS_OUTGOING_OVERRIDE: None,
@@ -171,23 +175,36 @@ def domain_name() -> str:
     return _get_attr(SETTING_DOMAIN_NAME)
 
 
-def outgoing_domains_allow() -> Iterable[str]:
+def incoming_domains_allow() -> Set[str]:
+    """Return settings.WEBMENTIONS_DOMAINS_INCOMING_ALLOW.
+
+    A list of domains from which we accept webmentions."""
+    return _get_attr(SETTING_DOMAINS_INCOMING_ALLOW, _coerce_to_set)
+
+
+def incoming_domains_deny() -> Set[str]:
+    """Return settings.WEBMENTIONS_DOMAINS_INCOMING_DENY.
+
+    A list of domains from which we do not accept webmentions."""
+    return _get_attr(SETTING_DOMAINS_INCOMING_DENY, _coerce_to_set)
+
+
 def outgoing_domains_allow() -> Set[str]:
-    """Return settings.SETTING_DOMAINS_OUTGOING_ALLOW.
+    """Return settings.WEBMENTIONS_DOMAINS_OUTGOING_ALLOW.
 
     A list of domains to which we can try to send webmentions."""
     return _get_attr(SETTING_DOMAINS_OUTGOING_ALLOW, _coerce_to_set)
 
 
 def outgoing_domains_deny() -> Set[str]:
-    """Return settings.SETTING_DOMAINS_OUTGOING_DENY.
+    """Return settings.WEBMENTIONS_DOMAINS_OUTGOING_DENY.
 
     A list of domain names to which we should never try to send webmentions."""
     return _get_attr(SETTING_DOMAINS_OUTGOING_DENY, _coerce_to_set)
 
 
 def outgoing_domains_override_attr() -> str:
-    """Return settings.SETTING_DOMAINS_OUTGOING_OVERRIDE.
+    """Return settings.WEBMENTIONS_DOMAINS_OUTGOING_OVERRIDE.
 
     Name of CSS class or HTML `data-` attribute which, if present, overrides
     the behaviour of SETTING_EXCLUDE_DOMAINS or SETTING_INCLUDE_DOMAINS.

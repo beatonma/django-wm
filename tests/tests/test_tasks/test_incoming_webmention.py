@@ -8,10 +8,15 @@ from mentions.models import Webmention
 from mentions.models.mixins import IncomingMentionType
 from mentions.tasks import incoming
 from mentions.tasks.incoming import local, remote
+from mentions.tasks.incoming.process import is_source_domain_acceptable
 from mentions.util import html_parser
 from tests.tests.util import snippets, testfunc
 from tests.tests.util.mocking import patch_http_get
-from tests.tests.util.testcase import OptionsTestCase, WebmentionTestCase
+from tests.tests.util.testcase import (
+    OptionsTestCase,
+    SimpleTestCase,
+    WebmentionTestCase,
+)
 
 log = logging.getLogger(__name__)
 
@@ -238,3 +243,59 @@ class IncomingWebmentionOptionTests(OptionsTestCase):
             target_url=target_url,
         )
         self.assertIsNotNone(mention.target_object)
+
+
+class AllowDenyOptionTest(SimpleTestCase):
+    def test_is_domain_acceptable(self):
+        self.assertTrue(is_source_domain_acceptable("https://allow.org", None, None))
+        self.assertTrue(
+            is_source_domain_acceptable("https://allow.org", {"allow.org"}, None)
+        )
+        self.assertFalse(
+            is_source_domain_acceptable("https://deny.org", {"allow.org"}, None)
+        )
+
+        self.assertTrue(
+            is_source_domain_acceptable("https://allow.org", None, {"deny.org"})
+        )
+        self.assertFalse(
+            is_source_domain_acceptable("https://deny.org", None, {"deny.org"})
+        )
+
+    @patch_http_get(text=SOURCE_TEXT_DEFAULT)
+    def test_process_incoming_webmention_with_domains_allow(self):
+        self.assertIsNotNone(
+            incoming.process_incoming_webmention(
+                testfunc.random_url(subdomain="", domain="allow.org"),
+                TARGET_URL,
+                sent_by=testfunc.random_url(),
+                domains_allow={"allow.org"},
+            )
+        )
+        self.assertIsNone(
+            incoming.process_incoming_webmention(
+                testfunc.random_url(subdomain="", domain="other.org"),
+                TARGET_URL,
+                sent_by=testfunc.random_url(),
+                domains_allow={"allow.org"},
+            )
+        )
+
+    @patch_http_get(text=SOURCE_TEXT_DEFAULT)
+    def test_process_incoming_webmention_with_domains_deny(self):
+        self.assertIsNotNone(
+            incoming.process_incoming_webmention(
+                testfunc.random_url(subdomain="", domain="allow.org"),
+                TARGET_URL,
+                sent_by=testfunc.random_url(),
+                domains_deny={"deny.org"},
+            )
+        )
+        self.assertIsNone(
+            incoming.process_incoming_webmention(
+                testfunc.random_url(subdomain="", domain="deny.org"),
+                TARGET_URL,
+                sent_by=testfunc.random_url(),
+                domains_deny={"deny.org"},
+            )
+        )

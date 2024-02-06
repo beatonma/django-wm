@@ -157,14 +157,23 @@ def random_domain() -> str:
     return f"example-url-{random_str()}.org"
 
 
-def random_url() -> str:
+def random_url(
+    scheme: Optional[str] = None,
+    subdomain: Optional[str] = None,
+    domain: Optional[str] = None,
+    port: Optional[int] = None,
+    path: Optional[str] = None,
+) -> str:
     """Generate a random URL."""
-    scheme = random.choice(["http", "https"])
-    subdomain = random.choice(["", "", f"{random_str()}."])
-    domain = random_domain()
-    port = random.choice(([""] * 5) + [":8000"])
-    path = "/".join([random_str() for _ in range(random.randint(0, 2))])
-    path = (f"/{path}" if path else "") + random.choice(["", "/"])
+    scheme = _take_not_null(scheme, random.choice(["http", "https"]))
+    subdomain = _take_not_null(subdomain, random.choice(["", "", f"{random_str()}."]))
+    domain = _take_not_null(domain, random_domain())
+    port = f":{port}" if port else random.choice(([""] * 5) + [":8000"])
+    if path is None:
+        path = "/".join([random_str() for _ in range(random.randint(0, 2))])
+        path = path + random.choice(["", "/"])
+    if len(path) > 0 and path[0] != "/":
+        path = f"/{path}"
 
     return f"{scheme}://{subdomain}{domain}{port}{path}"
 
@@ -183,3 +192,7 @@ def mentions_model_classes():
         HCard,
         SimpleMention,
     ]
+
+
+def _take_not_null(value, default):
+    return value if value is not None else default
