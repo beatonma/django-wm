@@ -26,9 +26,12 @@ from django.core.exceptions import ImproperlyConfigured
 import mentions
 
 __all__ = [
+    "allow_self_mentions",
     "auto_approve",
     "dashboard_public",
     "domain_name",
+    "incoming_domains_allow",
+    "incoming_domains_deny",
     "outgoing_domains_deny",
     "outgoing_domains_allow",
     "outgoing_domains_override_attr",

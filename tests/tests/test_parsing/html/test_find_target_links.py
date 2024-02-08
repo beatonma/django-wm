@@ -95,19 +95,19 @@ class OutgoingLinksTests(OptionsTestCase):
             },
         )
 
-    def test_with_allow_domains(self):
+    def test_with_domains_allow(self):
         links = get_target_links_in_html(
             _HTML,
             source_path="/article/1/",
-            allow_domains=["allow-url.org"],
+            domains_allow=["allow-url.org"],
         )
         self.assertSetEqual(links, {"https://allow-url.org/whatever"})
 
-    def test_with_deny_domains(self):
+    def test_with_domains_deny(self):
         links = get_target_links_in_html(
             _HTML,
             source_path="/article/1/",
-            deny_domains=["deny-url.org"],
+            domains_deny=["deny-url.org"],
         )
         self.assertSetEqual(
             links,
@@ -128,8 +128,8 @@ class OutgoingLinksTests(OptionsTestCase):
             return get_target_links_in_html(
                 html,
                 "",
-                allow_domains=["allow.org"],
-                deny_domains=None,
+                domains_allow=["allow.org"],
+                domains_deny=None,
                 domain_override_attr=attr,
             )
 
@@ -153,8 +153,8 @@ class OutgoingLinksTests(OptionsTestCase):
             return get_target_links_in_html(
                 html,
                 "",
-                allow_domains=None,
-                deny_domains=["deny.org"],
+                domains_allow=None,
+                domains_deny=["deny.org"],
                 domain_override_attr=attr,
             )
 

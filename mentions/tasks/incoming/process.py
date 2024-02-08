@@ -1,6 +1,6 @@
 from typing import Optional, Set, Tuple, Union
 
-from mentions import options
+from mentions import config, options
 from mentions.exceptions import (
     RejectedByConfig,
     SourceDoesNotLink,
@@ -19,13 +19,11 @@ from mentions.tasks.incoming.remote import (
 )
 
 __all__ = [
-    "is_source_domain_acceptable",
     "process_incoming_webmention",
     "verify_webmention",
 ]
 
 from mentions.tasks.incoming.status import Status
-from mentions.util import get_domain
 
 log = get_logger(__name__)
 
@@ -43,7 +41,7 @@ def process_incoming_webmention(
     domains_allow = domains_allow or options.incoming_domains_allow()
     domains_deny = domains_deny or options.incoming_domains_deny()
 
-    allow_source_domain = is_source_domain_acceptable(
+    allow_source_domain = config.accept_domain_incoming(
         source_url,
         domains_allow=domains_allow,
         domains_deny=domains_deny,
@@ -86,25 +84,6 @@ def process_incoming_webmention(
         metadata=metadata,
         notes=status,
     )
-
-
-def is_source_domain_acceptable(
-    source_url: str,
-    domains_allow: Optional[Set[str]],
-    domains_deny: Optional[Set[str]],
-) -> bool:
-    if domains_allow is None and domains_deny is None:
-        return True
-
-    domain = get_domain(source_url)
-
-    if domains_allow:
-        return domain in domains_allow
-
-    if domains_deny:
-        return domain not in domains_deny
-
-    return True
 
 
 def verify_webmention(

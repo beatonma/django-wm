@@ -161,14 +161,16 @@ def random_url(
     scheme: Optional[str] = None,
     subdomain: Optional[str] = None,
     domain: Optional[str] = None,
-    port: Optional[int] = None,
+    port: Optional[str] = None,
     path: Optional[str] = None,
 ) -> str:
     """Generate a random URL."""
     scheme = _take_not_null(scheme, random.choice(["http", "https"]))
     subdomain = _take_not_null(subdomain, random.choice(["", "", f"{random_str()}."]))
     domain = _take_not_null(domain, random_domain())
-    port = f":{port}" if port else random.choice(([""] * 5) + [":8000"])
+    port = _take_not_null(port, random.choice([""] * 5 + ["8000"]))
+    if port:
+        port = f":{port}"
     if path is None:
         path = "/".join([random_str() for _ in range(random.randint(0, 2))])
         path = path + random.choice(["", "/"])
