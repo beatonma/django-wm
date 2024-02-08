@@ -20,7 +20,7 @@ class FlatSettingsTests(OptionsTestCase):
         settings.WEBMENTIONS_DEFAULT_URL_PARAMETER_MAPPING = {"foo": "bar"}
         settings.WEBMENTIONS_DOMAINS_OUTGOING_ALLOW = {"include"}
         settings.WEBMENTIONS_DOMAINS_OUTGOING_DENY = {"exclude"}
-        settings.WEBMENTIONS_DOMAINS_OUTGOING_OVERRIDE = "wm-override"
+        settings.WEBMENTIONS_DOMAINS_OUTGOING_OVERRIDE_TAG = "wm-override"
         settings.WEBMENTIONS_INCOMING_TARGET_MODEL_REQUIRED = True
         settings.WEBMENTIONS_MAX_RETRIES = 25
         settings.WEBMENTIONS_RETRY_INTERVAL = 30
@@ -42,7 +42,7 @@ class FlatSettingsTests(OptionsTestCase):
         self.assertDictEqual(options.default_url_parameter_mapping(), dict(foo="bar"))
         self.assertSetEqual(options.outgoing_domains_allow(), {"include"})
         self.assertSetEqual(options.outgoing_domains_deny(), {"exclude"})
-        self.assertEqual(options.outgoing_domains_override_attr(), "wm-override")
+        self.assertEqual(options.outgoing_domains_override_tag(), "wm-override")
         self.assertEqual(options.user_agent(), "empty")
 
     def test_namespaced_settings(self):
@@ -56,7 +56,7 @@ class FlatSettingsTests(OptionsTestCase):
             "DEFAULT_URL_PARAMETER_MAPPING": {"bar": "foo"},
             "DOMAINS_OUTGOING_ALLOW": ("included",),
             "DOMAINS_OUTGOING_DENY": ["excluded"],
-            "DOMAINS_OUTGOING_OVERRIDE": "override-wm",
+            "DOMAINS_OUTGOING_OVERRIDE_TAG": "override-wm",
             "INCOMING_TARGET_MODEL_REQUIRED": False,
             "MAX_RETRIES": 26,
             "RETRY_INTERVAL": 31,
@@ -79,5 +79,5 @@ class FlatSettingsTests(OptionsTestCase):
         self.assertDictEqual(options.default_url_parameter_mapping(), dict(bar="foo"))
         self.assertSetEqual(options.outgoing_domains_allow(), {"included"})
         self.assertSetEqual(options.outgoing_domains_deny(), {"excluded"})
-        self.assertEqual(options.outgoing_domains_override_attr(), "override-wm")
+        self.assertEqual(options.outgoing_domains_override_tag(), "override-wm")
         self.assertEqual(options.user_agent(), "nope")

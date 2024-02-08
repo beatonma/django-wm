@@ -23,7 +23,7 @@ def get_target_links_in_html(
     allow_self_mentions: bool = options.allow_self_mentions(),
     domains_allow: Optional[List[str]] = None,
     domains_deny: Optional[List[str]] = None,
-    domain_override_attr: Optional[str] = options.outgoing_domains_override_attr(),
+    domain_override_attr: Optional[str] = options.outgoing_domains_override_tag(),
 ) -> Set[str]:
     """Get any links from `html` that should be treated as webmention targets.
 

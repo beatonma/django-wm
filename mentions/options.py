@@ -34,7 +34,7 @@ __all__ = [
     "incoming_domains_deny",
     "outgoing_domains_deny",
     "outgoing_domains_allow",
-    "outgoing_domains_override_attr",
+    "outgoing_domains_override_tag",
     "get_config",
     "max_retries",
     "retry_interval",
@@ -56,7 +56,7 @@ SETTING_DOMAINS_INCOMING_ALLOW = f"{NAMESPACE}_DOMAINS_INCOMING_ALLOW"
 SETTING_DOMAINS_INCOMING_DENY = f"{NAMESPACE}_DOMAINS_INCOMING_DENY"
 SETTING_DOMAINS_OUTGOING_ALLOW = f"{NAMESPACE}_DOMAINS_OUTGOING_ALLOW"
 SETTING_DOMAINS_OUTGOING_DENY = f"{NAMESPACE}_DOMAINS_OUTGOING_DENY"
-SETTING_DOMAINS_OUTGOING_OVERRIDE = f"{NAMESPACE}_DOMAINS_OUTGOING_OVERRIDE"
+SETTING_DOMAINS_OUTGOING_OVERRIDE_TAG = f"{NAMESPACE}_DOMAINS_OUTGOING_OVERRIDE_TAG"
 SETTING_INCOMING_TARGET_MODEL_REQUIRED = f"{NAMESPACE}_INCOMING_TARGET_MODEL_REQUIRED"
 SETTING_MAX_RETRIES = f"{NAMESPACE}_MAX_RETRIES"
 SETTING_RETRY_INTERVAL = f"{NAMESPACE}_RETRY_INTERVAL"
@@ -80,7 +80,7 @@ DEFAULTS = {
     SETTING_DOMAINS_INCOMING_DENY: None,
     SETTING_DOMAINS_OUTGOING_ALLOW: None,
     SETTING_DOMAINS_OUTGOING_DENY: None,
-    SETTING_DOMAINS_OUTGOING_OVERRIDE: None,
+    SETTING_DOMAINS_OUTGOING_OVERRIDE_TAG: None,
     SETTING_INCOMING_TARGET_MODEL_REQUIRED: False,
     SETTING_MAX_RETRIES: 5,
     SETTING_RETRY_INTERVAL: 60 * 10,
@@ -206,13 +206,14 @@ def outgoing_domains_deny() -> Set[str]:
     return _get_attr(SETTING_DOMAINS_OUTGOING_DENY, _coerce_to_set)
 
 
-def outgoing_domains_override_attr() -> str:
-    """Return settings.WEBMENTIONS_DOMAINS_OUTGOING_OVERRIDE.
+def outgoing_domains_override_tag() -> str:
+    """Return settings.WEBMENTIONS_DOMAINS_OUTGOING_OVERRIDE_TAG.
 
-    Name of CSS class or HTML `data-` attribute which, if present, overrides
-    the behaviour of SETTING_EXCLUDE_DOMAINS or SETTING_INCLUDE_DOMAINS.
+    Name of CSS class or HTML `data-` attribute which, if present, reverses
+    the behaviour of WEBMENTIONS_DOMAINS_OUTGOING_ALLOW or
+    WEBMENTIONS_DOMAINS_OUTGOING_DENY.
     """
-    return _get_attr(SETTING_DOMAINS_OUTGOING_OVERRIDE)
+    return _get_attr(SETTING_DOMAINS_OUTGOING_OVERRIDE_TAG)
 
 
 def max_retries() -> int:
