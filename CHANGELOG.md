@@ -6,7 +6,7 @@
 > [!WARNING]
 > `python manage.py migrate` required for new fields.  
 
-> [!NOTES]
+> [!NOTE]
 > [Wiki](https://github.com/beatonma/django-wm/wiki/Release-4.1)
   
 - Added `Webmention.has_been_read: bool` field.  
