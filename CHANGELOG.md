@@ -19,7 +19,7 @@
   - <a href="https://github.com/beatonma/django-wm/wiki/Settings#WEBMENTIONS_DOMAINS_INCOMING_DENY">`WEBMENTIONS_DOMAINS_INCOMING_DENY: Iterable[str] = None`</a>  
   - <a href="https://github.com/beatonma/django-wm/wiki/Settings#WEBMENTIONS_DOMAINS_OUTGOING_ALLOW">`WEBMENTIONS_DOMAINS_OUTGOING_ALLOW: Iterable[str] = None`</a>  
   - <a href="https://github.com/beatonma/django-wm/wiki/Settings#WEBMENTIONS_DOMAINS_OUTGOING_DENY">`WEBMENTIONS_DOMAINS_OUTGOING_DENY: Iterable[str] = None`</a>  
-  - <a href="https://github.com/beatonma/django-wm/wiki/Settings#WEBMENTIONS_DOMAINS_OUTGOING_OVERRIDE">`WEBMENTIONS_DOMAINS_OUTGOING_OVERRIDE: str = None`</a>  
+  - <a href="https://github.com/beatonma/django-wm/wiki/Settings#WEBMENTIONS_DOMAINS_OUTGOING_OVERRIDE_TAG">`WEBMENTIONS_DOMAINS_OUTGOING_OVERRIDE_TAG: str = None`</a>  
 
 
 ## 4.0.4 (2024-02-02)
