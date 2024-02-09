@@ -1,9 +1,12 @@
 """Helper functions that derive from `mentions.options` values."""
+import logging
 from typing import Optional, Set
 from urllib.parse import urljoin
 
 from mentions import options
 from mentions.util import compatibility, get_domain
+
+log = logging.getLogger(__name__)
 
 
 def base_url() -> str:
@@ -45,6 +48,10 @@ def accept_domain_incoming(
 
     domain = get_domain(url)
 
+    if not domain:
+        log.warning(f"accept_domain_incoming received invalid URL: {url}")
+        return False
+
     if domains_allow:
         return _domain_in_set(domain, domains_allow)
 
@@ -73,6 +80,10 @@ def accept_domain_outgoing(
         domains_deny: Current value of `options.outgoing_domains_deny()`.
     """
     domain = get_domain(url)
+
+    if not domain:
+        log.warning(f"accept_domain_outgoing received invalid URL: {url}")
+        return False
 
     if not allow_self_mention and domain == options.domain_name():
         return False

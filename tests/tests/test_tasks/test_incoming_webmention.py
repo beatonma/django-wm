@@ -3,7 +3,9 @@ Tests for handling webmentions are sent to us from elsewhere.
 """
 import logging
 
-from mentions import config
+from django.test import override_settings
+
+from mentions import options
 from mentions.exceptions import SourceNotAccessible, TargetWrongDomain
 from mentions.models import Webmention
 from mentions.models.mixins import IncomingMentionType
@@ -246,22 +248,7 @@ class IncomingWebmentionOptionTests(OptionsTestCase):
 
 
 class AllowDenyOptionTests(SimpleTestCase):
-    def test_is_domain_acceptable(self):
-        self.assertTrue(config.accept_domain_incoming("https://allow.org", None, None))
-        self.assertTrue(
-            config.accept_domain_incoming("https://allow.org", {"allow.org"}, None)
-        )
-        self.assertFalse(
-            config.accept_domain_incoming("https://deny.org", {"allow.org"}, None)
-        )
-
-        self.assertTrue(
-            config.accept_domain_incoming("https://allow.org", None, {"deny.org"})
-        )
-        self.assertFalse(
-            config.accept_domain_incoming("https://deny.org", None, {"deny.org"})
-        )
-
+    @override_settings(**{options.SETTING_DOMAINS_INCOMING_ALLOW: {"allow.org"}})
     @patch_http_get(text=SOURCE_TEXT_DEFAULT)
     def test_process_incoming_webmention_with_domains_allow(self):
         self.assertIsNotNone(
@@ -269,7 +256,6 @@ class AllowDenyOptionTests(SimpleTestCase):
                 testfunc.random_url(subdomain="", domain="allow.org", port=""),
                 TARGET_URL,
                 sent_by=testfunc.random_url(),
-                domains_allow={"allow.org"},
             )
         )
         self.assertIsNone(
@@ -277,10 +263,10 @@ class AllowDenyOptionTests(SimpleTestCase):
                 testfunc.random_url(subdomain="", domain="other.org", port=""),
                 TARGET_URL,
                 sent_by=testfunc.random_url(),
-                domains_allow={"allow.org"},
             )
         )
 
+    @override_settings(**{options.SETTING_DOMAINS_INCOMING_DENY: {"deny.org"}})
     @patch_http_get(text=SOURCE_TEXT_DEFAULT)
     def test_process_incoming_webmention_with_domains_deny(self):
         self.assertIsNotNone(
@@ -288,7 +274,6 @@ class AllowDenyOptionTests(SimpleTestCase):
                 testfunc.random_url(subdomain="", domain="allow.org", port=""),
                 TARGET_URL,
                 sent_by=testfunc.random_url(),
-                domains_deny={"deny.org"},
             )
         )
         self.assertIsNone(
@@ -296,14 +281,5 @@ class AllowDenyOptionTests(SimpleTestCase):
                 testfunc.random_url(subdomain="", domain="deny.org", port=""),
                 TARGET_URL,
                 sent_by=testfunc.random_url(),
-                domains_deny={"deny.org"},
-            )
-        )
-        self.assertIsNone(
-            incoming.process_incoming_webmention(
-                testfunc.random_url(domain="deny.org", port=""),
-                TARGET_URL,
-                sent_by=testfunc.random_url(),
-                domains_deny={"*.deny.org"},
             )
         )

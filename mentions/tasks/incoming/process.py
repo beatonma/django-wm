@@ -38,13 +38,10 @@ def process_incoming_webmention(
 ) -> Optional[Webmention]:
     log.info(f"Processing webmention '{source_url}' -> '{target_url}'")
 
-    domains_allow = domains_allow or options.incoming_domains_allow()
-    domains_deny = domains_deny or options.incoming_domains_deny()
-
     allow_source_domain = config.accept_domain_incoming(
         source_url,
-        domains_allow=domains_allow,
-        domains_deny=domains_deny,
+        domains_allow=domains_allow or options.incoming_domains_allow(),
+        domains_deny=domains_deny or options.incoming_domains_deny(),
     )
     if not allow_source_domain:
         log.warning(
