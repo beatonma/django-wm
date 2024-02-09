@@ -1,32 +1,26 @@
 # Changelog
 
 
-## 4.1
+## 4.1 (2024-02-09)
 
-> `migrate` required for new fields.
+> [!WARNING]
+> `python manage.py migrate` required for new fields.  
 
-- Added `Webmention.has_been_read: bool` field.
-  - New context processor `mentions.context_processors.unread_webmentions`
-    adds `unread_webmentions` field to template context.
-  - Added admin actions for marking as read/unread.
-
-- New `objects` manager for Webmention with some common filters.
-
-- New settings for allowing or disabling webmentions to/from a set of domains:
-  - `WEBMENTIONS_DOMAINS_INCOMING_ALLOW: Iterable[str] = None`
-    - Mutually exclusive with `WEBMENTIONS_DOMAINS_INCOMING_DENY`.
-  - `WEBMENTIONS_DOMAINS_INCOMING_DENY: Iterable[str] = None`
-    - Mutually exclusive with `WEBMENTIONS_DOMAINS_INCOMING_ALLOW`.
-  - `WEBMENTIONS_DOMAINS_OUTGOING_ALLOW: Iterable[str] = None`
-    - Mutually exclusive with `WEBMENTIONS_DOMAINS_OUTGOING_DENY`.
-  - `WEBMENTIONS_DOMAINS_OUTGOING_DENY: Iterable[str] = None`
-    - Mutually exclusive with `WEBMENTIONS_DOMAINS_OUTGOING_ALLOW`.
-  - `WEBMENTIONS_DOMAINS_OUTGOING_OVERRIDE_TAG: str = None`
-    - A tag which can be applied to an HTML `<a>` element to invert the effect of `WEBMENTIONS_DOMAINS_OUTGOING_ALLOW` or `WEBMENTIONS_DOMAINS_OUTGOING_DENY` for that link specifically.
-    - May be provided as:
-      - a class `<a class="my-override-string">`.
-      - a data attribute `<a data-my-override-string>`.
-      - a custom attribute `<a my-override-string>`.
+> [!NOTES]
+> [Wiki](https://github.com/beatonma/django-wm/wiki/Release-4.1)
+  
+- Added `Webmention.has_been_read: bool` field.  
+  - New context processor `mentions.context_processors.unread_webmentions` adds `unread_webmentions` field to template context, containing the queryset of unread Webmention objects.
+  - Added admin actions for marking as read/unread.  
+  
+- New `objects` manager for Webmention with some common filters and actions.  
+  
+- New [settings](https://github.com/beatonma/django-wm/wiki/Settings) for allowing or disabling webmentions to/from a set of domains:  
+  - <a href="https://github.com/beatonma/django-wm/wiki/Settings#WEBMENTIONS_DOMAINS_INCOMING_ALLOW">`WEBMENTIONS_DOMAINS_INCOMING_ALLOW: Iterable[str] = None`</a>  
+  - <a href="https://github.com/beatonma/django-wm/wiki/Settings#WEBMENTIONS_DOMAINS_INCOMING_DENY">`WEBMENTIONS_DOMAINS_INCOMING_DENY: Iterable[str] = None`</a>  
+  - <a href="https://github.com/beatonma/django-wm/wiki/Settings#WEBMENTIONS_DOMAINS_OUTGOING_ALLOW">`WEBMENTIONS_DOMAINS_OUTGOING_ALLOW: Iterable[str] = None`</a>  
+  - <a href="https://github.com/beatonma/django-wm/wiki/Settings#WEBMENTIONS_DOMAINS_OUTGOING_DENY">`WEBMENTIONS_DOMAINS_OUTGOING_DENY: Iterable[str] = None`</a>  
+  - <a href="https://github.com/beatonma/django-wm/wiki/Settings#WEBMENTIONS_DOMAINS_OUTGOING_OVERRIDE">`WEBMENTIONS_DOMAINS_OUTGOING_OVERRIDE: str = None`</a>  
 
 
 ## 4.0.4 (2024-02-02)

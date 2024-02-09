@@ -7,7 +7,11 @@
 
 ### Upgrading
 
-Please check the [upgrade guide](https://github.com/beatonma/django-wm/wiki/Upgrading) for any breaking changes before upgrading. See the [changelog](./CHANGELOG.md) for full details.
+Please check the [changelog](./CHANGELOG.md) before upgrading.
+
+Major versions introduce breaking changes which may require code changes in your application. Please check the [upgrade guide](https://github.com/beatonma/django-wm/wiki/Upgrading) for full instructions on how to handle these.
+
+Minor versions may require a database migration for new features - this will be noted in the [changelog](./CHANGELOG.md) and the [wiki release page](https://github.com/beatonma/django-wm/wiki/Releases) when necessary.
 
 
 ### Getting started
