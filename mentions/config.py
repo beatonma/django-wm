@@ -3,7 +3,7 @@ from typing import Optional, Set
 from urllib.parse import urljoin
 
 from mentions import options
-from mentions.util import get_domain
+from mentions.util import compatibility, get_domain
 
 
 def base_url() -> str:
@@ -97,8 +97,8 @@ def _domain_in_set(domain: str, domains: Set[str]) -> bool:
             return True
 
         if d.startswith("*."):
-            root_domain = d.removeprefix("*.")
-            remaining_prefix = domain.removesuffix(root_domain)
+            root_domain = compatibility.removeprefix(d, "*.")
+            remaining_prefix = compatibility.removesuffix(domain, root_domain)
             if remaining_prefix == "" or remaining_prefix.endswith("."):
                 return True
 
