@@ -1,9 +1,9 @@
-from mentions import contract
+from mentions import contract, permissions
 from mentions.models import Webmention
 
 
 def unread_webmentions(request) -> dict:
-    if not request.user.has_perm("mentions.change_webmention"):
+    if not permissions.can_change_webmention.has_perm(request.user):
         return {}
 
     return {
