@@ -1,14 +1,13 @@
 # Changelog
 
+> [!NOTE]
+> Release notes are also available on the [wiki](https://github.com/beatonma/django-wm/wiki/Releases).
 
 ## 4.1 (2024-02-09)
 
 > [!WARNING]
 > `python manage.py migrate` required for new fields.  
 
-> [!NOTE]
-> [Wiki](https://github.com/beatonma/django-wm/wiki/Release-4.1)
-  
 - Added `Webmention.has_been_read: bool` field.  
   - New context processor `mentions.context_processors.unread_webmentions` adds `unread_webmentions` field to template context, containing the queryset of unread Webmention objects.
   - Added admin actions for marking as read/unread.  
