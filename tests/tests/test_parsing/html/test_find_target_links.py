@@ -121,55 +121,83 @@ class OutgoingLinksTests(OptionsTestCase):
             },
         )
 
-    def test_override_allow(self):
-        attr = "wm-deny"
-
-        def _get(html: str):
-            return get_target_links_in_html(
-                html,
-                "",
-                domains_allow=["allow.org"],
-                domains_deny=None,
-                domain_override_attr=attr,
-            )
+    def test_with_no_domains_and_tag_override(self):
+        send_tag = "wm-send"
+        nosend_tag = "wm-nosend"
+        html = f"""
+        <a href="https://allow.org/by-default/"></a>
+        <a href="https://class.org" class="{nosend_tag}"></a>
+        <a href="https://data.org" data-{nosend_tag}></a>
+        <a href="https://attr.org" {nosend_tag}></a>
+        <a href="https://attr.org/unaffected_by_tag" {send_tag}></a>
+        """
 
         self.assertSetEqual(
-            _get("""<a href="https://allow.org"></a> unrelated-attr"""),
-            {"https://allow.org"},
-        )
-        self.assertSetEqual(_get(f"""<a href="https://allow.org" {attr}></a>"""), set())
-        self.assertSetEqual(
-            _get(f"""<a href="https://allow.org" data-{attr}></a>"""), set()
-        )
-        self.assertSetEqual(
-            _get(f"""<a href="https://allow.org" class="one {attr} two"></a>"""),
-            set(),
-        )
-
-    def test_override_deny(self):
-        attr = "wm-allow"
-
-        def _get(html: str):
-            return get_target_links_in_html(
+            get_target_links_in_html(
                 html,
                 "",
                 domains_allow=None,
-                domains_deny=["deny.org"],
-                domain_override_attr=attr,
-            )
+                domains_deny=None,
+                domains_deny_tag=nosend_tag,
+            ),
+            {"https://allow.org/by-default/", "https://attr.org/unaffected_by_tag"},
+        )
+
+    def test_with_domains_allow_and_tag_override(self):
+        send_tag = "wm_send"
+        nosend_tag = "wm-no-send"
+        html = f"""
+        <a href="https://allow.org"></a>
+        <a href="https://allow.org/unaffected-by-tag/" class={send_tag}></a>
+        <a href="https://class.org" class="{nosend_tag}"></a>
+        <a href="https://data.org" data-{nosend_tag}></a>
+        <a href="https://attr.org" {nosend_tag}></a>
+        """
 
         self.assertSetEqual(
-            _get("""<a href="https://deny.org" class="unrelated"></a>"""), set()
+            get_target_links_in_html(
+                html,
+                "",
+                domains_allow={
+                    "allow.org",
+                    "attr.org",
+                    "class.org",
+                    "data.org",
+                },
+                domains_deny=None,
+                domains_deny_tag=nosend_tag,
+            ),
+            {"https://allow.org", "https://allow.org/unaffected-by-tag/"},
         )
+
+    def test_with_domains_deny_and_tag_override(self):
+        send_tag = "wm-send"
+        nosend_tag = "wm-no_send"
+        html = f"""
+        <a href="https://deny.org"></a>
+        <a href="https://deny.org" {nosend_tag}></a>
+        <a href="https://class.org/allow-by-override" class="{send_tag}"></a>
+        <a href="https://data.org/allow-by-override" data-{send_tag}></a>
+        <a href="https://attr.org/allow-by-override" {send_tag}></a>
+        """
+
         self.assertSetEqual(
-            _get(f"""<a href="https://deny.org" {attr}></a>"""),
-            {"https://deny.org"},
-        )
-        self.assertSetEqual(
-            _get(f"""<a href="https://deny.org" data-{attr}></a>"""),
-            {"https://deny.org"},
-        )
-        self.assertSetEqual(
-            _get(f"""<a href="https://deny.org" class="one {attr} two"></a>"""),
-            {"https://deny.org"},
+            get_target_links_in_html(
+                html,
+                "",
+                domains_allow=None,
+                domains_deny={
+                    "deny.org",
+                    "attr.org",
+                    "class.org",
+                    "data.org",
+                },
+                domains_allow_tag=send_tag,
+                domains_deny_tag=nosend_tag,
+            ),
+            {
+                "https://class.org/allow-by-override",
+                "https://data.org/allow-by-override",
+                "https://attr.org/allow-by-override",
+            },
         )

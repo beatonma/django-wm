@@ -63,7 +63,6 @@ def accept_domain_incoming(
 
 def accept_domain_outgoing(
     url: str,
-    inline_override: bool,
     allow_self_mention: bool,
     domains_allow: Optional[Set[str]],
     domains_deny: Optional[Set[str]],
@@ -72,9 +71,6 @@ def accept_domain_outgoing(
 
     Args:
         url: The URL to check.
-        inline_override: Provide True if the source of `url` is annotated with
-                         value of `options.outgoing_domains_override_attr()`,
-                         otherwise False.
         allow_self_mention: Current value of `options.allow_self_mentions()`.
         domains_allow: Current value of `options.outgoing_domains_allow()`.
         domains_deny: Current value of `options.outgoing_domains_deny()`.
@@ -93,10 +89,10 @@ def accept_domain_outgoing(
         )
 
     if domains_deny:
-        return _domain_in_set(domain, domains_deny) is inline_override
+        return not _domain_in_set(domain, domains_deny)
 
     if domains_allow:
-        return _domain_in_set(domain, domains_allow) is not inline_override
+        return _domain_in_set(domain, domains_allow)
 
     return True
 

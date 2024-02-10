@@ -6,10 +6,16 @@ from tests.tests.util.testcase import SimpleTestCase
 
 
 class AcceptDomainIncomingTests(SimpleTestCase):
-    """Tests for config.accept_domain_incoming neither domains_allow, domains_deny defined."""
+    """Tests for config.accept_domain_incoming with neither domains_allow, domains_deny defined."""
 
     def test_with_no_restrictions(self):
-        self.assertTrue(accept_domain_incoming(testfunc.random_url(), None, None))
+        self.assertTrue(
+            accept_domain_incoming(
+                testfunc.random_url(),
+                None,
+                None,
+            )
+        )
 
 
 class AcceptDomainIncoming_withAllowList_Tests(SimpleTestCase):
@@ -115,18 +121,30 @@ class AcceptDomainIncoming_withDenyList_Tests(SimpleTestCase):
         self._assertNotDenied("https://sub.deny.com", deny)
 
 
+class AcceptDomainOutgoing(SimpleTestCase):
+    """Tests for config.accept_domain_outgoing with neither domains_allow, domains_deny defined."""
+
+    def test_with_no_restrictions(self):
+        self.assertTrue(
+            accept_domain_outgoing(
+                testfunc.random_url(),
+                True,
+                None,
+                None,
+            )
+        )
+
+
 class AcceptDomainOutgoing_withAllowList_Tests(SimpleTestCase):
     def _assertAllowed(
         self,
         url: str,
         domains_allow: Set[str],
-        inline_override: bool = False,
         allow_self_mention: bool = True,
     ):
         self.assertTrue(
             accept_domain_outgoing(
                 url,
-                inline_override=inline_override,
                 allow_self_mention=allow_self_mention,
                 domains_allow=domains_allow,
                 domains_deny=None,
@@ -138,13 +156,11 @@ class AcceptDomainOutgoing_withAllowList_Tests(SimpleTestCase):
         self,
         url: str,
         domains_allow: Set[str],
-        inline_override: bool = False,
         allow_self_mention: bool = True,
     ):
         self.assertFalse(
             accept_domain_outgoing(
                 url,
-                inline_override=inline_override,
                 allow_self_mention=allow_self_mention,
                 domains_allow=domains_allow,
                 domains_deny=None,
@@ -179,26 +195,17 @@ class AcceptDomainOutgoing_withAllowList_Tests(SimpleTestCase):
         self._assertNotAllowed("https://fallow.org", allow)
         self._assertNotAllowed("https://not.allow.net", allow)
 
-    def test_inline_override(self):
-        allow = {"*.allow.org", "*.allow.com", ""}
-        self._assertNotAllowed("https://allow.org", allow, inline_override=True)
-        self._assertAllowed(
-            "https://normally-disallowed.org", allow, inline_override=True
-        )
-
 
 class AcceptDomainOutgoing_withDenyList_Tests(SimpleTestCase):
     def _assertDenied(
         self,
         url: str,
         domains_deny: Set[str],
-        inline_override: bool = False,
         allow_self_mention: bool = True,
     ):
         self.assertFalse(
             accept_domain_outgoing(
                 url,
-                inline_override=inline_override,
                 allow_self_mention=allow_self_mention,
                 domains_allow=None,
                 domains_deny=domains_deny,
@@ -210,13 +217,11 @@ class AcceptDomainOutgoing_withDenyList_Tests(SimpleTestCase):
         self,
         url: str,
         domains_deny: Set[str],
-        inline_override: bool = False,
         allow_self_mention: bool = True,
     ):
         self.assertTrue(
             accept_domain_outgoing(
                 url,
-                inline_override=inline_override,
                 allow_self_mention=allow_self_mention,
                 domains_allow=None,
                 domains_deny=domains_deny,
@@ -243,8 +248,3 @@ class AcceptDomainOutgoing_withDenyList_Tests(SimpleTestCase):
         deny = {"*.deny.org", "*.also.deny.net"}
         self._assertNotDenied(testfunc.random_url(), deny)
         self._assertNotDenied("https://other.deny.net/123", deny)
-
-    def test_inline_override(self):
-        deny = {"*.deny.org", "*.deny.com", ""}
-        self._assertNotDenied("https://deny.org", deny, inline_override=True)
-        self._assertDenied("https://normally-denied.org", deny, inline_override=True)

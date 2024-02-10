@@ -3,7 +3,7 @@
 > [!NOTE]
 > Release notes are also available on the [wiki](https://github.com/beatonma/django-wm/wiki/Releases).
 
-## 4.1 (2024-02-09)
+## 4.1.0 (2024-02-10)
 
 > [!WARNING]
 > `python manage.py migrate` required for new fields.  
@@ -14,12 +14,15 @@
   
 - New `objects` manager for Webmention with some common filters and actions.  
   
-- New [settings](https://github.com/beatonma/django-wm/wiki/Settings) for allowing or disabling webmentions to/from a set of domains:  
-  - <a href="https://github.com/beatonma/django-wm/wiki/Settings#WEBMENTIONS_DOMAINS_INCOMING_ALLOW">`WEBMENTIONS_DOMAINS_INCOMING_ALLOW: Iterable[str] = None`</a>  
-  - <a href="https://github.com/beatonma/django-wm/wiki/Settings#WEBMENTIONS_DOMAINS_INCOMING_DENY">`WEBMENTIONS_DOMAINS_INCOMING_DENY: Iterable[str] = None`</a>  
-  - <a href="https://github.com/beatonma/django-wm/wiki/Settings#WEBMENTIONS_DOMAINS_OUTGOING_ALLOW">`WEBMENTIONS_DOMAINS_OUTGOING_ALLOW: Iterable[str] = None`</a>  
-  - <a href="https://github.com/beatonma/django-wm/wiki/Settings#WEBMENTIONS_DOMAINS_OUTGOING_DENY">`WEBMENTIONS_DOMAINS_OUTGOING_DENY: Iterable[str] = None`</a>  
-  - <a href="https://github.com/beatonma/django-wm/wiki/Settings#WEBMENTIONS_DOMAINS_OUTGOING_OVERRIDE_TAG">`WEBMENTIONS_DOMAINS_OUTGOING_OVERRIDE_TAG: str = None`</a>  
+- New settings for allowing or disabling webmentions to/from a set of domains:  
+  - <a href="Settings#WEBMENTIONS_DOMAINS_INCOMING_ALLOW">`WEBMENTIONS_DOMAINS_INCOMING_ALLOW: Iterable[str] = None`</a>  
+  - <a href="Settings#WEBMENTIONS_DOMAINS_INCOMING_DENY">`WEBMENTIONS_DOMAINS_INCOMING_DENY: Iterable[str] = None`</a>  
+  - <a href="Settings#WEBMENTIONS_DOMAINS_OUTGOING_ALLOW">`WEBMENTIONS_DOMAINS_OUTGOING_ALLOW: Iterable[str] = None`</a>  
+  - <a href="Settings#WEBMENTIONS_DOMAINS_OUTGOING_DENY">`WEBMENTIONS_DOMAINS_OUTGOING_DENY: Iterable[str] = None`</a>
+
+- New settings for tags that can be added to your HTML links to allow/disable sending webmentions for just that specific link. (Overrides above allow/deny lists)
+  - <a href="Settings#WEBMENTIONS_DOMAINS_OUTGOING_TAG_ALLOW">`WEBMENTIONS_DOMAINS_OUTGOING_TAG_ALLOW: str = None`</a>  
+  - <a href="Settings#WEBMENTIONS_DOMAINS_OUTGOING_TAG_DENY">`WEBMENTIONS_DOMAINS_OUTGOING_TAG_DENY: str = None`</a>  
 
 
 ## 4.0.4 (2024-02-02)

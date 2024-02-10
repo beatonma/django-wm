@@ -34,7 +34,8 @@ __all__ = [
     "incoming_domains_deny",
     "outgoing_domains_deny",
     "outgoing_domains_allow",
-    "outgoing_domains_override_tag",
+    "outgoing_domains_tag_allow",
+    "outgoing_domains_tag_deny",
     "get_config",
     "max_retries",
     "retry_interval",
@@ -56,7 +57,8 @@ SETTING_DOMAINS_INCOMING_ALLOW = f"{NAMESPACE}_DOMAINS_INCOMING_ALLOW"
 SETTING_DOMAINS_INCOMING_DENY = f"{NAMESPACE}_DOMAINS_INCOMING_DENY"
 SETTING_DOMAINS_OUTGOING_ALLOW = f"{NAMESPACE}_DOMAINS_OUTGOING_ALLOW"
 SETTING_DOMAINS_OUTGOING_DENY = f"{NAMESPACE}_DOMAINS_OUTGOING_DENY"
-SETTING_DOMAINS_OUTGOING_OVERRIDE_TAG = f"{NAMESPACE}_DOMAINS_OUTGOING_OVERRIDE_TAG"
+SETTING_DOMAINS_OUTGOING_TAG_ALLOW = f"{NAMESPACE}_DOMAINS_OUTGOING_TAG_ALLOW"
+SETTING_DOMAINS_OUTGOING_TAG_DENY = f"{NAMESPACE}_DOMAINS_OUTGOING_TAG_DENY"
 SETTING_INCOMING_TARGET_MODEL_REQUIRED = f"{NAMESPACE}_INCOMING_TARGET_MODEL_REQUIRED"
 SETTING_MAX_RETRIES = f"{NAMESPACE}_MAX_RETRIES"
 SETTING_RETRY_INTERVAL = f"{NAMESPACE}_RETRY_INTERVAL"
@@ -80,7 +82,8 @@ DEFAULTS = {
     SETTING_DOMAINS_INCOMING_DENY: None,
     SETTING_DOMAINS_OUTGOING_ALLOW: None,
     SETTING_DOMAINS_OUTGOING_DENY: None,
-    SETTING_DOMAINS_OUTGOING_OVERRIDE_TAG: None,
+    SETTING_DOMAINS_OUTGOING_TAG_ALLOW: None,
+    SETTING_DOMAINS_OUTGOING_TAG_DENY: None,
     SETTING_INCOMING_TARGET_MODEL_REQUIRED: False,
     SETTING_MAX_RETRIES: 5,
     SETTING_RETRY_INTERVAL: 60 * 10,
@@ -206,14 +209,22 @@ def outgoing_domains_deny() -> Set[str]:
     return _get_attr(SETTING_DOMAINS_OUTGOING_DENY, _coerce_to_set)
 
 
-def outgoing_domains_override_tag() -> str:
-    """Return settings.WEBMENTIONS_DOMAINS_OUTGOING_OVERRIDE_TAG.
+def outgoing_domains_tag_allow() -> str:
+    """Return settings.WEBMENTIONS_DOMAINS_OUTGOING_TAG_ALLOW.
 
-    Name of CSS class or HTML `data-` attribute which, if present, reverses
-    the behaviour of WEBMENTIONS_DOMAINS_OUTGOING_ALLOW or
-    WEBMENTIONS_DOMAINS_OUTGOING_DENY.
+    Tag which can be included in HTML links as a class or attribute to  override
+    the behaviour of WEBMENTIONS_DOMAINS_OUTGOING_DENY.
     """
-    return _get_attr(SETTING_DOMAINS_OUTGOING_OVERRIDE_TAG)
+    return _get_attr(SETTING_DOMAINS_OUTGOING_TAG_ALLOW)
+
+
+def outgoing_domains_tag_deny() -> str:
+    """Return settings.WEBMENTIONS_DOMAINS_OUTGOING_TAG_DENY.
+
+    Tag which can be included in HTML links as a class or attribute to  override
+    the behaviour of WEBMENTIONS_DOMAINS_OUTGOING_ALLOW.
+    """
+    return _get_attr(SETTING_DOMAINS_OUTGOING_TAG_DENY)
 
 
 def max_retries() -> int:

@@ -1,5 +1,5 @@
 import logging
-from typing import Iterable, List, Optional, Set
+from typing import Iterable, Optional, Set
 from urllib.parse import urljoin
 
 from bs4 import Tag
@@ -21,9 +21,10 @@ def get_target_links_in_html(
     html: str,
     source_path: str,
     allow_self_mentions: bool = options.allow_self_mentions(),
-    domains_allow: Optional[List[str]] = None,
-    domains_deny: Optional[List[str]] = None,
-    domain_override_attr: Optional[str] = options.outgoing_domains_override_tag(),
+    domains_allow: Optional[Iterable[str]] = None,
+    domains_deny: Optional[Iterable[str]] = None,
+    domains_allow_tag: Optional[str] = options.outgoing_domains_tag_allow(),
+    domains_deny_tag: Optional[str] = options.outgoing_domains_tag_deny(),
 ) -> Set[str]:
     """Get any links from `html` that should be treated as webmention targets.
 
@@ -37,7 +38,8 @@ def get_target_links_in_html(
         allow_self_mentions: See `options.allow_self_mentions`.
         domains_allow: See `options.outgoing_domains_allow`.
         domains_deny: See `options.outgoing_domains_deny`.
-        domain_override_attr: See `options.outgoing_domains_override_attr`
+        domains_allow_tag: See `options.outgoing_domains_tag_allow`
+        domains_deny_tag: See `options.outgoing_domains_tag_deny`
     Returns:
         Absolute URLs for any valid links from `html`.
     """
@@ -55,15 +57,18 @@ def get_target_links_in_html(
 
         href = _resolve_relative_url(source_path, href)
 
+        if _has_class_or_attribute(link, domains_deny_tag):
+            continue
+
+        if _has_class_or_attribute(link, domains_allow_tag):
+            valid_links.add(href)
+            continue
+
         if is_valid_target(
             href,
             allow_self_mentions,
             domains_allow=domains_allow,
             domains_deny=domains_deny,
-            override_include_exclude=_has_class_or_attribute(
-                tag=link,
-                attr=domain_override_attr,
-            ),
         ):
             valid_links.add(href)
 
@@ -75,7 +80,6 @@ def is_valid_target(
     allow_self_mention: bool,
     domains_allow: Optional[Iterable[str]],
     domains_deny: Optional[Iterable[str]],
-    override_include_exclude: bool = False,
 ) -> bool:
     """
     Args:
@@ -83,7 +87,6 @@ def is_valid_target(
         allow_self_mention: See `options.allow_self_mentions`.
         domains_allow: See `options.outgoing_domains_allow`.
         domains_deny: See `options.outgoing_domains_deny`.
-        override_include_exclude: See `options.domains_override_attr`
 
     Returns:
         True if `url` is a valid URL and should be treated as a possible
@@ -98,7 +101,6 @@ def is_valid_target(
 
     return config.accept_domain_outgoing(
         url=url,
-        inline_override=override_include_exclude,
         allow_self_mention=allow_self_mention,
         domains_allow=domains_allow,
         domains_deny=domains_deny,
