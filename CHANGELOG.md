@@ -3,7 +3,7 @@
 > [!NOTE]
 > Release notes are also available on the [wiki](https://github.com/beatonma/django-wm/wiki/Releases).
 
-## 4.1.0 (2024-02-10)
+## 4.1.1 (2024-02-10)
 
 > [!WARNING]
 > `python manage.py migrate` required for new fields.  
@@ -16,7 +16,7 @@
   
 - New settings for allowing or disabling webmentions to/from a set of domains:  
   - <a href="Settings#WEBMENTIONS_DOMAINS_INCOMING_ALLOW">`WEBMENTIONS_DOMAINS_INCOMING_ALLOW: Iterable[str] = None`</a>  
-  - <a href="Settings#WEBMENTIONS_DOMAINS_INCOMING_DENY">`WEBMENTIONS_DOMAINS_INCOMING_DENY: Iterable[str] = None`</a>  
+  - <a href="Settings#WEBMENTIONS_DOMAINS_INCOMING_DENY">`WEBMENTIONS_\DOMAINS_INCOMING_DENY: Iterable[str] = None`</a>  
   - <a href="Settings#WEBMENTIONS_DOMAINS_OUTGOING_ALLOW">`WEBMENTIONS_DOMAINS_OUTGOING_ALLOW: Iterable[str] = None`</a>  
   - <a href="Settings#WEBMENTIONS_DOMAINS_OUTGOING_DENY">`WEBMENTIONS_DOMAINS_OUTGOING_DENY: Iterable[str] = None`</a>
 
