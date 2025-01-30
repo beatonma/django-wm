@@ -27,6 +27,7 @@ try:
     from tests.test_wagtail_app.models import IndexPage, MentionablePage, SimplePage
 except ImportError:
     Page = None
+    SimplePage = None
     Site = None
     IndexPage = None
     MentionablePage = None

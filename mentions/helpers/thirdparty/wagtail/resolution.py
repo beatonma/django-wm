@@ -1,6 +1,7 @@
 from typing import Callable, Optional, Type
 
 from django.apps import apps
+from django.http import HttpRequest
 from django.urls import ResolverMatch
 
 from mentions import config, contract, options
@@ -39,7 +40,12 @@ def get_model_for_url_by_wagtail(match: ResolverMatch) -> MentionableMixin:
     path = match.args[0]
     path_components = [component for component in path.split("/") if component]
 
-    page, args, kwargs = site.root_page.localized.specific.route(None, path_components)
+    dummy_request = HttpRequest()
+    dummy_request.method = "GET"
+    dummy_request.path = path
+    page, args, kwargs = site.root_page.localized.specific.route(
+        dummy_request, path_components
+    )
 
     if isinstance(page, MentionableMixin):
         return page
