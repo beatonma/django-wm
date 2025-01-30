@@ -2,7 +2,7 @@ name: Tests
 on: [push, pull_request]
 jobs:
   runtests_nocelery:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         python-version: ['3.7', '3.12']
@@ -24,7 +24,7 @@ jobs:
         python runtests.py
 
   runtests_withcelery:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         python-version: ['3.7', '3.12']
@@ -47,7 +47,7 @@ jobs:
         python runtests.py
 
   runtests_withwagtail:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     strategy:
       matrix:
         python-version: ['3.7', '3.12']
