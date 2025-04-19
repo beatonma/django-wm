@@ -4,6 +4,10 @@
 > Release notes are also available on the [wiki](https://github.com/beatonma/django-wm/wiki/Releases).
 
 
+## 4.1.3 (2025-04-19)
+- Fix: `tailwindcss` utilities no longer break microformat parsing.
+
+
 ## 4.1.2 (2025-01-30)
 - Fixed [#54](https://github.com/beatonma/django-wm/issues/54): Broken on `wagtail>=6.2`.
   - Issue: In `wagtail==6.2`, the implementation of `RoutablePageMixin.route` was changed to add the `routable_resolver_match` attribute to the given request object. `get_model_for_url_by_wagtail` previously called that method with `request=None` (because there is no relevant request object available at the time webmentions are processed), so trying to set that attribute on the request fails.
