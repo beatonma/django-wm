@@ -3,6 +3,7 @@ from typing import Optional, Type
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from mentions.models import fields
 from mentions.models.base import MentionsBaseModel
 
 __all__ = [
@@ -24,13 +25,13 @@ class HCard(MentionsBaseModel):
         null=True,
         help_text=_("Name of the person/organisation."),
     )
-    avatar = models.URLField(
+    avatar = fields.URLField(
         _("avatar URL"),
         blank=True,
         null=True,
         help_text=_("Link to their profile image."),
     )
-    homepage = models.URLField(
+    homepage = fields.URLField(
         _("homepage URL"),
         blank=True,
         null=True,

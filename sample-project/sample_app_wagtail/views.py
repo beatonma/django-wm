@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 
 
 class ActionForm(forms.Form):
-    target = forms.URLField(required=False)
+    target = forms.URLField(required=False, max_length=config.MAX_URL_LENGTH)
     author = forms.CharField(required=False, max_length=64)
     type = forms.CharField(
         required=False,

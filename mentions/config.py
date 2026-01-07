@@ -1,4 +1,5 @@
 """Helper functions that derive from `mentions.options` values."""
+
 import logging
 from typing import Optional, Set
 from urllib.parse import urljoin
@@ -7,6 +8,11 @@ from mentions import options
 from mentions.util import compatibility, get_domain
 
 log = logging.getLogger(__name__)
+
+
+MAX_URL_LENGTH = (
+    500  # `max_length` used for all models.URLField and forms.URLField instances.
+)
 
 
 def base_url() -> str:

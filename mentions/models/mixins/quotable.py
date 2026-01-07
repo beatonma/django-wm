@@ -14,6 +14,8 @@ __all__ = [
     "QuotableMixin",
 ]
 
+from mentions.models import fields
+
 
 class IncomingMentionType(Enum):
     """Properties that describe the context of the incoming webmention.
@@ -56,11 +58,11 @@ class QuotableMixin(models.Model):
     class Meta:
         abstract = True
 
-    target_url = models.URLField(
+    target_url = fields.URLField(
         _("target URL"),
         help_text=_("Our URL that is mentioned."),
     )
-    source_url = models.URLField(
+    source_url = fields.URLField(
         _("source URL"),
         help_text=_("The URL that mentions our content."),
     )

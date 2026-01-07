@@ -2,6 +2,7 @@ from django.db import models
 from django.db.models import UniqueConstraint
 from django.utils.translation import gettext_lazy as _
 
+from mentions.models import fields
 from mentions.models.base import MentionsBaseModel
 from mentions.models.mixins import RetryableMixin
 
@@ -17,15 +18,15 @@ class PendingIncomingWebmention(RetryableMixin, MentionsBaseModel):
     Only used if settings.WEBMENTIONS_USE_CELERY is False.
     Use `manage.py pending_mentions` to process."""
 
-    source_url = models.URLField(
+    source_url = fields.URLField(
         _("source URL"),
         help_text=_("The URL of the content that mentions your content."),
     )
-    target_url = models.URLField(
+    target_url = fields.URLField(
         _("target URL"),
         help_text=_("The URL of the page on your server that is being mentioned."),
     )
-    sent_by = models.URLField(
+    sent_by = fields.URLField(
         _("sent by"),
         help_text=_("The origin of the webmention request."),
     )
@@ -50,7 +51,7 @@ class PendingOutgoingContent(MentionsBaseModel):
 
     Use `manage.py pending_mentions` to process."""
 
-    absolute_url = models.URLField(
+    absolute_url = fields.URLField(
         _("absolute URL"),
         help_text=_("URL on our server where the content can be found."),
         unique=True,

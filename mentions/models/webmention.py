@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from mentions import options
+from mentions.models import fields
 from mentions.models.base import MentionsBaseModel
 from mentions.models.managers.webmention import WebmentionQuerySet
 from mentions.models.mixins import QuotableMixin
@@ -20,7 +21,7 @@ class Webmention(QuotableMixin, MentionsBaseModel):
 
     objects = WebmentionQuerySet.as_manager()
 
-    sent_by = models.URLField(
+    sent_by = fields.URLField(
         _("sent by"),
         blank=True,
         help_text=_("Source address of the HTTP request that sent this webmention."),

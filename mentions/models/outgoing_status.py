@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from mentions.models import fields
 from mentions.models.base import MentionsBaseModel
 from mentions.models.mixins import RetryableMixin
 
@@ -16,15 +17,15 @@ class OutgoingWebmentionStatus(RetryableMixin, MentionsBaseModel):
     Used primarily for logging of outgoing mentions.
     """
 
-    source_url = models.URLField(
+    source_url = fields.URLField(
         _("source URL"),
         help_text=_("The URL on your server where this mention originates."),
     )
-    target_url = models.URLField(
+    target_url = fields.URLField(
         _("target URL"),
         help_text=_("The URL that you mentioned."),
     )
-    target_webmention_endpoint = models.URLField(
+    target_webmention_endpoint = fields.URLField(
         _("target webmention endpoint"),
         null=True,
         blank=True,
