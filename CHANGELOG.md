@@ -4,6 +4,14 @@
 > Release notes are also available on the [wiki](https://github.com/beatonma/django-wm/wiki/Releases).
 
 
+## 4.2.0 (2026-01-07)
+
+> [!WARNING]
+> `python manage.py migrate` required to apply URLField changes.
+
+- Increased `max_length` on all `URLField`s from 200 (Django default) to 500 to fix [#57](https://github.com/beatonma/django-wm/issues/57).
+
+
 ## 4.1.3 (2025-04-19)
 - Fix: `tailwindcss` utilities no longer break microformat parsing.
 
