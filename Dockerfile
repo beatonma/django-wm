@@ -1,4 +1,4 @@
-FROM python:3.11-alpine AS common
+FROM python:3.14-alpine AS common
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONBUFFERED=1
 

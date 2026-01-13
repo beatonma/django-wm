@@ -1,7 +1,7 @@
 """Utility functions used in multiple test files."""
+
 import random
 import uuid
-from typing import Optional
 
 from django.db import models
 from django.urls import reverse
@@ -27,17 +27,17 @@ def create_mentionable_object(content: str = "", **kwargs):
 
 
 def create_webmention(
-    source_url: Optional[str] = None,
-    target_url: Optional[str] = None,
-    target_object: Optional[MentionableMixin] = None,
-    post_type: Optional[IncomingMentionType] = None,
-    sent_by: Optional[str] = None,
+    source_url: str | None = None,
+    target_url: str | None = None,
+    target_object: MentionableMixin | None = None,
+    post_type: IncomingMentionType | None = None,
+    sent_by: str | None = None,
     approved: bool = True,
     validated: bool = True,
     has_been_read: bool = False,
-    quote: Optional[str] = None,
-    notes: Optional[str] = None,
-    hcard: Optional[HCard] = None,
+    quote: str | None = None,
+    notes: str | None = None,
+    hcard: HCard | None = None,
 ) -> Webmention:
     return Webmention.objects.create(
         source_url=source_url or random_url(),
@@ -55,10 +55,10 @@ def create_webmention(
 
 
 def create_simple_mention(
-    source_url: Optional[str] = None,
-    target_url: Optional[str] = None,
-    target_object: Optional[MentionableMixin] = None,
-    quote: Optional[str] = None,
+    source_url: str | None = None,
+    target_url: str | None = None,
+    target_object: MentionableMixin | None = None,
+    quote: str | None = None,
 ) -> SimpleMention:
     return SimpleMention.objects.create(
         target_url=target_url or random_url(),
@@ -69,9 +69,9 @@ def create_simple_mention(
 
 
 def create_hcard(
-    name: Optional[str] = None,
-    homepage: Optional[str] = None,
-    avatar: Optional[str] = None,
+    name: str | None = None,
+    homepage: str | None = None,
+    avatar: str | None = None,
 ) -> HCard:
     return HCard.objects.create(
         name=name or random_str(),
@@ -81,12 +81,12 @@ def create_hcard(
 
 
 def create_outgoing_status(
-    source_url: Optional[str] = None,
-    target_url: Optional[str] = None,
-    target_webmention_endpoint: Optional[str] = None,
-    status_message: Optional[str] = None,
-    response_code: Optional[int] = 200,
-    successful: Optional[bool] = True,
+    source_url: str | None = None,
+    target_url: str | None = None,
+    target_webmention_endpoint: str | None = None,
+    status_message: str | None = None,
+    response_code: int | None = 200,
+    successful: bool | None = True,
 ) -> OutgoingWebmentionStatus:
     return OutgoingWebmentionStatus.objects.create(
         source_url=source_url or random_url(),
@@ -99,9 +99,9 @@ def create_outgoing_status(
 
 
 def create_pending_incoming(
-    source_url: Optional[str] = None,
-    target_url: Optional[str] = None,
-    sent_by: Optional[str] = None,
+    source_url: str | None = None,
+    target_url: str | None = None,
+    sent_by: str | None = None,
 ) -> PendingIncomingWebmention:
     return PendingIncomingWebmention.objects.create(
         source_url=source_url or random_url(),
@@ -111,8 +111,8 @@ def create_pending_incoming(
 
 
 def create_pending_outgoing(
-    absolute_url: Optional[str] = None,
-    text: Optional[str] = None,
+    absolute_url: str | None = None,
+    text: str | None = None,
 ) -> PendingOutgoingContent:
     return PendingOutgoingContent.objects.create(
         absolute_url=absolute_url or random_url(),
@@ -158,11 +158,11 @@ def random_domain() -> str:
 
 
 def random_url(
-    scheme: Optional[str] = None,
-    subdomain: Optional[str] = None,
-    domain: Optional[str] = None,
-    port: Optional[str] = None,
-    path: Optional[str] = None,
+    scheme: str | None = None,
+    subdomain: str | None = None,
+    domain: str | None = None,
+    port: str | None = None,
+    path: str | None = None,
 ) -> str:
     """Generate a random URL."""
     scheme = _take_not_null(scheme, random.choice(["http", "https"]))

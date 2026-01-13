@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Tuple
 
 from django.contrib.auth.models import Permission
 from django.utils.translation import gettext_lazy as _
@@ -17,7 +16,7 @@ class MentionsPermission:
     codename: str
     description: str
 
-    def as_tuple(self) -> Tuple[str, str]:
+    def as_tuple(self) -> tuple[str, str]:
         return self.codename, self.description
 
     def has_perm(self, user, obj=None) -> bool:

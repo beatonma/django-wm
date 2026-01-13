@@ -1,4 +1,4 @@
-from typing import Callable, Dict, Optional, Sequence
+from collections.abc import Callable, Sequence
 
 from django.urls import URLPattern, path, re_path
 
@@ -17,10 +17,10 @@ def _path(
     route: str,
     view: Callable,
     model_class: ModelClass,
-    model_filters: Optional[Sequence[ModelFilter]],
-    model_filter_map: Optional[ModelFilterMap],
-    kwargs: Optional[Dict],
-    name: Optional[str],
+    model_filters: Sequence[ModelFilter] | None,
+    model_filter_map: ModelFilterMap | None,
+    kwargs: dict | None,
+    name: str | None,
 ) -> URLPattern:
     """Proxy for `django.urls.path` and `django.urls.re_path` which enables simpler model resolution.
 
@@ -69,9 +69,9 @@ def mentions_path(
     route: str,
     view: Callable,
     model_class: ModelClass,
-    model_filter_map: Optional[ModelFilterMap] = None,
-    kwargs: Optional[Dict] = None,
-    name: Optional[str] = None,
+    model_filter_map: ModelFilterMap | None = None,
+    kwargs: dict | None = None,
+    name: str | None = None,
 ):
     """Proxy for `django.urls.path` to enable MentionableMixin model resolution.
 
@@ -110,10 +110,10 @@ def mentions_re_path(
     route: str,
     view: Callable,
     model_class: ModelClass,
-    model_filters: Optional[Sequence[ModelFilter]] = None,
-    model_filter_map: Optional[ModelFilterMap] = None,
-    kwargs: Optional[Dict] = None,
-    name: Optional[str] = None,
+    model_filters: Sequence[ModelFilter] | None = None,
+    model_filter_map: ModelFilterMap | None = None,
+    kwargs: dict | None = None,
+    name: str | None = None,
 ):
     """Proxy for `django.urls.re_path` to enable MentionableMixin model resolution.
 
@@ -152,10 +152,10 @@ def mentions_re_path(
 
 def build_model_kwargs(
     model_class: ModelClass,
-    model_filters: Optional[Sequence[ModelFilter]],
-    model_filter_map: Optional[Dict],
-    kwargs: Optional[Dict],
-) -> Dict:
+    model_filters: Sequence[ModelFilter] | None,
+    model_filter_map: dict | None,
+    kwargs: dict | None,
+) -> dict:
     """Merge kwargs"""
     fields = (
         {contract.URLPATTERNS_MODEL_FILTERS: model_filters} if model_filters else {}

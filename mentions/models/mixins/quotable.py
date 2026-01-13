@@ -1,5 +1,4 @@
 from enum import Enum
-from typing import List, Tuple
 
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
@@ -31,11 +30,11 @@ class IncomingMentionType(Enum):
     Watch = microformats.WATCH
 
     @classmethod
-    def choices(cls) -> List[Tuple[str, str]]:
+    def choices(cls) -> list[tuple[str, str]]:
         return [(x.lower(), x) for x in cls.__members__.keys()]
 
     @classmethod
-    def serialized_names(cls) -> List[str]:
+    def serialized_names(cls) -> list[str]:
         return [x.lower() for x in cls.__members__.keys()]
 
     @classmethod

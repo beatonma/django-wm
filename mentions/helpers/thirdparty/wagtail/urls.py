@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, Optional, Sequence
+from collections.abc import Callable, Sequence
 
 from django.urls import URLPattern
 from django.urls import path as django_path
@@ -26,9 +26,9 @@ def _path(
     django_path_func: Callable,
     pattern: str,
     model_class: ModelClass,
-    model_filters: Optional[Sequence[str]],
-    model_filter_map: Optional[ModelFilterMap],
-    name: Optional[str],
+    model_filters: Sequence[str] | None,
+    model_filter_map: ModelFilterMap | None,
+    name: str | None,
     autopage: bool,
 ):
     """Drop-in replacement for the Wagtail routable @path/@re_path decorators.
@@ -87,7 +87,7 @@ def _path(
 def mentions_wagtail_path(
     pattern: str,
     model_class: ModelClass,
-    model_filter_map: Optional[ModelFilterMap] = None,
+    model_filter_map: ModelFilterMap | None = None,
     name: str = None,
     autopage=False,
 ):
@@ -127,8 +127,8 @@ def mentions_wagtail_path(
 def mentions_wagtail_re_path(
     pattern: str,
     model_class: ModelClass,
-    model_filters: Optional[Sequence[ModelFilter]] = None,
-    model_filter_map: Optional[ModelFilterMap] = None,
+    model_filters: Sequence[ModelFilter] | None = None,
+    model_filter_map: ModelFilterMap | None = None,
     name: str = None,
     autopage=False,
 ):

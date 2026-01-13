@@ -3,7 +3,6 @@ Make sure we can correctly retrieve Webmentions for a given url/object.
 """
 
 import logging
-from typing import Dict, List
 
 from mentions.models import Webmention
 from tests.tests.util import testfunc
@@ -26,7 +25,7 @@ class _BaseTestCase(WebmentionTestCase):
         url: str,
         expected_status: int = 200,
         expected_count: int = 2,
-    ) -> List[Dict]:
+    ) -> list[dict]:
         response = self.get_endpoint_mentions(url)
 
         self.assertEqual(response.status_code, expected_status)

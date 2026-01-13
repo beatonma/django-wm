@@ -1,5 +1,3 @@
-from typing import List, Union
-
 from requests.structures import CaseInsensitiveDict
 
 from mentions.tasks.outgoing.parsing.webmention_endpoint import (
@@ -9,7 +7,7 @@ from tests.tests.util import snippets, testfunc
 from tests.tests.util.testcase import WebmentionTestCase
 
 
-def _build_headers(link: Union[List[str], str]) -> CaseInsensitiveDict:
+def _build_headers(link: list[str] | str) -> CaseInsensitiveDict:
     if isinstance(link, str):
         return CaseInsensitiveDict(
             {

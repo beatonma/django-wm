@@ -1,6 +1,5 @@
 import json
 from functools import reduce
-from typing import List, Optional
 
 import mf2py
 from bs4 import Tag
@@ -30,7 +29,7 @@ LOGO = "logo"
 def parse_hcard(
     soup: Tag,
     recursive: bool = False,
-) -> Optional[HCard]:
+) -> HCard | None:
     """Create or update HCard using data from a BeautifulSoup document.
 
     Top-down search to find an h-card on the document.
@@ -43,7 +42,7 @@ def parse_hcard(
     return _find_hcard(items, recursive=recursive)
 
 
-def find_related_hcard(link: Tag) -> Optional[HCard]:
+def find_related_hcard(link: Tag) -> HCard | None:
     """Try to find a post-specific h-card from a parent `h-entry` or `h-feed`.
 
     Bottom-up search for the nearest related h-card."""
@@ -60,7 +59,7 @@ def find_related_hcard(link: Tag) -> Optional[HCard]:
             return hcard
 
 
-def _find_hcard(data: List[dict], recursive: bool = False) -> Optional[HCard]:
+def _find_hcard(data: list[dict], recursive: bool = False) -> HCard | None:
     """Find a useful `h-card` in parsed microformats data.
 
     Args:
@@ -70,7 +69,7 @@ def _find_hcard(data: List[dict], recursive: bool = False) -> Optional[HCard]:
                    If False, h-card will only be found at the top level.
     """
 
-    fallback = []  # List of items that may contain an embedded h-card
+    fallback = []  # list of items that may contain an embedded h-card
 
     for item in data:
         _type = item.get(TYPE, [])
@@ -94,7 +93,7 @@ def _find_hcard(data: List[dict], recursive: bool = False) -> Optional[HCard]:
     return _find_embedded_hcard(fallback)
 
 
-def _find_embedded_hcard(items: List[dict]) -> Optional[HCard]:
+def _find_embedded_hcard(items: list[dict]) -> HCard | None:
     """Traverse `h-entry` and `h-feed` containers to find an `h-card`"""
 
     if not items:
@@ -132,7 +131,7 @@ def _create_hcard(data: dict) -> HCard:
     )
 
 
-def _require_any_of(fields: List[str]):
+def _require_any_of(fields: list[str]):
     has_required_fields = (
         reduce(lambda acc, value: acc + 1 if value else acc, fields, 0) >= 1
     )

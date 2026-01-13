@@ -1,5 +1,3 @@
-from typing import Dict, Set
-
 from django.urls import URLPattern
 
 from mentions import contract
@@ -23,7 +21,7 @@ def get_dotted_model_name(model_class: ModelClass) -> str:
 
 def get_captured_filters(
     urlpattern: URLPattern,
-) -> Dict[UrlKwarg, Set[SharedFieldName]]:
+) -> dict[UrlKwarg, set[SharedFieldName]]:
     """Create default model_filter_map from captured parameters."""
     default_mapping = urlpattern.pattern.converters.keys()
     return {contract.URLPATTERNS_MODEL_FILTER_MAP: set(default_mapping)}

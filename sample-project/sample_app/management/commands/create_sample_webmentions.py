@@ -1,6 +1,5 @@
 import random
 import uuid
-from typing import Optional
 
 from django.core.management import BaseCommand
 from sample_app.models import Article
@@ -58,13 +57,13 @@ def _create_webmentions():
 
 
 def _create_webmention(
-    source_url: Optional[str] = None,
-    target_url: Optional[str] = None,
-    sent_by: Optional[str] = None,
+    source_url: str | None = None,
+    target_url: str | None = None,
+    sent_by: str | None = None,
     approved: bool = True,
     validated: bool = True,
-    quote: Optional[str] = None,
-    hcard: Optional[HCard] = None,
+    quote: str | None = None,
+    hcard: HCard | None = None,
 ) -> Webmention:
     return Webmention.objects.create(
         source_url=source_url or _random_url(),

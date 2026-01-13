@@ -1,5 +1,4 @@
 import logging
-from typing import List, Type
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -28,12 +27,12 @@ class MentionableMixin(models.Model):
         default=_outgoing_default,
     )
 
-    def get_mentions(self) -> List[QuotableMixin]:
+    def get_mentions(self) -> list[QuotableMixin]:
         from mentions.resolution import get_mentions_for_object
 
         return get_mentions_for_object(self)
 
-    def get_mentions_json(self) -> List[dict]:
+    def get_mentions_json(self) -> list[dict]:
         from mentions.views.serialize import serialize_mentions
 
         return serialize_mentions(self.get_mentions())
@@ -68,7 +67,7 @@ class MentionableMixin(models.Model):
 
     @classmethod
     def resolve_from_url_kwargs(
-        cls: Type["MentionableMixin"],
+        cls: type["MentionableMixin"],
         **url_kwargs,
     ) -> "MentionableMixin":
         """Resolve a model instance from the given URL captured values.
@@ -113,7 +112,7 @@ class MentionableMixin(models.Model):
             )
 
     # Deprecated methods below this point
-    def mentions(self) -> List[QuotableMixin]:
+    def mentions(self) -> list[QuotableMixin]:
         """Deprecated in 4.0: Replaced by `get_mentions()`."""
         log.warning(
             "Method `MentionableMixin.mentions()` is deprecated, replaced by "

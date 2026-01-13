@@ -1,6 +1,5 @@
 import logging
 import uuid
-from typing import Optional, Union
 
 from django.db import models
 from django.http import Http404
@@ -73,8 +72,8 @@ class BlogPage(MentionableMixin, Page):
         cls,
         author: str,
         target_url: str,
-        mention_type: Union[str, IncomingMentionType],
-        content: Optional[str] = None,
+        mention_type: str | IncomingMentionType,
+        content: str | None = None,
     ):
         title = f"blogpost-{uuid.uuid4().hex[:5]}"
         _type = IncomingMentionType.get_microformat_from_name(mention_type)

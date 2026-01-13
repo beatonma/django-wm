@@ -1,4 +1,5 @@
-from typing import Dict, Optional, Sequence, Set, Tuple, Type
+from typing import TypeAlias
+from collections.abc import Sequence
 
 from mentions import contract
 from mentions.helpers.types import (
@@ -12,14 +13,14 @@ __all__ = [
     "get_model_for_url_by_helper",
 ]
 
-TypeSet = Set[Tuple[UrlKwarg, ModelFilter]]
+TypeSet: TypeAlias = set[tuple[UrlKwarg, ModelFilter]]
 
 
 def get_model_for_url_by_helper(
-    model_class: Type[MentionableImpl],
+    model_class: type[MentionableImpl],
     urlpattern_args: Sequence,
-    urlpattern_kwargs: Dict,
-) -> Optional[MentionableImpl]:
+    urlpattern_kwargs: dict,
+) -> MentionableImpl | None:
     """Resolve a model instance from urlpattern kwargs, as configured by
     `mentions_path` or `mentions_re_path` helper functions.
 

@@ -1,5 +1,4 @@
 import re
-from typing import List
 
 from bs4 import BeautifulSoup, ResultSet, Tag
 
@@ -16,7 +15,7 @@ def html_parser(content: str) -> Tag:
     return _clean_soup(soup)
 
 
-def find_links_in_html(html: str) -> List[Tag]:
+def find_links_in_html(html: str) -> list[Tag]:
     soup = html_parser(html)
     return find_links_in_soup(soup)
 

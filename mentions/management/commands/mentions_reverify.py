@@ -1,6 +1,5 @@
 """A management command to reprocess an existing Webmention."""
 from argparse import ArgumentParser
-from typing import List, Union
 
 from django.core.management import BaseCommand
 from django.db.models import QuerySet
@@ -25,7 +24,7 @@ class Command(BaseCommand):
             help="Reverify all webmentions.",
         )
 
-    def handle(self, *args, filters: List[str], all_mentions: bool, **options):
+    def handle(self, *args, filters: list[str], all_mentions: bool, **options):
         target_mentions = get_target_mentions(filters, all_mentions)
 
         changed = []
@@ -39,7 +38,7 @@ class Command(BaseCommand):
             self.stdout.write(f"- {mention}")
 
 
-def get_target_mentions(filters: List[str], all_mentions: bool) -> QuerySet[Webmention]:
+def get_target_mentions(filters: list[str], all_mentions: bool) -> QuerySet[Webmention]:
     if all_mentions:
         return Webmention.objects.all()
 
@@ -57,7 +56,7 @@ def get_target_mentions(filters: List[str], all_mentions: bool) -> QuerySet[Webm
     return Webmention.objects.filter(**query)
 
 
-def parse_filter_value(filter_value: str) -> Union[bool, int, float, str]:
+def parse_filter_value(filter_value: str) -> bool | int | float | str:
     if filter_value == "True":
         return True
     if filter_value == "False":

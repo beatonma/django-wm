@@ -1,11 +1,10 @@
 """Helper functions that derive from `mentions.options` values."""
 
 import logging
-from typing import Optional, Set
 from urllib.parse import urljoin
 
 from mentions import options
-from mentions.util import compatibility, get_domain
+from mentions.util import get_domain
 
 log = logging.getLogger(__name__)
 
@@ -34,8 +33,8 @@ def is_wagtail_installed() -> bool:
 
 def accept_domain_incoming(
     url: str,
-    domains_allow: Optional[Set[str]],
-    domains_deny: Optional[Set[str]],
+    domains_allow: set[str] | None,
+    domains_deny: set[str] | None,
 ) -> bool:
     """Determine whether the current options allow us to accept webmentions from the given URL.
 
@@ -70,8 +69,8 @@ def accept_domain_incoming(
 def accept_domain_outgoing(
     url: str,
     allow_self_mention: bool,
-    domains_allow: Optional[Set[str]],
-    domains_deny: Optional[Set[str]],
+    domains_allow: set[str] | None,
+    domains_deny: set[str] | None,
 ) -> bool:
     """Determine whether the current options allow submission of webmentions to the given URL.
 
@@ -103,15 +102,15 @@ def accept_domain_outgoing(
     return True
 
 
-def _domain_in_set(domain: str, domains: Set[str]) -> bool:
+def _domain_in_set(domain: str, domains: set[str]) -> bool:
     """Check if the given domain matches any of `domains`, allowing for wildcard `*.` prefix."""
     for d in domains:
         if d == domain:
             return True
 
         if d.startswith("*."):
-            root_domain = compatibility.removeprefix(d, "*.")
-            remaining_prefix = compatibility.removesuffix(domain, root_domain)
+            root_domain = d.removeprefix("*.")
+            remaining_prefix = domain.removesuffix(root_domain)
             if remaining_prefix == "" or remaining_prefix.endswith("."):
                 return True
 

@@ -18,7 +18,7 @@ WEBMENTIONS_USE_CELERY = True
 """
 
 import logging
-from typing import Callable, Dict, Iterable, Set, Union
+from collections.abc import Callable, Iterable
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
@@ -97,7 +97,7 @@ DEFAULTS = {
 log = logging.getLogger(__name__)
 
 
-def _coerce_to_set(value: Iterable) -> Union[Set, None]:
+def _coerce_to_set(value: Iterable) -> set | None:
     if value is None:
         return None
 
@@ -161,7 +161,7 @@ def dashboard_public() -> bool:
     return is_dashboard_public
 
 
-def default_url_parameter_mapping() -> Dict[str, str]:
+def default_url_parameter_mapping() -> dict[str, str]:
     """Return settings.WEBMENTIONS_DEFAULT_URL_PARAMETER_MAPPING.
 
     This is used by `MentionableMixin.resolve_from_url_kwargs` if you do not
@@ -181,28 +181,28 @@ def domain_name() -> str:
     return _get_attr(SETTING_DOMAIN_NAME)
 
 
-def incoming_domains_allow() -> Set[str]:
+def incoming_domains_allow() -> set[str]:
     """Return settings.WEBMENTIONS_DOMAINS_INCOMING_ALLOW.
 
     A list of domains from which we accept webmentions."""
     return _get_attr(SETTING_DOMAINS_INCOMING_ALLOW, _coerce_to_set)
 
 
-def incoming_domains_deny() -> Set[str]:
+def incoming_domains_deny() -> set[str]:
     """Return settings.WEBMENTIONS_DOMAINS_INCOMING_DENY.
 
     A list of domains from which we do not accept webmentions."""
     return _get_attr(SETTING_DOMAINS_INCOMING_DENY, _coerce_to_set)
 
 
-def outgoing_domains_allow() -> Set[str]:
+def outgoing_domains_allow() -> set[str]:
     """Return settings.WEBMENTIONS_DOMAINS_OUTGOING_ALLOW.
 
     A list of domains to which we can try to send webmentions."""
     return _get_attr(SETTING_DOMAINS_OUTGOING_ALLOW, _coerce_to_set)
 
 
-def outgoing_domains_deny() -> Set[str]:
+def outgoing_domains_deny() -> set[str]:
     """Return settings.WEBMENTIONS_DOMAINS_OUTGOING_DENY.
 
     A list of domain names to which we should never try to send webmentions."""

@@ -1,11 +1,9 @@
-from typing import Optional
-
 from mentions import config
 from mentions.tasks.outgoing.local import get_target_links_in_html
 from tests.tests.util.testcase import OptionsTestCase
 
 
-def _link(href: str, text: Optional[str] = None):
+def _link(href: str, text: str | None = None):
     return f"""<a href="{href}">{text or ""}</a>"""
 
 

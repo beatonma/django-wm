@@ -4,6 +4,14 @@
 > Release notes are also available on the [wiki](https://github.com/beatonma/django-wm/wiki/Releases).
 
 
+## 5.0 (TODO PLACEHOLDER)
+
+> [!WARNING]
+> Python 3.10 is now the minimum supported version.
+
+Python versions `3.7`, `3.8`, `3.9` no longer supported.
+
+
 ## 4.2.0 (2026-01-07)
 
 > [!WARNING]

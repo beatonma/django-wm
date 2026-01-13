@@ -1,5 +1,4 @@
 import logging
-from typing import List, Type
 
 from django.apps import apps
 from django.conf import settings
@@ -103,7 +102,7 @@ def get_model_for_url(url: str) -> MentionableMixin:
         raise NoModelForUrlPath()
 
     try:
-        model_class: Type[MentionableMixin] = apps.get_model(model_name)
+        model_class: type[MentionableMixin] = apps.get_model(model_name)
 
     except LookupError:
         raise BadUrlConfig(
@@ -134,7 +133,7 @@ def get_model_for_url(url: str) -> MentionableMixin:
         )
 
 
-def get_mentions_for_url(url: str) -> List[QuotableMixin]:
+def get_mentions_for_url(url: str) -> list[QuotableMixin]:
     if "://" not in url:
         url = config.build_url(url)
 
@@ -148,17 +147,17 @@ def get_mentions_for_url(url: str) -> List[QuotableMixin]:
     return get_public_mentions(target_url=url)
 
 
-def get_mentions_for_view(request: HttpRequest) -> List[QuotableMixin]:
+def get_mentions_for_view(request: HttpRequest) -> list[QuotableMixin]:
     return get_mentions_for_url(request.build_absolute_uri())
 
 
-def get_mentions_for_object(obj: MentionableMixin) -> List[QuotableMixin]:
+def get_mentions_for_object(obj: MentionableMixin) -> list[QuotableMixin]:
     ctype = ContentType.objects.get_for_model(obj.__class__)
 
     return get_public_mentions(content_type=ctype, object_id=obj.id)
 
 
-def get_public_mentions(**filter_kwargs) -> List[QuotableMixin]:
+def get_public_mentions(**filter_kwargs) -> list[QuotableMixin]:
     webmentions = Webmention.objects.filter_public().filter(**filter_kwargs)
     simple_mentions = SimpleMention.objects.filter(**filter_kwargs)
 

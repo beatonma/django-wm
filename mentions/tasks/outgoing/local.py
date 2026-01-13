@@ -1,5 +1,5 @@
 import logging
-from typing import Iterable, Optional, Set
+from collections.abc import Iterable
 from urllib.parse import urljoin
 
 from bs4 import Tag
@@ -21,11 +21,11 @@ def get_target_links_in_html(
     html: str,
     source_path: str,
     allow_self_mentions: bool = options.allow_self_mentions(),
-    domains_allow: Optional[Iterable[str]] = None,
-    domains_deny: Optional[Iterable[str]] = None,
-    domains_allow_tag: Optional[str] = options.outgoing_domains_tag_allow(),
-    domains_deny_tag: Optional[str] = options.outgoing_domains_tag_deny(),
-) -> Set[str]:
+    domains_allow: Iterable[str] | None = None,
+    domains_deny: Iterable[str] | None = None,
+    domains_allow_tag: str | None = options.outgoing_domains_tag_allow(),
+    domains_deny_tag: str | None = options.outgoing_domains_tag_deny(),
+) -> set[str]:
     """Get any links from `html` that should be treated as webmention targets.
 
     Links that use relative paths will be resolved to an absolute URL using
@@ -78,8 +78,8 @@ def get_target_links_in_html(
 def is_valid_target(
     url: str,
     allow_self_mention: bool,
-    domains_allow: Optional[Iterable[str]],
-    domains_deny: Optional[Iterable[str]],
+    domains_allow: Iterable[str] | None,
+    domains_deny: Iterable[str] | None,
 ) -> bool:
     """
     Args:

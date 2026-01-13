@@ -1,5 +1,3 @@
-from typing import Optional
-
 from django.conf import settings
 
 from mentions.exceptions import (
@@ -8,6 +6,7 @@ from mentions.exceptions import (
     TargetDoesNotExist,
     TargetWrongDomain,
 )
+from mentions.models.mixins import MentionableMixin
 from mentions.resolution import get_model_for_url
 
 __all__ = [
@@ -17,7 +16,7 @@ __all__ = [
 from mentions.util.url import get_domain
 
 
-def get_target_object(target_url: str) -> Optional["MentionableMixin"]:
+def get_target_object(target_url: str) -> MentionableMixin:
     """Confirm that the page exists on our server and return object.
 
     Args:

@@ -1,5 +1,5 @@
 import logging
-from typing import Callable, Optional
+from collections.abc import Callable
 from unittest.mock import Mock, patch
 
 import requests
@@ -12,16 +12,16 @@ class MockResponse:
     """Mock of requests.Response."""
 
     url: str
-    headers: Optional[CaseInsensitiveDict]
-    text: Optional[str]
-    status_code: Optional[int]
+    headers: CaseInsensitiveDict | None
+    text: str | None
+    status_code: int | None
 
     def __init__(
         self,
         url: str,
-        headers: Optional[dict] = None,
-        text: Optional[str] = None,
-        status_code: Optional[int] = None,
+        headers: dict | None = None,
+        text: str | None = None,
+        status_code: int | None = None,
     ):
         self.url = url
         self.text = text
@@ -35,9 +35,9 @@ class MockResponse:
 
 def patch_http_get(
     status_code: int = 200,
-    text: Optional[str] = None,
-    headers: Optional[dict] = None,
-    response: Optional[Callable] = None,
+    text: str | None = None,
+    headers: dict | None = None,
+    response: Callable | None = None,
 ):
     headers = headers or {"content-type": "text/html"}
 
@@ -61,8 +61,8 @@ def patch_http_get(
 
 def patch_http_post(
     status_code: int = 200,
-    headers: Optional[dict] = None,
-    response: Optional[Callable] = None,
+    headers: dict | None = None,
+    response: Callable | None = None,
 ):
     side_effect = (
         response

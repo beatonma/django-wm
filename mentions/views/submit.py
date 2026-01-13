@@ -1,5 +1,4 @@
 import logging
-from typing import Optional
 
 from django.http import HttpResponseBadRequest
 from django.shortcuts import render
@@ -55,7 +54,7 @@ class WebmentionView(View):
         return render(request, "mentions/webmention-accepted.html", status=202)
 
 
-def _get_client_ip(request) -> Optional[str]:
+def _get_client_ip(request) -> str | None:
     x_forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR")
     if x_forwarded_for:
         ip = x_forwarded_for.split(",")[-1].strip()

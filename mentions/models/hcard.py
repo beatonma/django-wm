@@ -1,5 +1,3 @@
-from typing import Optional, Type
-
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -52,9 +50,9 @@ class HCard(MentionsBaseModel):
 
 
 def update_or_create_hcard(
-    homepage: Optional[str],
-    name: Optional[str],
-    avatar: Optional[str],
+    homepage: str | None,
+    name: str | None,
+    avatar: str | None,
     data: str,
 ) -> HCard:
     """Any individual field may be used to create/retrieve an HCard.
@@ -110,7 +108,7 @@ def update_or_create_hcard(
 
 
 def _update_first_or_create(
-    model_cls: Type[MentionsBaseModel],
+    model_cls: type[MentionsBaseModel],
     defaults: dict,
     **query,
 ):

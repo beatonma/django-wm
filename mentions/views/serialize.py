@@ -1,6 +1,6 @@
 """JSON serialization for web endpoints."""
 
-from typing import Dict, Iterable, List, Optional
+from collections.abc import Iterable
 
 from mentions.models import HCard, SimpleMention, Webmention
 from mentions.models.mixins import IncomingMentionType, QuotableMixin
@@ -15,7 +15,7 @@ __all__ = [
 from mentions.views import contract
 
 
-def serialize_mention(mention: QuotableMixin) -> Dict:
+def serialize_mention(mention: QuotableMixin) -> dict:
     return {
         contract.HCARD: serialize_hcard(mention.hcard),
         contract.MENTION_QUOTE: mention.quote,
@@ -25,13 +25,13 @@ def serialize_mention(mention: QuotableMixin) -> Dict:
     }
 
 
-def serialize_mentions(mentions: Iterable[QuotableMixin]) -> List[Dict]:
+def serialize_mentions(mentions: Iterable[QuotableMixin]) -> list[dict]:
     return [serialize_mention(mention) for mention in mentions]
 
 
 def serialize_mentions_by_type(
     mentions: Iterable[QuotableMixin],
-) -> Dict[str, List[Dict]]:
+) -> dict[str, list[dict]]:
     type_names = IncomingMentionType.serialized_names() + [
         contract.MENTION_TYPE_DEFAULT,
         contract.MENTION_TYPE_SIMPLE,
@@ -44,7 +44,7 @@ def serialize_mentions_by_type(
     return types
 
 
-def serialize_hcard(hcard: Optional[HCard]) -> Optional[Dict]:
+def serialize_hcard(hcard: HCard | None) -> dict | None:
     if hcard is None:
         return None
 

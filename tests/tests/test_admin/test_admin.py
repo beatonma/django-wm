@@ -1,5 +1,3 @@
-from typing import Type
-
 from django.contrib import admin
 from django.contrib.auth.models import User
 from django.db import models
@@ -18,13 +16,13 @@ urlpatterns = [
 ]
 
 
-def admin_url(model_class: Type[models.Model]) -> str:
+def admin_url(model_class: type[models.Model]) -> str:
     return reverse(
         f"admin:{MentionsConfig.name}_{model_class._meta.model_name}_changelist"
     )
 
 
-def admin_search_url(model_class: Type[models.Model], query: str) -> str:
+def admin_search_url(model_class: type[models.Model], query: str) -> str:
     return f"{admin_url(model_class)}?q={query}"
 
 

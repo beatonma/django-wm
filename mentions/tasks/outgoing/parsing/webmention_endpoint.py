@@ -1,8 +1,7 @@
 import logging
 import re
-from typing import Optional
 
-from bs4 import BeautifulSoup
+from bs4 import Tag
 from requests.structures import CaseInsensitiveDict
 
 from mentions.util import html_parser
@@ -21,7 +20,7 @@ HTTP_LINK_PATTERN = re.compile(
 log = logging.getLogger(__name__)
 
 
-def get_endpoint_in_http_headers(headers: CaseInsensitiveDict) -> Optional[str]:
+def get_endpoint_in_http_headers(headers: CaseInsensitiveDict) -> str | None:
     link = headers.get("Link")
     if link is None:
         return
@@ -36,14 +35,14 @@ def get_endpoint_in_http_headers(headers: CaseInsensitiveDict) -> Optional[str]:
         return endpoint
 
 
-def get_endpoint_in_html(html: str) -> Optional[str]:
+def get_endpoint_in_html(html: str) -> str | None:
     """Search for a webmention endpoint in HTML."""
     soup = html_parser(html)
 
     return get_endpoint_in_html_head(soup) or get_endpoint_in_html_body(soup)
 
 
-def get_endpoint_in_html_head(soup: BeautifulSoup) -> Optional[str]:
+def get_endpoint_in_html_head(soup: Tag) -> str | None:
     """Check HTML <head> for <link> webmention endpoint."""
     links = soup.head.find_all("link", href=True, rel=True)
     for link in links:
@@ -53,7 +52,7 @@ def get_endpoint_in_html_head(soup: BeautifulSoup) -> Optional[str]:
             return endpoint
 
 
-def get_endpoint_in_html_body(soup: BeautifulSoup) -> Optional[str]:
+def get_endpoint_in_html_body(soup: Tag) -> str | None:
     """Check HTML <body> for <a> webmention endpoint."""
     links = soup.body.find_all("a", href=True, rel=True)
     for link in links:

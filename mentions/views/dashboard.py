@@ -1,5 +1,3 @@
-from typing import Type
-
 from django.db.models import Model
 from django.http import HttpResponseForbidden
 from django.shortcuts import render
@@ -26,7 +24,7 @@ class WebmentionDashboardView(View):
         ):
             return HttpResponseForbidden()
 
-        def _sample(model_class: Type[Model]):
+        def _sample(model_class: type[Model]):
             return model_class.objects.all().order_by("-created_at")[:5]
 
         webmentions = _sample(Webmention)

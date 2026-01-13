@@ -2,7 +2,6 @@
 import argparse
 import sys
 from importlib.util import find_spec
-from typing import List, Tuple
 
 import django
 from django.conf import settings
@@ -26,7 +25,7 @@ MIGRATION_SETTINGS = {
 }
 
 
-def parse_args() -> Tuple[argparse.Namespace, List[str]]:
+def parse_args() -> tuple[argparse.Namespace, list[str]]:
     parser = argparse.ArgumentParser()
 
     subs = parser.add_subparsers(dest="command")

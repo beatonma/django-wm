@@ -1,4 +1,4 @@
-from typing import Type, TypeVar, Union
+from typing import TypeVar
 
 from django.conf import settings
 from django.db import models
@@ -64,10 +64,10 @@ class WebmentionTestCase(ClientTestCase, SimpleTestCase):
 
     def assert_exists(
         self,
-        model_class: Type[M],
+        model_class: type[M],
         count: int = 1,
         **query,
-    ) -> Union[M, QuerySet[M]]:
+    ) -> M | QuerySet[M]:
         """Assert that the expected number of model instances exist and return it/them."""
         if count == 1:
             try:
@@ -79,7 +79,7 @@ class WebmentionTestCase(ClientTestCase, SimpleTestCase):
         self.assertEqual(count, qs.count())
         return qs
 
-    def assert_not_exists(self, model_class: Type[M], **query):
+    def assert_not_exists(self, model_class: type[M], **query):
         qs = model_class.objects.filter(**query)
         self.assertFalse(
             qs.exists(),

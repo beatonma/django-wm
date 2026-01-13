@@ -1,5 +1,3 @@
-from typing import Optional
-
 from bs4 import Tag
 
 from mentions import microformats
@@ -10,13 +8,13 @@ __all__ = [
 ]
 
 
-def parse_post_type(link: Tag) -> Optional[IncomingMentionType]:
+def parse_post_type(link: Tag) -> IncomingMentionType | None:
     """Return any available type information in the context of the link.
 
     This may be available as a class on the link itself, or on a parent element
     that is marked with h-cite."""
 
-    def find_mention_type_in_classlist(element: Tag) -> Optional[IncomingMentionType]:
+    def find_mention_type_in_classlist(element: Tag) -> IncomingMentionType | None:
         if element.has_attr("class"):
             classes = set(element["class"])
 

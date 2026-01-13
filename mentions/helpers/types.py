@@ -1,4 +1,5 @@
-from typing import Dict, Sequence, Tuple, Type, TypeVar, Union
+from collections.abc import Sequence
+from typing import TypeAlias, TypeVar
 
 from mentions.models.mixins import MentionableMixin
 
@@ -17,11 +18,11 @@ ModelFilter = str
 The same name is used in the URL pattern and the resulting database query."""
 SharedFieldName = str
 
-ModelFilterMap = Union[
-    Dict[UrlKwarg, ModelFilter],
-    Sequence[SharedFieldName],
-    Sequence[Tuple[UrlKwarg, ModelFilter]],
-]
+ModelFilterMap = (
+    dict[UrlKwarg, ModelFilter]
+    | Sequence[SharedFieldName]
+    | Sequence[tuple[UrlKwarg, ModelFilter]]
+)
 
 MentionableImpl = TypeVar("MentionableImpl", bound=MentionableMixin)
-ModelClass = Union[Type[MentionableImpl], str]
+ModelClass: TypeAlias = type[MentionableImpl] | str

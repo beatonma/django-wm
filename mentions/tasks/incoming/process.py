@@ -1,5 +1,3 @@
-from typing import Optional, Set, Tuple, Union
-
 from mentions import config, options
 from mentions.exceptions import (
     RejectedByConfig,
@@ -33,9 +31,9 @@ def process_incoming_webmention(
     source_url: str,
     target_url: str,
     sent_by: str,
-    domains_allow: Optional[Set[str]] = None,
-    domains_deny: Optional[Set[str]] = None,
-) -> Optional[Webmention]:
+    domains_allow: set[str] | None = None,
+    domains_deny: set[str] | None = None,
+) -> Webmention | None:
     log.info(f"Processing webmention '{source_url}' -> '{target_url}'")
 
     allow_source_domain = config.accept_domain_incoming(
@@ -86,7 +84,7 @@ def process_incoming_webmention(
 def verify_webmention(
     source_url: str,
     target_url: str,
-) -> Tuple[bool, Optional[MentionableMixin], Optional[WebmentionMetadata]]:
+) -> tuple[bool, MentionableMixin | None, WebmentionMetadata | None]:
     """If the returned metadata is None, verification"""
     is_verified = False
 
@@ -129,9 +127,9 @@ def _create_webmention(
     target_url: str,
     sent_by: str,
     verified: bool,
-    target_object: Optional[MentionableMixin],
-    metadata: Optional[WebmentionMetadata],
-    notes: Union[Status, str] = "",
+    target_object: MentionableMixin | None,
+    metadata: WebmentionMetadata | None,
+    notes: Status | str = "",
 ) -> Webmention:
     return Webmention.objects.create(
         source_url=source_url,

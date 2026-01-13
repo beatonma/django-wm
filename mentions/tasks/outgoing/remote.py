@@ -1,5 +1,4 @@
 import logging
-from typing import Optional, Tuple
 from urllib.parse import urljoin
 
 from django.core.exceptions import ValidationError
@@ -35,8 +34,8 @@ log = logging.getLogger(__name__)
 def try_send_webmention(
     source_urlpath: str,
     target_url: str,
-    outgoing_status: Optional[OutgoingWebmentionStatus],
-) -> Optional[bool]:
+    outgoing_status: OutgoingWebmentionStatus | None,
+) -> bool | None:
     """Try to send a webmention for target_url.
 
     Returns:
@@ -50,7 +49,7 @@ def try_send_webmention(
     try:
         response = _get_target(outgoing_status, target_url)
     except TargetNotAccessible:
-        return
+        return None
 
     endpoint = _get_absolute_endpoint_from_response(response)
     if endpoint:
@@ -69,7 +68,7 @@ def try_send_webmention(
 def _get_target(
     status: OutgoingWebmentionStatus,
     target_url: str,
-) -> Optional[Response]:
+) -> Response:
     """Confirm the target is accessible."""
     log.debug(f"Checking url='{target_url}' for webmention support...")
     try:
@@ -96,7 +95,7 @@ def _try_send_webmention(
     source_urlpath: str,
     endpoint: str,
     target_url: str,
-):
+) -> bool:
     success, status_code = _send_webmention(source_urlpath, endpoint, target_url)
 
     status.target_webmention_endpoint = endpoint
@@ -121,7 +120,7 @@ def _send_webmention(
     source_urlpath: str,
     endpoint: str,
     target: str,
-) -> Tuple[bool, int]:
+) -> tuple[bool, int]:
     payload = {
         "target": target,
         "source": config.build_url(source_urlpath),
@@ -144,7 +143,7 @@ def _send_webmention(
         return True, status_code
 
 
-def _get_absolute_endpoint_from_response(response: Response) -> Optional[str]:
+def _get_absolute_endpoint_from_response(response: Response) -> str | None:
     endpoint = get_endpoint_in_http_headers(response.headers) or get_endpoint_in_html(
         response.text
     )
@@ -153,7 +152,7 @@ def _get_absolute_endpoint_from_response(response: Response) -> Optional[str]:
         return _relative_to_absolute_url(response, endpoint)
 
 
-def _relative_to_absolute_url(response: Response, url: str) -> Optional[str]:
+def _relative_to_absolute_url(response: Response, url: str) -> str | None:
     """
     If given url is relative, try to construct an absolute url using response domain.
     """

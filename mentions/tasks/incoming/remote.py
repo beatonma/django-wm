@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from typing import Optional
 from urllib.parse import urljoin
 
 from mentions.exceptions import SourceDoesNotLink, SourceNotAccessible
@@ -55,8 +54,8 @@ def get_source_html(source_url: str) -> str:
 
 @dataclass
 class WebmentionMetadata:
-    post_type: Optional[IncomingMentionType]
-    hcard: Optional[HCard]
+    post_type: IncomingMentionType | None
+    hcard: HCard | None
 
 
 def get_metadata_from_source(

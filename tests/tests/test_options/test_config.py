@@ -1,5 +1,3 @@
-from typing import Optional, Set
-
 from mentions.config import accept_domain_incoming, accept_domain_outgoing
 from tests.tests.util import testfunc
 from tests.tests.util.testcase import SimpleTestCase
@@ -21,13 +19,13 @@ class AcceptDomainIncomingTests(SimpleTestCase):
 class AcceptDomainIncoming_withAllowList_Tests(SimpleTestCase):
     """Tests for config.accept_domain_incoming with domains_allow defined."""
 
-    def _assertAllowed(self, url: str, domains_allow: Set[str]):
+    def _assertAllowed(self, url: str, domains_allow: set[str]):
         self.assertTrue(
             accept_domain_incoming(url, domains_allow, None),
             msg=f"{url} not allowed by {domains_allow}",
         )
 
-    def _assertNotAllowed(self, url: str, domains_allow: Set[str]):
+    def _assertNotAllowed(self, url: str, domains_allow: set[str]):
         self.assertFalse(
             accept_domain_incoming(url, domains_allow, None),
             msg=f"{url} unexpectedly allowed by {domains_allow}",
@@ -74,13 +72,13 @@ class AcceptDomainIncoming_withAllowList_Tests(SimpleTestCase):
 class AcceptDomainIncoming_withDenyList_Tests(SimpleTestCase):
     """Tests for config.accept_domain_incoming with domains_deny defined."""
 
-    def _assertDenied(self, url: str, domains_deny: Optional[Set[str]]):
+    def _assertDenied(self, url: str, domains_deny: set[str] | None):
         self.assertFalse(
             accept_domain_incoming(url, None, domains_deny),
             msg=f"{url} not denied by {domains_deny}",
         )
 
-    def _assertNotDenied(self, url: str, domains_deny: Optional[Set[str]]):
+    def _assertNotDenied(self, url: str, domains_deny: set[str] | None):
         self.assertTrue(
             accept_domain_incoming(url, None, domains_deny),
             msg=f"{url} unexpectedly denied by {domains_deny}",
@@ -139,7 +137,7 @@ class AcceptDomainOutgoing_withAllowList_Tests(SimpleTestCase):
     def _assertAllowed(
         self,
         url: str,
-        domains_allow: Set[str],
+        domains_allow: set[str],
         allow_self_mention: bool = True,
     ):
         self.assertTrue(
@@ -155,7 +153,7 @@ class AcceptDomainOutgoing_withAllowList_Tests(SimpleTestCase):
     def _assertNotAllowed(
         self,
         url: str,
-        domains_allow: Set[str],
+        domains_allow: set[str],
         allow_self_mention: bool = True,
     ):
         self.assertFalse(
@@ -200,7 +198,7 @@ class AcceptDomainOutgoing_withDenyList_Tests(SimpleTestCase):
     def _assertDenied(
         self,
         url: str,
-        domains_deny: Set[str],
+        domains_deny: set[str],
         allow_self_mention: bool = True,
     ):
         self.assertFalse(
@@ -216,7 +214,7 @@ class AcceptDomainOutgoing_withDenyList_Tests(SimpleTestCase):
     def _assertNotDenied(
         self,
         url: str,
-        domains_deny: Set[str],
+        domains_deny: set[str],
         allow_self_mention: bool = True,
     ):
         self.assertTrue(

@@ -1,4 +1,4 @@
-from typing import Callable, Optional, Type
+from collections.abc import Callable
 
 from django.apps import apps
 from django.http import HttpRequest
@@ -61,7 +61,7 @@ def get_model_for_url_by_wagtail(match: ResolverMatch) -> MentionableMixin:
     model_name = view_kwargs.get(contract.URLPATTERNS_MODEL_NAME)
 
     try:
-        model_class: Type[MentionableMixin] = resolve_model(model_name, page)
+        model_class: type[MentionableMixin] = resolve_model(model_name, page)
 
     except LookupError:
         raise BadUrlConfig(f"Cannot find model `{model_name}`!")
@@ -84,7 +84,7 @@ def autopage_page_resolver(
     return wrapped_view_func
 
 
-def resolve_app_name(module_name: str) -> Optional[str]:
+def resolve_app_name(module_name: str) -> str | None:
     app_configs = apps.get_app_configs()
     for conf in app_configs:
         if module_name.startswith(conf.name):
@@ -93,7 +93,7 @@ def resolve_app_name(module_name: str) -> Optional[str]:
     raise LookupError(f"Cannot find app for module {module_name}")
 
 
-def resolve_model(model_class: ModelClass, context: object) -> Type[MentionableImpl]:
+def resolve_model(model_class: ModelClass, context: object) -> type[MentionableImpl]:
     """Resolve a model type from an identifier.
 
     model_class may be:

@@ -1,6 +1,5 @@
 import logging
 import random
-from typing import Optional
 
 from django.db import models
 from django.urls import reverse
@@ -46,7 +45,7 @@ def create_article(
     author: str,
     target_url: str,
     mention_type: str,
-    content: Optional[str] = None,
+    content: str | None = None,
 ) -> BasePost:
     from mentions.models.mixins import IncomingMentionType
 

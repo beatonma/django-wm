@@ -1,8 +1,9 @@
 """
 Ensure HCard objects are correctly built from HTML elements with the 'h-card' class.
 """
+
 import logging
-from typing import Callable, Optional, Union
+from collections.abc import Callable
 
 from mentions.models import HCard
 from mentions.tasks.incoming.remote import get_metadata_from_source
@@ -17,8 +18,8 @@ MENTION_ANCHOR = f"""<a href="{MENTIONED_URL}">Our content</a>"""
 
 def _hcard_from_soup(
     html: str,
-    source_url: Union[Callable, str] = testfunc.random_url,
-) -> Optional[HCard]:
+    source_url: Callable | str = testfunc.random_url,
+) -> HCard | None:
     if callable(source_url):
         source_url = source_url()
     return get_metadata_from_source(

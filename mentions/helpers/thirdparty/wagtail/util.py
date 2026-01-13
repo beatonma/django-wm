@@ -1,4 +1,4 @@
-from typing import Callable
+from collections.abc import Callable
 
 from mentions import contract
 from mentions.helpers.types import ModelClass
