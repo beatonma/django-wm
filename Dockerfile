@@ -11,7 +11,6 @@ COPY ./mentions ./mentions
 COPY ./tests ./tests
 COPY ./pyproject.toml .
 COPY ./requirements.txt .
-COPY ./setup.cfg .
 COPY ./runtests.py .
 RUN --mount=type=cache,target=/root/.cache/pip pip install -r /tmp/src/requirements.txt
 RUN python /tmp/src/runtests.py
